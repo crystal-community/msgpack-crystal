@@ -10,15 +10,19 @@ class Msgpack
     end
 
     def self.unpack(bytes : Array(Int))
-        unpack(bytes.map { |byte| byte.to_u8 })
+        unpack(Slice(UInt8).new(bytes.size.to_i32) { |i| bytes[i].to_u8 })
     end
 
     def self.unpack(bytes : Array(UInt8))
+        unpack(Slice(UInt8).new(bytes.size.to_i32) { |i| bytes[i] })
+    end
+
+    def self.unpack(bytes : Slice(UInt8))
         Unpacker.new(bytes).next_value
     end
 
     class Unpacker
-        def initialize(buffer : Array(UInt8))
+        def initialize(buffer : Slice(UInt8))
             @buffer = buffer
             @offset = 0
         end
@@ -108,14 +112,14 @@ class Msgpack
         end
 
         private def read_bytes(size)
-            slice = @buffer[@offset, size]
+            slice = @buffer[@offset, size.to_i32]
             @offset += size
             slice
         end
 
         private def convert(klass, bytes)
             type = klass.new
-            size = bytes.size
+            size = bytes.length
             case size
                 when 2
                     type.byte_array = StaticArray(UInt8, 2).new { |i| bytes[1 - i] }
