@@ -132,11 +132,7 @@ class Msgpack
         end
 
         private def read_string(size)
-            string = StringIO.new
-            read_bytes(size).each_slice(4048) do |slice|
-              string.write Slice(UInt8).new(slice.size.to_i32) { |i| slice[i] }
-            end
-            string.to_s
+            String.new(read_bytes(size))
         end
 
         private def read_int16
