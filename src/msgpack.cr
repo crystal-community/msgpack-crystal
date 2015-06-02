@@ -62,9 +62,9 @@ class Msgpack
         size = read_uint32
         read_string(size)
       when 0xCA
-        (reverse(read_bytes(4)).to_unsafe as Float32*).value
+        (reverse(read_bytes(4)) as Float32*).value
       when 0xCB
-        (reverse(read_bytes(8)).to_unsafe as Float64*).value
+        (reverse(read_bytes(8)) as Float64*).value
       when 0xCC
         read_byte
       when 0xCD
@@ -117,7 +117,13 @@ class Msgpack
 
     private def reverse(bytes)
       size = bytes.length
-      Slice(UInt8).new(size) { |i| bytes[(size - 1) - i] }
+      pointer = bytes.to_unsafe
+
+      (size / 2).times do |i|
+        pointer.swap(i, (size - 1) - i)
+      end
+      
+      pointer
     end
 
     private def read_string(size)
@@ -125,27 +131,27 @@ class Msgpack
     end
 
     private def read_int16
-      (reverse(read_bytes(2)).to_unsafe as Int16*).value
+      (reverse(read_bytes(2)) as Int16*).value
     end
 
     private def read_int32
-      (reverse(read_bytes(4)).to_unsafe as Int32*).value
+      (reverse(read_bytes(4)) as Int32*).value
     end
 
     private def read_int64
-      (reverse(read_bytes(8)).to_unsafe as Int64*).value
+      (reverse(read_bytes(8)) as Int64*).value
     end
 
     private def read_uint16
-      (reverse(read_bytes(2)).to_unsafe as UInt16*).value
+      (reverse(read_bytes(2)) as UInt16*).value
     end
 
     private def read_uint32
-      (reverse(read_bytes(4)).to_unsafe as UInt32*).value
+      (reverse(read_bytes(4)) as UInt32*).value
     end
 
     private def read_uint64
-      (reverse(read_bytes(8)).to_unsafe as UInt64*).value
+      (reverse(read_bytes(8)) as UInt64*).value
     end
 
     private def read_array(size)
