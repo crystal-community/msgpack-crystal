@@ -1,2 +1,4 @@
 require "spec"
-require "../src/msgpack"
+require "../src/message_pack"
+
+include MessagePack
