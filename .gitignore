@@ -1,2 +1,6 @@
 .crystal/
 .DS_Store
+
+test.cr
+test.rb
+worksheet.cr

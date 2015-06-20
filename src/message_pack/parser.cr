@@ -7,9 +7,9 @@ class MessagePack::Parser
   end
 
   def parse
-    json = parse_value
+    value = parse_value
     check :EOF
-    json
+    value
   end
 
   private def parse_value

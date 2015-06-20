@@ -44,44 +44,44 @@ class MessagePack::Lexer
     when 0xC4
       consume_string(next_byte)
     when 0xC5
-      consume_string(read_uint(16))
+      consume_string(read_uint16)
     when 0xC6
-      consume_string(read_uint(32))
+      consume_string(read_uint32)
     when 0xCA
-      consume_float(32)
+      consume_float(read_float32)
     when 0xCB
-      consume_float(64)
-    when 0xCC 
-      consume_uint(8)
+      consume_float(read_float64)
+    when 0xCC
+      consume_uint(read_uint8)
     when 0xCD
-      consume_uint(16)
+      consume_uint(read_uint16)
     when 0xCE
-      consume_uint(32)
+      consume_uint(read_uint32)
     when 0xCF
-      consume_uint(64)
+      consume_uint(read_uint64)
     when 0xD0
-      consume_int(8)
+      consume_int(read_int8)
     when 0xD1
-      consume_int(16)
+      consume_int(read_int16)
     when 0xD2
-      consume_int(32)
+      consume_int(read_int32)
     when 0xD3
-      consume_int(64)
+      consume_int(read_int64)
     when 0xD9
-      consume_string(read_uint(8))
+      consume_string(read_uint8)
     when 0xDA
-      consume_string(read_uint(16))
+      consume_string(read_uint16)
     when 0xDB
-      consume_string(read_uint(32))
+      consume_string(read_uint32)
     when 0xDC
-      next_byte(:ARRAY, read_uint(16))
+      next_byte(:ARRAY, read_uint16)
     when 0xDD
-      next_byte(:ARRAY, read_uint(32))
+      next_byte(:ARRAY, read_uint32)
     when 0xDE
-      next_byte(:HASH, read_uint(16))
+      next_byte(:HASH, read_uint16)
     when 0xDF
-      next_byte(:HASH, read_uint(32))
-    when 
+      next_byte(:HASH, read_uint32)
+    when
       unexpected_byte
     end
 
@@ -90,7 +90,7 @@ class MessagePack::Lexer
 
   private def next_byte
     @byte_number += 1
-    byte = @io.read_byte 
+    byte = @io.read_byte
 
     unless byte
       @eof = true
@@ -103,84 +103,24 @@ class MessagePack::Lexer
     @token.type = type
     @token.size = size
     next_byte
-  end 
+  end
 
-  private def consume_uint(size)
+  private def consume_uint(value)
     @token.type = :UINT
-    @token.uint_value = read_uint(size)
+    @token.uint_value = value
     next_byte
   end
 
-  private def consume_int(size)
+  private def consume_int(value)
     @token.type = :INT
-    @token.int_value = read_int(size)
+    @token.int_value = value
     next_byte
   end
 
-  private def consume_float(size)
+  private def consume_float(value)
     @token.type = :FLOAT
-    @token.float_value = read_float(size)
+    @token.float_value = value
     next_byte
-  end
-
-  private def read_uint(size)
-    @byte_number += size / 8
-    case size
-    when 8
-      next_byte
-    when 16
-      b1, b2 = [next_byte, next_byte]
-      tuple16 = {b2, b1}
-      (pointerof(tuple16) as UInt16*).value
-    when 32
-      b1, b2, b3, b4 = [next_byte, next_byte, next_byte, next_byte]
-      tuple32 = {b4 , b3, b2, b1}
-      (pointerof(tuple32) as UInt32*).value
-    when 64
-      b1, b2, b3, b4, b5, b6, b7, b8 = [next_byte, next_byte, next_byte, next_byte, next_byte, next_byte, next_byte, next_byte]
-      tuple64 = {b8, b7, b6, b5, b4 , b3, b2, b1}
-      (pointerof(tuple64) as UInt64*).value
-    else
-      raise "Invalid UInt size expected 2, 4 or 8 got #{size}"
-    end
-  end
-
-  private def read_int(size)
-    @byte_number += size / 8
-    case size
-    when 8
-      next_byte.to_i8
-    when 16
-      b1, b2 = [next_byte, next_byte]
-      tuple16 = {b2, b1}
-      (pointerof(tuple16) as Int16*).value
-    when 32
-      b1, b2, b3, b4 = [next_byte, next_byte, next_byte, next_byte]
-      tuple32 = {b4 , b3, b2, b1}
-      (pointerof(tuple32) as Int32*).value
-    when 64
-      b1, b2, b3, b4, b5, b6, b7, b8 = [next_byte, next_byte, next_byte, next_byte, next_byte, next_byte, next_byte, next_byte]
-      tuple64 = {b8, b7, b6, b5, b4 , b3, b2, b1}
-      (pointerof(tuple64) as Int64*).value
-    else
-      raise "Invalid Int size expected 16, 32 or 64 got #{size}"
-    end
-  end
-
-  private def read_float(size)
-    @byte_number += size / 8
-    case size
-    when 32
-      b1, b2, b3, b4 = [next_byte, next_byte, next_byte, next_byte]
-      tuple32 = {b4 , b3, b2, b1}
-      (pointerof(tuple32) as Float32*).value
-    when 64
-      b1, b2, b3, b4, b5, b6, b7, b8 = [next_byte, next_byte, next_byte, next_byte, next_byte, next_byte, next_byte, next_byte]
-      tuple64 = {b8, b7, b6, b5, b4 , b3, b2, b1}
-      (pointerof(tuple64) as Float64*).value
-    else
-      raise "Invalid UInt size expected 32 or 64 got #{size}"
-    end
   end
 
   private def consume_string(size)
@@ -194,6 +134,70 @@ class MessagePack::Lexer
     @io.read(slice)
     @byte_number += size
     slice
+  end
+
+  private def read_uint8
+    next_byte
+  end
+
+  private def read_uint16
+    @byte_number += 2
+    b1, b2 = [next_byte, next_byte]
+    tuple16 = {b2, b1}
+    (pointerof(tuple16) as UInt16*).value
+  end
+
+  private def read_uint32
+    @byte_number += 4
+    b1, b2, b3, b4 = [next_byte, next_byte, next_byte, next_byte]
+    tuple = {b4 , b3, b2, b1}
+    (pointerof(tuple) as UInt32*).value
+  end
+
+  private def read_uint64
+    @byte_number += 8
+    b1, b2, b3, b4, b5, b6, b7, b8 = [next_byte, next_byte, next_byte, next_byte, next_byte, next_byte, next_byte, next_byte]
+    tuple64 = {b8, b7, b6, b5, b4 , b3, b2, b1}
+    (pointerof(tuple64) as UInt64*).value
+  end
+
+  private def read_int8
+    next_byte.to_i8
+  end
+
+  private def read_int16
+    @byte_number += 2
+    b1, b2 = [next_byte, next_byte]
+    tuple = {b2, b1}
+    (pointerof(tuple) as Int16*).value
+  end
+
+  private def read_int32
+    @byte_number += 4
+    b1, b2, b3, b4 = [next_byte, next_byte, next_byte, next_byte]
+    tuple = {b4 , b3, b2, b1}
+    (pointerof(tuple) as Int32*).value
+  end
+
+  private def read_int64
+    @byte_number += 8
+    b1, b2, b3, b4, b5, b6, b7, b8 = [next_byte, next_byte, next_byte, next_byte, next_byte, next_byte, next_byte, next_byte]
+    tuple = {b8, b7, b6, b5, b4 , b3, b2, b1}
+    (pointerof(tuple) as Int64*).value
+  end
+
+  private def read_float32
+    @byte_number += 4
+    b1, b2, b3, b4 = [next_byte, next_byte, next_byte, next_byte]
+    tuple = {b4 , b3, b2, b1}
+    (pointerof(tuple) as Float32*).value
+  end
+
+  private def read_float64
+    @byte_number += 8
+    b1, b2, b3, b4, b5, b6, b7, b8 = [next_byte, next_byte, next_byte, next_byte, next_byte, next_byte, next_byte, next_byte]
+    tuple = {b8, b7, b6, b5, b4 , b3, b2, b1}
+    (pointerof(tuple) as Float64*).value
   end
 
   private def unexpected_byte(byte = current_byte)
