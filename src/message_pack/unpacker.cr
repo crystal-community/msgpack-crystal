@@ -1,18 +1,18 @@
 require "./lexer"
 
-class MessagePack::Parser
+class MessagePack::Unpacker
   def initialize(string_or_io)
     @lexer = MessagePack::Lexer.new(string_or_io)
     next_token
   end
 
-  def parse
-    value = parse_value
+  def read
+    value = read_value
     check :EOF
     value
   end
 
-  private def parse_value
+  private def read_value
     case token.type
     when :INT
       value_and_next_token token.int_value
@@ -29,34 +29,34 @@ class MessagePack::Parser
     when :false
       value_and_next_token false
     when :ARRAY
-      parse_array
+      read_array
     when :HASH
-      parse_hash
+      read_hash
     else
       unexpected_token
     end
   end
 
-  private def parse_array
+  private def read_array
     size = token.size
     next_token
     ary = [] of Type
 
     size.times do
-      ary << parse_value
+      ary << read_value
     end
 
     ary
   end
 
-  private def parse_hash
+  private def read_hash
     size = token.size
     next_token
     hash = {} of Type => Type
 
     size.times do
-      key       = parse_value
-      hash[key] = parse_value
+      key       = read_value
+      hash[key] = read_value
     end
 
     hash
@@ -75,6 +75,6 @@ class MessagePack::Parser
   end
 
   private def unexpected_token
-    raise ParseException.new("unexpected token '#{token}'", token.byte_number)
+    raise UnpackException.new("unexpected token '#{token}'", token.byte_number)
   end
 end

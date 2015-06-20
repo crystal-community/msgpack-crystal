@@ -81,14 +81,11 @@ class MessagePack::Packer
     length = value.length
     case length
     when (0x00..0x0F)
-      # fixmap
       @io.write(pack((0x80 + length).to_u8))
     when (0x0000..0xFFFF)
-      # map16
       @io.write(UInt8[0xDE])
       @io.write(pack(length.to_u16))
     when (0x00000000..0xFFFFFFFF)
-      # map32
       @io.write(UInt8[0xDF])
       @io.write(pack(length.to_u32))
     else
@@ -105,14 +102,11 @@ class MessagePack::Packer
   def write(value : Array(Type))
     case value.size
     when (0x00..0x0F)
-      # fixarray
       @io.write(pack((0x90 + value.size).to_u8))
     when (0x0000..0xFFFF)
-      # array16
       @io.write(UInt8[0xDC])
       @io.write(pack(value.size.to_u16))
     when (0x00000000..0xFFFFFFFF)
-      # array32
       @io.write(UInt8[0xDD])
       @io.write(pack(value.size.to_u32))
     else

@@ -196,7 +196,7 @@ class MessagePack::Lexer
 
   private def read_float64
     b1, b2, b3, b4, b5, b6, b7, b8 = next_bytes(8)
-    tuple = {b8, b7, b6, b5, b4 , b3, b2, b1}
+    tuple = {b8, b7, b6, b5, b4, b3, b2, b1}
     (pointerof(tuple) as Float64*).value
   end
 
@@ -205,6 +205,6 @@ class MessagePack::Lexer
   end
 
   private def raise(msg)
-    ::raise ParseException.new(msg, @byte_number)
+    ::raise UnpackException.new(msg, @byte_number)
   end
 end

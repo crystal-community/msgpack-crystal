@@ -14,16 +14,8 @@ module MessagePack
 
   # Parses a string, returning a `MessagePack::Table`.
   def self.unpack(string_or_io : (String | IO))
-    case string_or_io
-    when String
-      Parser.new(StringIO.new(string_or_io)).parse
-    when IO
-      Parser.new(string_or_io).parse
-    end
-  end
-
-  def self.parse(string_or_io : (String | IO))
-    unpack(string_or_io)
+    io = string_or_io.is_a?(String) ? StringIO.new(string_or_io) : string_or_io
+    Unpacker.new(io).read
   end
 end
 

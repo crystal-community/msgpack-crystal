@@ -11,7 +11,7 @@ private def it_raises_on_parse(description, bytes, file = __FILE__, line = __LIN
   slice = Slice(UInt8).new(bytes.buffer, bytes.length)
 
   it "raises on parse #{description}", file, line do
-    expect_raises MessagePack::ParseException do
+    expect_raises MessagePack::UnpackException do
       MessagePack.unpack(SliceIO(UInt8).new(slice))
     end
   end
