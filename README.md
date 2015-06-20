@@ -2,10 +2,7 @@
 
 In implementation of the MessagePack spec for crystal. 
 
-For now it only supports unpacking as I'm waiting for feedback to implement the packer side.
-
-I've use @iconara's ruby implementation as an example
-https://github.com/iconara/msgpack-pure-ruby
+It supports Packing and Unpacking from a string or an IO
 
 ## Copyright
 
