@@ -12,7 +12,77 @@ class MessagePack::Unpacker
     value
   end
 
-  private def read_value
+  def read_int
+    check :INT
+    read_value
+  end
+
+  def read_uint
+    check :UINT
+    read_value
+  end
+
+  def read_float
+    check :FLOAT
+    read_value
+  end
+
+  def read_string
+    check :STRING
+    read_value
+  end
+
+  def read_nil
+    check :nil
+    read_value
+  end
+
+  def read_bool
+    unexpected_token unless [:true, :false].includes?(token.type)
+    read_value
+  end
+
+  def read_array
+    size = token.size
+    next_token
+
+    size.times do
+      yield
+    end
+  end
+
+  def read_array
+    ary = [] of Type
+    read_array do
+      ary << read_value
+    end
+    ary
+  end
+
+  def read_hash(read_key = true)
+    size = token.size
+    next_token
+
+    size.times do
+      if read_key
+        key = read_value
+        yield key
+      else
+        yield
+      end
+    end
+  end
+
+  def read_hash
+    hash = {} of Type => Type
+
+    read_hash do |key|
+      hash[key] = read_value
+    end
+    hash
+  end
+
+  def read_value
     case token.type
     when :INT
       value_and_next_token token.int_value
@@ -35,31 +105,6 @@ class MessagePack::Unpacker
     else
       unexpected_token
     end
-  end
-
-  private def read_array
-    size = token.size
-    next_token
-    ary = [] of Type
-
-    size.times do
-      ary << read_value
-    end
-
-    ary
-  end
-
-  private def read_hash
-    size = token.size
-    next_token
-    hash = {} of Type => Type
-
-    size.times do
-      key       = read_value
-      hash[key] = read_value
-    end
-
-    hash
   end
 
   private delegate token, @lexer

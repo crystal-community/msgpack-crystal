@@ -1,5 +1,53 @@
 require "./spec_helper"
 
+private def it_pulls_int(description, expected_value, bytes, file = __FILE__, line = __LINE__)
+  slice = Slice(UInt8).new(bytes.buffer, bytes.length)
+  it "pulls #{description}", file, line do
+    unpacker = MessagePack::Unpacker.new(SliceIO(UInt8).new(slice))
+    unpacker.read_int.should eq(expected_value)
+  end
+end
+
+private def it_pulls_uint(description, expected_value, bytes, file = __FILE__, line = __LINE__)
+  slice = Slice(UInt8).new(bytes.buffer, bytes.length)
+  it "pulls #{description}", file, line do
+    unpacker = MessagePack::Unpacker.new(SliceIO(UInt8).new(slice))
+    unpacker.read_uint.should eq(expected_value)
+  end
+end
+
+private def it_pulls_float(description, expected_value, bytes, file = __FILE__, line = __LINE__)
+  slice = Slice(UInt8).new(bytes.buffer, bytes.length)
+  it "pulls #{description}", file, line do
+    unpacker = MessagePack::Unpacker.new(SliceIO(UInt8).new(slice))
+    unpacker.read_float.should eq(expected_value)
+  end
+end
+
+private def it_pulls_string(description, expected_value, bytes, file = __FILE__, line = __LINE__)
+  slice = Slice(UInt8).new(bytes.buffer, bytes.length)
+  it "pulls #{description}", file, line do
+    unpacker = MessagePack::Unpacker.new(SliceIO(UInt8).new(slice))
+    unpacker.read_string.should eq(expected_value)
+  end
+end
+
+private def it_pulls_bool(description, expected_value, bytes, file = __FILE__, line = __LINE__)
+  slice = Slice(UInt8).new(bytes.buffer, bytes.length)
+  it "pulls #{description}", file, line do
+    unpacker = MessagePack::Unpacker.new(SliceIO(UInt8).new(slice))
+    unpacker.read_bool.should eq(expected_value)
+  end
+end
+
+private def it_pulls_nil(description, expected_value, bytes, file = __FILE__, line = __LINE__)
+  slice = Slice(UInt8).new(bytes.buffer, bytes.length)
+  it "pulls #{description}", file, line do
+    unpacker = MessagePack::Unpacker.new(SliceIO(UInt8).new(slice))
+    unpacker.read_nil.should eq(expected_value)
+  end
+end
+
 private def it_parses(description, expected_value, bytes, file = __FILE__, line = __LINE__)
   slice = Slice(UInt8).new(bytes.buffer, bytes.length)
   it "parses #{description}", file, line do
@@ -17,10 +65,10 @@ private def it_raises_on_parse(description, bytes, file = __FILE__, line = __LIN
   end
 end
 
-describe "MessagePack::Parser" do
-  it_parses("nil", nil, UInt8[0xC0u8])
-  it_parses("false", false, UInt8[0xC2u8])
-  it_parses("true", true, UInt8[0xC3u8])
+describe "MessagePack::Unpacker" do
+  it_parses("nil", nil, UInt8[0xC0])
+  it_parses("false", false, UInt8[0xC2])
+  it_parses("true", true, UInt8[0xC3])
 
   it_parses("zero", 0, UInt8[0x00])
   it_parses("fix num", 127, UInt8[0x7f])
@@ -66,4 +114,55 @@ describe "MessagePack::Parser" do
   it_parses("hashes with mixed keys and values", {"foo" => "bar", 3 => "three", "four" => 4, "x" => ["y"], "a" => "b"}, UInt8[0x85,0xa3] + "foo".bytes + UInt8[0xa3] + "bar".bytes + UInt8[0x03,0xa5] + "three".bytes + UInt8[0xa4] + "four".bytes + UInt8[0x04, 0xa1] + "x".bytes + UInt8[0x91, 0xa1] + "y".bytes + UInt8[0xa1] + "a".bytes + UInt8[0xa1] + "b".bytes)
   it_parses("hashes of hashes", {({"x" => {"y" => "z"}}) => "s"}, UInt8[0x81, 0x81, 0xa1] + "x".bytes + UInt8[0x81, 0xa1] + "y".bytes + UInt8[0xa1] + "z".bytes + UInt8[0xa1] + "s".bytes)
   it_parses("hashes with nils", {"foo" => nil}, UInt8[0x81, 0xa3] + "foo".bytes + UInt8[0xc0])
+
+  it_pulls_int("-1", -1, UInt8[0xff])
+  it_pulls_uint("127", 127, UInt8[0x7f])
+  it_pulls_float("1.0", 1.0, UInt8[0xcb,0x3f,0xf0,0x00,0x00,0x00,0x00,0x00,0x00])
+  it_pulls_string("1.0", "hello world", UInt8[0xAB] + "hello world".bytes)
+  it_pulls_bool("false", false, UInt8[0xC2])
+  it_pulls_bool("true", true, UInt8[0xC3])
+  it_pulls_nil("nil", nil, UInt8[0xC0])
+
+  it "pulls arrays" do
+    bytes = UInt8[0x92, 0x01, 0x02]
+    slice = Slice(UInt8).new(bytes.buffer, bytes.length)
+    unpacker = MessagePack::Unpacker.new(SliceIO(UInt8).new(slice))
+
+    unpacker.read_array.should eq([1,2])
+
+    unpacker = MessagePack::Unpacker.new(SliceIO(UInt8).new(slice))
+
+    i = 0
+    unpacker.read_array do
+      case i
+        when 0
+          unpacker.read_uint.should eq(1)
+        else
+          unpacker.read_uint.should eq(2)
+      end
+      i += 1
+    end
+  end
+
+  it "pulls hashes" do
+    bytes = UInt8[0x81,0xa3] + "foo".bytes + UInt8[0xa3] + "bar".bytes
+    slice = Slice(UInt8).new(bytes.buffer, bytes.length)
+    unpacker = MessagePack::Unpacker.new(SliceIO(UInt8).new(slice))
+
+    unpacker.read_hash.should eq({"foo" => "bar"})
+
+    unpacker = MessagePack::Unpacker.new(SliceIO(UInt8).new(slice))
+
+    unpacker.read_hash do |key|
+      key.should eq("foo")
+      unpacker.read_string.should eq("bar")
+    end
+
+    unpacker = MessagePack::Unpacker.new(SliceIO(UInt8).new(slice))
+
+    unpacker.read_hash(false) do
+      unpacker.read_string.should eq("foo")
+      unpacker.read_string.should eq("bar")
+    end
+  end
 end
