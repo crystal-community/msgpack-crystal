@@ -96,7 +96,15 @@ class MessagePack::Lexer
       @eof = true
     end
 
-    @current_byte = (byte || 0.to_u8) as UInt8
+    @current_byte = byte || 0.to_u8
+  end
+
+  private def next_bytes(size)
+    @byte_number += size
+
+    bytes = Slice(UInt8).new(size)
+    @io.read(bytes)
+    bytes
   end
 
   private def next_byte(type, size)
@@ -141,22 +149,19 @@ class MessagePack::Lexer
   end
 
   private def read_uint16
-    @byte_number += 2
-    b1, b2 = [next_byte, next_byte]
+    b1, b2 = next_bytes(2)
     tuple16 = {b2, b1}
     (pointerof(tuple16) as UInt16*).value
   end
 
   private def read_uint32
-    @byte_number += 4
-    b1, b2, b3, b4 = [next_byte, next_byte, next_byte, next_byte]
+    b1, b2, b3, b4 = next_bytes(4)
     tuple = {b4 , b3, b2, b1}
     (pointerof(tuple) as UInt32*).value
   end
 
   private def read_uint64
-    @byte_number += 8
-    b1, b2, b3, b4, b5, b6, b7, b8 = [next_byte, next_byte, next_byte, next_byte, next_byte, next_byte, next_byte, next_byte]
+    b1, b2, b3, b4, b5, b6, b7, b8 = next_bytes(8)
     tuple64 = {b8, b7, b6, b5, b4 , b3, b2, b1}
     (pointerof(tuple64) as UInt64*).value
   end
@@ -166,36 +171,31 @@ class MessagePack::Lexer
   end
 
   private def read_int16
-    @byte_number += 2
-    b1, b2 = [next_byte, next_byte]
+    b1, b2 = next_bytes(2)
     tuple = {b2, b1}
     (pointerof(tuple) as Int16*).value
   end
 
   private def read_int32
-    @byte_number += 4
-    b1, b2, b3, b4 = [next_byte, next_byte, next_byte, next_byte]
+    b1, b2, b3, b4 = next_bytes(4)
     tuple = {b4 , b3, b2, b1}
     (pointerof(tuple) as Int32*).value
   end
 
   private def read_int64
-    @byte_number += 8
-    b1, b2, b3, b4, b5, b6, b7, b8 = [next_byte, next_byte, next_byte, next_byte, next_byte, next_byte, next_byte, next_byte]
+    b1, b2, b3, b4, b5, b6, b7, b8 = next_bytes(8)
     tuple = {b8, b7, b6, b5, b4 , b3, b2, b1}
     (pointerof(tuple) as Int64*).value
   end
 
   private def read_float32
-    @byte_number += 4
-    b1, b2, b3, b4 = [next_byte, next_byte, next_byte, next_byte]
+    b1, b2, b3, b4 = next_bytes(4)
     tuple = {b4 , b3, b2, b1}
     (pointerof(tuple) as Float32*).value
   end
 
   private def read_float64
-    @byte_number += 8
-    b1, b2, b3, b4, b5, b6, b7, b8 = [next_byte, next_byte, next_byte, next_byte, next_byte, next_byte, next_byte, next_byte]
+    b1, b2, b3, b4, b5, b6, b7, b8 = next_bytes(8)
     tuple = {b8, b7, b6, b5, b4 , b3, b2, b1}
     (pointerof(tuple) as Float64*).value
   end
