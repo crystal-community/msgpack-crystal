@@ -1,4 +1,3 @@
-# :nodoc:
 class MessagePack::Lexer
   getter token
   getter current_byte

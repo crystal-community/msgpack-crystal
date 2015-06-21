@@ -14,32 +14,32 @@ class MessagePack::Unpacker
 
   def read_int
     check :INT
-    read_value
+    token.int_value.tap { next_token }
   end
 
   def read_uint
     check :UINT
-    read_value
+    token.uint_value.tap { next_token }
   end
 
   def read_float
     check :FLOAT
-    read_value
+    token.float_value.tap { next_token }
   end
 
   def read_string
     check :STRING
-    read_value
+    token.string_value.tap { next_token }
   end
 
   def read_nil
     check :nil
-    read_value
+    nil.tap { next_token }
   end
 
   def read_bool
     unexpected_token unless [:true, :false].includes?(token.type)
-    read_value
+    (token.type == :true).tap { next_token }
   end
 
   def read_array
