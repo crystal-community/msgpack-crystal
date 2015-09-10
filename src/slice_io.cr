@@ -16,11 +16,19 @@ class SliceIO(T)
     count
   end
 
+  def read(slice : Slice(UInt8))
+    read(slice, slice.length)
+  end
+
   def write(slice : Slice(UInt8), count)
     slice.copy_to(@buffer.to_unsafe + @bytesize, count)
     @bytesize += count
 
     count
+  end
+
+  def write(slice : Slice(UInt8))
+    write(slice, slice.length)
   end
 
   def clear
