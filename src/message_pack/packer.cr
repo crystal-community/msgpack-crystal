@@ -78,7 +78,7 @@ class MessagePack::Packer
   end
 
   def write(value : Hash(Type, Type))
-    length = value.length
+    length = value.size
     case length
     when (0x00..0x0F)
       @io.write(pack((0x80 + length).to_u8))

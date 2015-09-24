@@ -5,7 +5,7 @@ class SliceIO(T)
   getter bytesize
 
   def initialize(@buffer : Slice(T))
-    @bytesize = @buffer.length
+    @bytesize = @buffer.size
     @pos = 0
   end
 
@@ -16,11 +16,19 @@ class SliceIO(T)
     count
   end
 
+  def read(slice : Slice(UInt8))
+    read(slice, slice.size)
+  end
+
   def write(slice : Slice(UInt8), count)
     slice.copy_to(@buffer.to_unsafe + @bytesize, count)
     @bytesize += count
 
     count
+  end
+
+  def write(slice : Slice(UInt8))
+    write(slice, slize.size)
   end
 
   def clear

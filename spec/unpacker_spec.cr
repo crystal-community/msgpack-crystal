@@ -1,7 +1,7 @@
 require "./spec_helper"
 
 private def it_pulls_int(description, expected_value, bytes, file = __FILE__, line = __LINE__)
-  slice = Slice(UInt8).new(bytes.buffer, bytes.length)
+  slice = Slice(UInt8).new(bytes.buffer, bytes.size)
   it "pulls #{description}", file, line do
     unpacker = MessagePack::Unpacker.new(SliceIO(UInt8).new(slice))
     unpacker.read_int.should eq(expected_value)
@@ -9,7 +9,7 @@ private def it_pulls_int(description, expected_value, bytes, file = __FILE__, li
 end
 
 private def it_pulls_uint(description, expected_value, bytes, file = __FILE__, line = __LINE__)
-  slice = Slice(UInt8).new(bytes.buffer, bytes.length)
+  slice = Slice(UInt8).new(bytes.buffer, bytes.size)
   it "pulls #{description}", file, line do
     unpacker = MessagePack::Unpacker.new(SliceIO(UInt8).new(slice))
     unpacker.read_uint.should eq(expected_value)
@@ -17,7 +17,7 @@ private def it_pulls_uint(description, expected_value, bytes, file = __FILE__, l
 end
 
 private def it_pulls_float(description, expected_value, bytes, file = __FILE__, line = __LINE__)
-  slice = Slice(UInt8).new(bytes.buffer, bytes.length)
+  slice = Slice(UInt8).new(bytes.buffer, bytes.size)
   it "pulls #{description}", file, line do
     unpacker = MessagePack::Unpacker.new(SliceIO(UInt8).new(slice))
     unpacker.read_float.should eq(expected_value)
@@ -25,7 +25,7 @@ private def it_pulls_float(description, expected_value, bytes, file = __FILE__, 
 end
 
 private def it_pulls_string(description, expected_value, bytes, file = __FILE__, line = __LINE__)
-  slice = Slice(UInt8).new(bytes.buffer, bytes.length)
+  slice = Slice(UInt8).new(bytes.buffer, bytes.size)
   it "pulls #{description}", file, line do
     unpacker = MessagePack::Unpacker.new(SliceIO(UInt8).new(slice))
     unpacker.read_string.should eq(expected_value)
@@ -33,7 +33,7 @@ private def it_pulls_string(description, expected_value, bytes, file = __FILE__,
 end
 
 private def it_pulls_bool(description, expected_value, bytes, file = __FILE__, line = __LINE__)
-  slice = Slice(UInt8).new(bytes.buffer, bytes.length)
+  slice = Slice(UInt8).new(bytes.buffer, bytes.size)
   it "pulls #{description}", file, line do
     unpacker = MessagePack::Unpacker.new(SliceIO(UInt8).new(slice))
     unpacker.read_bool.should eq(expected_value)
@@ -41,7 +41,7 @@ private def it_pulls_bool(description, expected_value, bytes, file = __FILE__, l
 end
 
 private def it_pulls_nil(description, expected_value, bytes, file = __FILE__, line = __LINE__)
-  slice = Slice(UInt8).new(bytes.buffer, bytes.length)
+  slice = Slice(UInt8).new(bytes.buffer, bytes.size)
   it "pulls #{description}", file, line do
     unpacker = MessagePack::Unpacker.new(SliceIO(UInt8).new(slice))
     unpacker.read_nil.should eq(expected_value)
@@ -49,14 +49,14 @@ private def it_pulls_nil(description, expected_value, bytes, file = __FILE__, li
 end
 
 private def it_parses(description, expected_value, bytes, file = __FILE__, line = __LINE__)
-  slice = Slice(UInt8).new(bytes.buffer, bytes.length)
+  slice = Slice(UInt8).new(bytes.buffer, bytes.size)
   it "parses #{description}", file, line do
     MessagePack.unpack(SliceIO(UInt8).new(slice)).should eq(expected_value)
   end
 end
 
 private def it_raises_on_parse(description, bytes, file = __FILE__, line = __LINE__)
-  slice = Slice(UInt8).new(bytes.buffer, bytes.length)
+  slice = Slice(UInt8).new(bytes.buffer, bytes.size)
 
   it "raises on parse #{description}", file, line do
     expect_raises MessagePack::UnpackException do
@@ -125,7 +125,7 @@ describe "MessagePack::Unpacker" do
 
   it "pulls arrays" do
     bytes = UInt8[0x92, 0x01, 0x02]
-    slice = Slice(UInt8).new(bytes.buffer, bytes.length)
+    slice = Slice(UInt8).new(bytes.buffer, bytes.size)
     unpacker = MessagePack::Unpacker.new(SliceIO(UInt8).new(slice))
 
     unpacker.read_array.should eq([1,2])
@@ -146,7 +146,7 @@ describe "MessagePack::Unpacker" do
 
   it "pulls hashes" do
     bytes = UInt8[0x81,0xa3] + "foo".bytes + UInt8[0xa3] + "bar".bytes
-    slice = Slice(UInt8).new(bytes.buffer, bytes.length)
+    slice = Slice(UInt8).new(bytes.buffer, bytes.size)
     unpacker = MessagePack::Unpacker.new(SliceIO(UInt8).new(slice))
 
     unpacker.read_hash.should eq({"foo" => "bar"})

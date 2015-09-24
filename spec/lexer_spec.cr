@@ -1,7 +1,7 @@
 require "./spec_helper"
 
 private def it_lexes(description, expected_type, bytes, file = __FILE__, line = __LINE__)
-  slice = Slice(UInt8).new(bytes.buffer, bytes.length)
+  slice = Slice(UInt8).new(bytes.buffer, bytes.size)
 
   it "lexes #{description} from IO", file, line do
     lexer = Lexer.new SliceIO(UInt8).new(slice)
@@ -11,7 +11,7 @@ private def it_lexes(description, expected_type, bytes, file = __FILE__, line = 
 end
 
 private def it_lexes_int(description, int_value, bytes, file = __FILE__, line = __LINE__)
-  slice = Slice(UInt8).new(bytes.buffer, bytes.length)
+  slice = Slice(UInt8).new(bytes.buffer, bytes.size)
 
   it "lexes #{description} from IO", file, line do
     lexer = Lexer.new SliceIO(UInt8).new(slice)
@@ -22,7 +22,7 @@ private def it_lexes_int(description, int_value, bytes, file = __FILE__, line = 
 end
 
 private def it_lexes_uint(description, uint_value, bytes, file = __FILE__, line = __LINE__)
-  slice = Slice(UInt8).new(bytes.buffer, bytes.length)
+  slice = Slice(UInt8).new(bytes.buffer, bytes.size)
 
   it "lexes #{description} from IO", file, line do
     lexer = Lexer.new SliceIO(UInt8).new(slice)
@@ -33,7 +33,7 @@ private def it_lexes_uint(description, uint_value, bytes, file = __FILE__, line 
 end
 
 private def it_lexes_float(description, float_value, bytes, file = __FILE__, line = __LINE__)
-  slice = Slice(UInt8).new(bytes.buffer, bytes.length)
+  slice = Slice(UInt8).new(bytes.buffer, bytes.size)
 
   it "lexes #{description}", file, line do
     lexer = Lexer.new SliceIO(UInt8).new(slice)
@@ -44,7 +44,7 @@ private def it_lexes_float(description, float_value, bytes, file = __FILE__, lin
 end
 
 private def it_lexes_string(description, string_value, bytes, file = __FILE__, line = __LINE__)
-  slice = Slice(UInt8).new(bytes.buffer, bytes.length)
+  slice = Slice(UInt8).new(bytes.buffer, bytes.size)
 
   it "lexes #{description}", file, line do
     lexer = Lexer.new SliceIO(UInt8).new(slice)
@@ -55,7 +55,7 @@ private def it_lexes_string(description, string_value, bytes, file = __FILE__, l
 end
 
 private def it_lexes_binary(description, string_value, bytes, file = __FILE__, line = __LINE__)
-  slice = Slice(UInt8).new(bytes.buffer, bytes.length)
+  slice = Slice(UInt8).new(bytes.buffer, bytes.size)
 
   it "lexes #{description}", file, line do
     lexer = Lexer.new SliceIO(UInt8).new(slice)
@@ -66,7 +66,7 @@ private def it_lexes_binary(description, string_value, bytes, file = __FILE__, l
 end
 
 private def it_lexes_arrays(description, size, bytes, file = __FILE__, line = __LINE__)
-  slice = Slice(UInt8).new(bytes.buffer, bytes.length)
+  slice = Slice(UInt8).new(bytes.buffer, bytes.size)
 
   it "lexes #{description}", file, line do
     lexer = Lexer.new SliceIO(UInt8).new(slice)
@@ -77,7 +77,7 @@ private def it_lexes_arrays(description, size, bytes, file = __FILE__, line = __
 end
 
 private def it_lexes_hashes(description, size, bytes, file = __FILE__, line = __LINE__)
-  slice = Slice(UInt8).new(bytes.buffer, bytes.length)
+  slice = Slice(UInt8).new(bytes.buffer, bytes.size)
 
   it "lexes #{description}", file, line do
     lexer = Lexer.new SliceIO(UInt8).new(slice)
