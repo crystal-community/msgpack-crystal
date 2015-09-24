@@ -19,5 +19,4 @@ module MessagePack
   end
 end
 
-require "./slice_io"
 require "./message_pack/*"

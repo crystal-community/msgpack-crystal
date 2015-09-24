@@ -1,20 +1,20 @@
 require "./spec_helper"
 
 private def it_lexes(description, expected_type, bytes, file = __FILE__, line = __LINE__)
-  slice = Slice(UInt8).new(bytes.buffer, bytes.size)
+  string = String.new(bytes.buffer, bytes.size)
 
   it "lexes #{description} from IO", file, line do
-    lexer = Lexer.new SliceIO(UInt8).new(slice)
+    lexer = Lexer.new StringIO.new(string)
     token = lexer.next_token
     token.type.should eq(expected_type)
   end
 end
 
 private def it_lexes_int(description, int_value, bytes, file = __FILE__, line = __LINE__)
-  slice = Slice(UInt8).new(bytes.buffer, bytes.size)
+  string = String.new(bytes.buffer, bytes.size)
 
   it "lexes #{description} from IO", file, line do
-    lexer = Lexer.new SliceIO(UInt8).new(slice)
+    lexer = Lexer.new StringIO.new(string)
     token = lexer.next_token
     token.type.should eq(:INT)
     token.int_value.should eq(int_value)
@@ -22,10 +22,10 @@ private def it_lexes_int(description, int_value, bytes, file = __FILE__, line = 
 end
 
 private def it_lexes_uint(description, uint_value, bytes, file = __FILE__, line = __LINE__)
-  slice = Slice(UInt8).new(bytes.buffer, bytes.size)
+  string = String.new(bytes.buffer, bytes.size)
 
   it "lexes #{description} from IO", file, line do
-    lexer = Lexer.new SliceIO(UInt8).new(slice)
+    lexer = Lexer.new StringIO.new(string)
     token = lexer.next_token
     token.type.should eq(:UINT)
     token.uint_value.should eq(uint_value)
@@ -33,10 +33,10 @@ private def it_lexes_uint(description, uint_value, bytes, file = __FILE__, line 
 end
 
 private def it_lexes_float(description, float_value, bytes, file = __FILE__, line = __LINE__)
-  slice = Slice(UInt8).new(bytes.buffer, bytes.size)
+  string = String.new(bytes.buffer, bytes.size)
 
   it "lexes #{description}", file, line do
-    lexer = Lexer.new SliceIO(UInt8).new(slice)
+    lexer = Lexer.new StringIO.new(string)
     token = lexer.next_token
     token.type.should eq(:FLOAT)
     token.float_value.should eq(float_value)
@@ -44,10 +44,10 @@ private def it_lexes_float(description, float_value, bytes, file = __FILE__, lin
 end
 
 private def it_lexes_string(description, string_value, bytes, file = __FILE__, line = __LINE__)
-  slice = Slice(UInt8).new(bytes.buffer, bytes.size)
+  string = String.new(bytes.buffer, bytes.size)
 
   it "lexes #{description}", file, line do
-    lexer = Lexer.new SliceIO(UInt8).new(slice)
+    lexer = Lexer.new StringIO.new(string)
     token = lexer.next_token
     token.type.should eq(:STRING)
     token.string_value.should eq(string_value)
@@ -55,10 +55,10 @@ private def it_lexes_string(description, string_value, bytes, file = __FILE__, l
 end
 
 private def it_lexes_binary(description, string_value, bytes, file = __FILE__, line = __LINE__)
-  slice = Slice(UInt8).new(bytes.buffer, bytes.size)
+  string = String.new(bytes.buffer, bytes.size)
 
   it "lexes #{description}", file, line do
-    lexer = Lexer.new SliceIO(UInt8).new(slice)
+    lexer = Lexer.new StringIO.new(string)
     token = lexer.next_token
     token.type.should eq(:STRING)
     token.string_value.should eq(string_value)
@@ -66,10 +66,10 @@ private def it_lexes_binary(description, string_value, bytes, file = __FILE__, l
 end
 
 private def it_lexes_arrays(description, size, bytes, file = __FILE__, line = __LINE__)
-  slice = Slice(UInt8).new(bytes.buffer, bytes.size)
+  string = String.new(bytes.buffer, bytes.size)
 
   it "lexes #{description}", file, line do
-    lexer = Lexer.new SliceIO(UInt8).new(slice)
+    lexer = Lexer.new StringIO.new(string)
     token = lexer.next_token
     token.type.should eq(:ARRAY)
     token.size.should eq(size)
@@ -77,10 +77,10 @@ private def it_lexes_arrays(description, size, bytes, file = __FILE__, line = __
 end
 
 private def it_lexes_hashes(description, size, bytes, file = __FILE__, line = __LINE__)
-  slice = Slice(UInt8).new(bytes.buffer, bytes.size)
+  string = String.new(bytes.buffer, bytes.size)
 
   it "lexes #{description}", file, line do
-    lexer = Lexer.new SliceIO(UInt8).new(slice)
+    lexer = Lexer.new StringIO.new(string)
     token = lexer.next_token
     token.type.should eq(:HASH)
     token.size.should eq(size)
