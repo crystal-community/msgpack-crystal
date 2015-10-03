@@ -9,7 +9,7 @@ module MessagePack
   alias Table = Hash(String, Type)
 
   def self.pack(value : Type)
-    Packer.new.write(value).bytes
+    Packer.new.write(value).to_s
   end
 
   # Parses a string, returning a `MessagePack::Table`.
