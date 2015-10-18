@@ -2,12 +2,23 @@ class MessagePack::Lexer
   getter token
   getter current_byte
 
-  def initialize(io : IO)
-    @io           = io
-    @token        = Token.new
-    @byte_number  = 0
+  def self.new(string : String)
+    new MemoryIO.new(string)
+  end
+
+  def self.new(slice : Slice(UInt8))
+    io = MemoryIO.new
+    io.write(slice)
+    io.rewind
+    new(io)
+  end
+
+  def initialize(io : MemoryIO)
+    @io = io
+    @token = Token.new
+    @byte_number = 0
     @current_byte = 0
-    @eof          = false
+    @eof = false
     next_byte
   end
 
@@ -80,8 +91,7 @@ class MessagePack::Lexer
       next_byte(:HASH, read_uint16)
     when 0xDF
       next_byte(:HASH, read_uint32)
-    when
-      unexpected_byte
+    when unexpected_byte
     end
 
     @token
@@ -155,13 +165,13 @@ class MessagePack::Lexer
 
   private def read_uint32
     b1, b2, b3, b4 = next_bytes(4)
-    tuple = {b4 , b3, b2, b1}
+    tuple = {b4, b3, b2, b1}
     (pointerof(tuple) as UInt32*).value
   end
 
   private def read_uint64
     b1, b2, b3, b4, b5, b6, b7, b8 = next_bytes(8)
-    tuple64 = {b8, b7, b6, b5, b4 , b3, b2, b1}
+    tuple64 = {b8, b7, b6, b5, b4, b3, b2, b1}
     (pointerof(tuple64) as UInt64*).value
   end
 
@@ -177,19 +187,19 @@ class MessagePack::Lexer
 
   private def read_int32
     b1, b2, b3, b4 = next_bytes(4)
-    tuple = {b4 , b3, b2, b1}
+    tuple = {b4, b3, b2, b1}
     (pointerof(tuple) as Int32*).value
   end
 
   private def read_int64
     b1, b2, b3, b4, b5, b6, b7, b8 = next_bytes(8)
-    tuple = {b8, b7, b6, b5, b4 , b3, b2, b1}
+    tuple = {b8, b7, b6, b5, b4, b3, b2, b1}
     (pointerof(tuple) as Int64*).value
   end
 
   private def read_float32
     b1, b2, b3, b4 = next_bytes(4)
-    tuple = {b4 , b3, b2, b1}
+    tuple = {b4, b3, b2, b1}
     (pointerof(tuple) as Float32*).value
   end
 
