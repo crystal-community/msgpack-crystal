@@ -1,6 +1,7 @@
 # MessagePack
+[![Build Status](https://travis-ci.org/benoist/msgpack-crystal.svg)](https://travis-ci.org/benoist/msgpack-crystal)
 
-In implementation of the MessagePack spec for crystal. 
+In implementation of the MessagePack spec for crystal.
 
 It supports Packing and Unpacking from a string or an IO
 
