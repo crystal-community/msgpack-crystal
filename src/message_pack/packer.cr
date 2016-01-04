@@ -144,7 +144,7 @@ class MessagePack::Packer
   end
 
   private def write_internal(byte_array : Array(UInt8))
-    slice = Slice(UInt8).new(byte_array.buffer, byte_array.size)
+    slice = Slice(UInt8).new(byte_array.to_unsafe, byte_array.size)
 
     @io.write(slice)
   end
