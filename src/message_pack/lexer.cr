@@ -13,7 +13,7 @@ class MessagePack::Lexer
     new(io)
   end
 
-  def initialize(io : MemoryIO)
+  def initialize(io : IO)
     @io = io
     @token = Token.new
     @byte_number = 0

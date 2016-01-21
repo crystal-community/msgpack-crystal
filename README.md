@@ -5,6 +5,10 @@ In implementation of the MessagePack spec for crystal.
 
 It supports Packing and Unpacking from a string or an IO
 
+## Examples
+
+Please see the examples folder for some packing and unpacking examples.
+
 ## Copyright
 
 Copyright 2015 Benoist Claassen
