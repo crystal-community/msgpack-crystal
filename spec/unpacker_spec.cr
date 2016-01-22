@@ -165,4 +165,20 @@ describe "MessagePack::Unpacker" do
       unpacker.read_string.should eq("bar")
     end
   end
+
+  it "unpacks from file" do
+    file = File.open(File.expand_path("./fixtures/multiple_writes.msgpack", __DIR__), "r")
+    unpacker = MessagePack::Unpacker.new(file)
+
+    unpacker.read_string.should eq("Some string")
+    unpacker.read_uint.should eq(1)
+
+    unpacker.read_hash.should eq({"key" => "value", "key1" => 1, "key2" => true})
+    unpacker.read_hash.should eq({"key" => "value2", "key1" => 2, "key2" => false})
+
+    expect_raises MessagePack::UnpackException do
+      unpacker.read_hash
+      unpacker.read_hash
+    end
+  end
 end
