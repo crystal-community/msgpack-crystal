@@ -175,10 +175,5 @@ describe "MessagePack::Unpacker" do
 
     unpacker.read_hash.should eq({"key" => "value", "key1" => 1, "key2" => true})
     unpacker.read_hash.should eq({"key" => "value2", "key1" => 2, "key2" => false})
-
-    expect_raises MessagePack::UnpackException do
-      unpacker.read_hash
-      unpacker.read_hash
-    end
   end
 end
