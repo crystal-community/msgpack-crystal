@@ -6,6 +6,10 @@ class MessagePack::Unpacker
     next_token
   end
 
+  def has_next
+    token.type != :EOF
+  end
+
   def read
     value = read_value
     check :EOF
