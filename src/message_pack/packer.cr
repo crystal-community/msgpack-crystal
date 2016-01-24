@@ -10,7 +10,14 @@ class MessagePack::Packer
   end
 
   def write(value : Nil | Bool)
-    write_internal(pack(value))
+    case value
+      when Nil
+        write_byte(0xC0)
+      when true
+        write_byte(0xC3)
+      when false
+        write_byte(0xC2)
+    end
     self
   end
 
@@ -18,18 +25,18 @@ class MessagePack::Packer
     case value.size
     when (0x00..0x1F)
       # fixraw
-      write_internal(pack((0xA0 + value.size).to_u8))
-      write_internal(value.bytes)
+      write_byte(0xA0 + value.size)
+      write_bytes(value.bytes)
     when (0x0000..0xFFFF)
       # raw16
-      write_internal(UInt8[0xDA])
-      write_internal(pack(value.size.to_u16))
-      write_internal(value.bytes)
+      write_byte(0xDA)
+      write_value(value.size.to_u16)
+      write_bytes(value.bytes)
     when (0x00000000..0xFFFFFFFF)
       # raw32
-      write_internal(UInt8[0xDB])
-      write_internal(pack(value.size.to_u32))
-      write_internal(value.bytes)
+      write_byte(0xDB)
+      write_value(value.size.to_u32)
+      write_bytes(value.bytes)
     else
       raise("invalid length")
     end
@@ -39,37 +46,37 @@ class MessagePack::Packer
   def write(value : Float32 | Float64 | Int8 | Int16 | Int32 | Int64 | UInt8 | UInt16 | UInt32 | UInt64)
     case value
     when Float32
-      write_internal(UInt8[0xCA])
+      write_byte(0xCA)
     when Float64
-      write_internal(UInt8[0xCB])
+      write_byte(0xCB)
     when UInt8
       case value
       when 0x00..0x7f
         # positive fixnum
       else
-        write_internal(UInt8[0xCC])
+        write_byte(0xCC)
       end
     when UInt16
-      write_internal(UInt8[0xCD])
+      write_byte(0xCD)
     when UInt32
-      write_internal(UInt8[0xCE])
+      write_byte(0xCE)
     when UInt64
-      write_internal(UInt8[0xCF])
+      write_byte(0xCF)
     when Int8
       case value
       when (-0x20..0x7F)
         # positive fixnum, negative fixnum
       else
-        write_internal(UInt8[0xD0])
+        write_byte(0xD0)
       end
     when Int16
-      write_internal(UInt8[0xD1])
+      write_byte(0xD1)
     when Int32
-      write_internal(UInt8[0xD2])
+      write_byte(0xD2)
     when Int64
-      write_internal(UInt8[0xD3])
+      write_byte(0xD3)
     end
-    write_internal(pack(value))
+    write_value(value)
     self
   end
 
@@ -77,13 +84,13 @@ class MessagePack::Packer
     length = value.size
     case length
     when (0x00..0x0F)
-      write_internal(pack((0x80 + length).to_u8))
+      write_byte(0x80 + length)
     when (0x0000..0xFFFF)
-      write_internal(UInt8[0xDE])
-      write_internal(pack(length.to_u16))
+      write_byte(0xDE)
+      write_value(length.to_u16)
     when (0x00000000..0xFFFFFFFF)
-      write_internal(UInt8[0xDF])
-      write_internal(pack(length.to_u32))
+      write_byte(0xDF)
+      write_value(length.to_u32)
     else
       raise("invalid length")
     end
@@ -98,13 +105,13 @@ class MessagePack::Packer
   def write(value : Array(Type))
     case value.size
     when (0x00..0x0F)
-      write_internal(pack((0x90 + value.size).to_u8))
+      write_byte(0x90 + value.size)
     when (0x0000..0xFFFF)
-      write_internal(UInt8[0xDC])
-      write_internal(pack(value.size.to_u16))
+      write_byte(0xDC)
+      write_value(value.size.to_u16)
     when (0x00000000..0xFFFFFFFF)
-      write_internal(UInt8[0xDD])
-      write_internal(pack(value.size.to_u32))
+      write_byte(0xDD)
+      write_value(value.size.to_u32)
     else
       raise("invalid length")
     end
@@ -115,38 +122,17 @@ class MessagePack::Packer
     self
   end
 
-  private def pack(value : Nil)
-    UInt8[0xC0]
+  private def write_byte(byte)
+    @io.write_byte(byte.to_u8)
   end
 
-  private def pack(value : Bool)
-    value ? UInt8[0xC3] : UInt8[0xC2]
-  end
-
-  private def pack(value : Int8 | UInt8)
-    b1 = (pointerof(value) as UInt8*).value
-    UInt8[b1]
-  end
-
-  private def pack(value : Int16 | UInt16)
-    b1, b2 = (pointerof(value) as {UInt8, UInt8}*).value
-    UInt8[b2, b1]
-  end
-
-  private def pack(value : Int32 | UInt32 | Float32)
-    b1, b2, b3, b4 = (pointerof(value) as {UInt8, UInt8, UInt8, UInt8}*).value
-    UInt8[b4, b3, b2, b1]
-  end
-
-  private def pack(value : Int64 | UInt64 | Float64)
-    b1, b2, b3, b4, b5, b6, b7, b8 = (pointerof(value) as {UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8}*).value
-    UInt8[b8, b7, b6, b5, b4, b3, b2, b1]
-  end
-
-  private def write_internal(byte_array : Array(UInt8))
+  private def write_bytes(byte_array : Array(UInt8))
     slice = Slice(UInt8).new(byte_array.to_unsafe, byte_array.size)
-
     @io.write(slice)
+  end
+
+  private def write_value(value)
+    @io.write_bytes(value, IO::ByteFormat::BigEndian)
   end
 
   def to_slice
