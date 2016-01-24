@@ -108,14 +108,6 @@ class MessagePack::Lexer
     @current_byte = byte || 0.to_u8
   end
 
-  private def next_bytes(size)
-    @byte_number += size
-
-    bytes = Slice(UInt8).new(size)
-    @io.read(bytes)
-    bytes
-  end
-
   private def next_byte(type, size)
     @token.type = type
     @token.size = size
@@ -148,7 +140,7 @@ class MessagePack::Lexer
 
   private def consume_slice(size)
     slice = Slice(UInt8).new(size.to_i32)
-    @io.read(slice)
+    @io.read_fully(slice)
     @byte_number += size
     slice
   end
@@ -158,21 +150,18 @@ class MessagePack::Lexer
   end
 
   private def read_uint16
-    b1, b2 = next_bytes(2)
-    tuple16 = {b2, b1}
-    (pointerof(tuple16) as UInt16*).value
+    @byte_number += 2
+    @io.read_bytes(UInt16, IO::ByteFormat::BigEndian)
   end
 
   private def read_uint32
-    b1, b2, b3, b4 = next_bytes(4)
-    tuple = {b4, b3, b2, b1}
-    (pointerof(tuple) as UInt32*).value
+    @byte_number += 4
+    @io.read_bytes(UInt32, IO::ByteFormat::BigEndian)
   end
 
   private def read_uint64
-    b1, b2, b3, b4, b5, b6, b7, b8 = next_bytes(8)
-    tuple64 = {b8, b7, b6, b5, b4, b3, b2, b1}
-    (pointerof(tuple64) as UInt64*).value
+    @byte_number += 8
+    @io.read_bytes(UInt64, IO::ByteFormat::BigEndian)
   end
 
   private def read_int8
@@ -180,33 +169,28 @@ class MessagePack::Lexer
   end
 
   private def read_int16
-    b1, b2 = next_bytes(2)
-    tuple = {b2, b1}
-    (pointerof(tuple) as Int16*).value
+    @byte_number += 2
+    @io.read_bytes(Int16, IO::ByteFormat::BigEndian)
   end
 
   private def read_int32
-    b1, b2, b3, b4 = next_bytes(4)
-    tuple = {b4, b3, b2, b1}
-    (pointerof(tuple) as Int32*).value
+    @byte_number += 4
+    @io.read_bytes(Int32, IO::ByteFormat::BigEndian)
   end
 
   private def read_int64
-    b1, b2, b3, b4, b5, b6, b7, b8 = next_bytes(8)
-    tuple = {b8, b7, b6, b5, b4, b3, b2, b1}
-    (pointerof(tuple) as Int64*).value
+    @byte_number += 8
+    @io.read_bytes(Int64, IO::ByteFormat::BigEndian)
   end
 
   private def read_float32
-    b1, b2, b3, b4 = next_bytes(4)
-    tuple = {b4, b3, b2, b1}
-    (pointerof(tuple) as Float32*).value
+    @byte_number += 4
+    @io.read_bytes(Float32, IO::ByteFormat::BigEndian)
   end
 
   private def read_float64
-    b1, b2, b3, b4, b5, b6, b7, b8 = next_bytes(8)
-    tuple = {b8, b7, b6, b5, b4, b3, b2, b1}
-    (pointerof(tuple) as Float64*).value
+    @byte_number += 8
+    @io.read_bytes(Float64, IO::ByteFormat::BigEndian)
   end
 
   private def unexpected_byte(byte = current_byte)
