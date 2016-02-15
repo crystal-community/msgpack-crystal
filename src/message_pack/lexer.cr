@@ -52,43 +52,43 @@ class MessagePack::Lexer
     when 0xC4
       consume_string(next_byte)
     when 0xC5
-      consume_string(read_uint16)
+      consume_string(read UInt16)
     when 0xC6
-      consume_string(read_uint32)
+      consume_string(read UInt32)
     when 0xCA
-      consume_float(read_float32)
+      consume_float(read Float32)
     when 0xCB
-      consume_float(read_float64)
+      consume_float(read Float64)
     when 0xCC
-      consume_uint(read_uint8)
+      consume_uint(read UInt8)
     when 0xCD
-      consume_uint(read_uint16)
+      consume_uint(read UInt16)
     when 0xCE
-      consume_uint(read_uint32)
+      consume_uint(read UInt32)
     when 0xCF
-      consume_uint(read_uint64)
+      consume_uint(read UInt64)
     when 0xD0
-      consume_int(read_int8)
+      consume_int(read Int8)
     when 0xD1
-      consume_int(read_int16)
+      consume_int(read Int16)
     when 0xD2
-      consume_int(read_int32)
+      consume_int(read Int32)
     when 0xD3
-      consume_int(read_int64)
+      consume_int(read Int64)
     when 0xD9
-      consume_string(read_uint8)
+      consume_string(read UInt8)
     when 0xDA
-      consume_string(read_uint16)
+      consume_string(read UInt16)
     when 0xDB
-      consume_string(read_uint32)
+      consume_string(read UInt32)
     when 0xDC
-      next_byte(:ARRAY, read_uint16)
+      next_byte(:ARRAY, read UInt16)
     when 0xDD
-      next_byte(:ARRAY, read_uint32)
+      next_byte(:ARRAY, read UInt32)
     when 0xDE
-      next_byte(:HASH, read_uint16)
+      next_byte(:HASH, read UInt16)
     when 0xDF
-      next_byte(:HASH, read_uint32)
+      next_byte(:HASH, read UInt32)
     when unexpected_byte
     end
 
@@ -132,63 +132,25 @@ class MessagePack::Lexer
 
   private def consume_string(size)
     @token.type = :STRING
-    @token.string_value = String.new(consume_slice(size))
-    next_byte
-  end
-
-  private def consume_slice(size)
-    slice = Slice(UInt8).new(size.to_i32)
-    @io.read_fully(slice)
+    @token.string_value = String.new(size) do |buffer|
+      @io.read_fully(Slice.new(buffer, size))
+      {size, 0}
+    end
     @byte_number += size
-    slice
+    next_byte
   end
 
   private def read_uint8
     next_byte
   end
 
-  private def read_uint16
-    @byte_number += 2
-    @io.read_bytes(UInt16, IO::ByteFormat::BigEndian)
-  end
-
-  private def read_uint32
-    @byte_number += 4
-    @io.read_bytes(UInt32, IO::ByteFormat::BigEndian)
-  end
-
-  private def read_uint64
-    @byte_number += 8
-    @io.read_bytes(UInt64, IO::ByteFormat::BigEndian)
-  end
-
   private def read_int8
     next_byte.to_i8
   end
 
-  private def read_int16
-    @byte_number += 2
-    @io.read_bytes(Int16, IO::ByteFormat::BigEndian)
-  end
-
-  private def read_int32
-    @byte_number += 4
-    @io.read_bytes(Int32, IO::ByteFormat::BigEndian)
-  end
-
-  private def read_int64
-    @byte_number += 8
-    @io.read_bytes(Int64, IO::ByteFormat::BigEndian)
-  end
-
-  private def read_float32
-    @byte_number += 4
-    @io.read_bytes(Float32, IO::ByteFormat::BigEndian)
-  end
-
-  private def read_float64
-    @byte_number += 8
-    @io.read_bytes(Float64, IO::ByteFormat::BigEndian)
+  private def read(type : T.class)
+    @byte_number += sizeof(T)
+    @io.read_bytes(T, IO::ByteFormat::BigEndian)
   end
 
   private def unexpected_byte(byte = current_byte)
