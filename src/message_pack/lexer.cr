@@ -7,8 +7,7 @@ class MessagePack::Lexer
   end
 
   def self.new(slice : Slice(UInt8))
-    io = MemoryIO.new(slice)
-    new(io)
+    new MemoryIO.new(slice)
   end
 
   def initialize(io : IO)
@@ -138,14 +137,6 @@ class MessagePack::Lexer
     end
     @byte_number += size
     next_byte
-  end
-
-  private def read_uint8
-    next_byte
-  end
-
-  private def read_int8
-    next_byte.to_i8
   end
 
   private def read(type : T.class)
