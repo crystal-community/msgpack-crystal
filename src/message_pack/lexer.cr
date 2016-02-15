@@ -7,9 +7,7 @@ class MessagePack::Lexer
   end
 
   def self.new(slice : Slice(UInt8))
-    io = MemoryIO.new
-    io.write(slice)
-    io.rewind
+    io = MemoryIO.new(slice)
     new(io)
   end
 
