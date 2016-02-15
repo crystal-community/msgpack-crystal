@@ -60,4 +60,20 @@ describe "pack and unpack integration specs" do
     unpack = MessagePack::Unpacker.new(packer.to_slice)
     unpack.read_string.should eq str
   end
+
+  it "tuples" do
+    tuple = {1, true, "false", 1.5}
+    packer = MessagePack::Packer.new
+    packer.write(tuple)
+    unpack = MessagePack::Unpacker.new(packer.to_slice)
+    unpack.read_array.should eq([1, true, "false", 1.5])
+  end
+
+  it "symbol" do
+    val = :bla
+    packer = MessagePack::Packer.new
+    packer.write(val)
+    unpack = MessagePack::Unpacker.new(packer.to_slice)
+    unpack.read_string.should eq "bla"
+  end
 end
