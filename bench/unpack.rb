@@ -1,14 +1,15 @@
 require "msgpack"
-# gem install msgpack
 
 def test_unpack(name, count, data)
-  packed = data.to_msgpack
+  slice = data.to_msgpack
   t = Time.now
   print name
+  res = 0
   count.times do |i|
-    MessagePack.unpack(packed)
+    obj = MessagePack.unpack(slice)
+    res += obj.size
   end
-  puts " = #{Time.now - t}"
+  puts " = #{res}, #{Time.now - t}"
 end
 
 t = Time.now
