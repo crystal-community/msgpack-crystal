@@ -11,12 +11,12 @@ class MessagePack::Packer
 
   def write(value : Nil | Bool)
     case value
-      when Nil
-        write_byte(0xC0)
-      when true
-        write_byte(0xC3)
-      when false
-        write_byte(0xC2)
+    when Nil
+      write_byte(0xC0)
+    when true
+      write_byte(0xC3)
+    when false
+      write_byte(0xC2)
     end
     self
   end
