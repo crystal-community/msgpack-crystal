@@ -22,20 +22,21 @@ class MessagePack::Packer
   end
 
   def write(value : String)
+    bytesize = value.bytesize
     case value.size
     when (0x00..0x1F)
       # fixraw
-      write_byte(0xA0 + value.size)
+      write_byte(0xA0 + bytesize)
       write_slice(value.to_slice)
     when (0x0000..0xFFFF)
       # raw16
       write_byte(0xDA)
-      write_value(value.size.to_u16)
+      write_value(bytesize.to_u16)
       write_slice(value.to_slice)
     when (0x00000000..0xFFFFFFFF)
       # raw32
       write_byte(0xDB)
-      write_value(value.size.to_u32)
+      write_value(bytesize.to_u32)
       write_slice(value.to_slice)
     else
       raise("invalid length")

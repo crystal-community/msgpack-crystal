@@ -52,4 +52,12 @@ describe "pack and unpack integration specs" do
     unpack = MessagePack::Unpacker.new(packer.to_slice)
     unpack.read_hash.should eq({"key1" => 11.5, "key2" => [true, "value", 38]})
   end
+
+  it "works with unicode strings" do
+    str = "⬠ ⬡ ⬢ ⬣ ⬤ ⬥ ⬦"
+    packer = MessagePack::Packer.new
+    packer.write(str)
+    unpack = MessagePack::Unpacker.new(packer.to_slice)
+    unpack.read_string.should eq str
+  end
 end
