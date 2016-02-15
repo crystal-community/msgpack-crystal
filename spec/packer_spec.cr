@@ -33,6 +33,7 @@ describe "MessagePack::Packer" do
 
   it_packs("", UInt8[0xA0])
   it_packs("hello world", UInt8[0xAB] + "hello world".bytes)
+  it_packs("x" * 200, UInt8[0xD9, 200] + ("x" * 200).bytes)
   it_packs("x" * 0xdddd, UInt8[0xDA, 0xDD, 0xDD] + ("x" * 0xdddd).bytes)
   it_packs("x" * 0x10000, UInt8[0xDB, 0x00, 0x01, 0x00, 0x00] + ("x" * 0x10000).bytes)
 

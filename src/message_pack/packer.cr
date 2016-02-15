@@ -28,6 +28,11 @@ struct MessagePack::Packer
       # fixraw
       write_byte(0xA0 + bytesize)
       write_slice(value.to_slice)
+    when (0x0000..0xFF)
+      # raw8
+      write_byte(0xD9)
+      write_value(bytesize.to_u8)
+      write_slice(value.to_slice)
     when (0x0000..0xFFFF)
       # raw16
       write_byte(0xDA)
