@@ -23,7 +23,7 @@ class MessagePack::Packer
 
   def write(value : String)
     bytesize = value.bytesize
-    case value.size
+    case bytesize
     when (0x00..0x1F)
       # fixraw
       write_byte(0xA0 + bytesize)
