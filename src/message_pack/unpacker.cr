@@ -42,8 +42,16 @@ class MessagePack::Unpacker
   end
 
   def read_bool
-    unexpected_token unless [:true, :false].includes?(token.type)
-    (token.type == :true).tap { next_token }
+    case token.type
+    when :true
+      next_token
+      true
+    when :false
+      next_token
+      false
+    else
+      unexpected_token
+    end
   end
 
   def read_array
@@ -56,11 +64,11 @@ class MessagePack::Unpacker
   end
 
   def read_array
-    ary = [] of Type
-    read_array do
-      ary << read_value
+    size = token.size
+    next_token
+    Array(Type).new(size.to_i32) do
+      read_value
     end
-    ary
   end
 
   def read_hash(read_key = true)
@@ -78,8 +86,7 @@ class MessagePack::Unpacker
   end
 
   def read_hash
-    hash = {} of Type => Type
-
+    hash = Hash(Type, Type).new(initial_capacity: token.size.to_i32)
     read_hash do |key|
       hash[key] = read_value
     end
