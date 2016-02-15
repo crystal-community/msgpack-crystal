@@ -1,4 +1,4 @@
-class MessagePack::Packer
+struct MessagePack::Packer
   def self.new(io = MemoryIO.new : IO)
     packer = new(io)
     yield packer
@@ -153,7 +153,7 @@ class MessagePack::Packer
   end
 
   private def write_slice(slice)
-    IO.copy(MemoryIO.new(slice), @io)
+    @io.write(slice)
   end
 
   def to_slice
