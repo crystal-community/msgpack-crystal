@@ -44,6 +44,10 @@ class MessagePack::Packer
     self
   end
 
+  def write(value : Symbol)
+    write(value.to_s)
+  end
+
   def write(value : Float32 | Float64 | Int8 | Int16 | Int32 | Int64 | UInt8 | UInt16 | UInt32 | UInt64)
     case value
     when Float32
@@ -128,6 +132,14 @@ class MessagePack::Packer
       write_value(length.to_u32)
     else
       raise("invalid length")
+    end
+    self
+  end
+
+  def write(value : Tuple)
+    write_array_start(value.size)
+    value.each do |item|
+      self.write(item)
     end
     self
   end
