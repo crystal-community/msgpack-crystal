@@ -11,12 +11,12 @@ class MessagePack::Packer
 
   def write(value : Nil | Bool)
     case value
-      when Nil
-        write_byte(0xC0)
-      when true
-        write_byte(0xC3)
-      when false
-        write_byte(0xC2)
+    when Nil
+      write_byte(0xC0)
+    when true
+      write_byte(0xC3)
+    when false
+      write_byte(0xC2)
     end
     self
   end
@@ -81,7 +81,16 @@ class MessagePack::Packer
   end
 
   def write(value : Hash(Type, Type))
-    length = value.size
+    write_hash_start(value.size)
+
+    value.each do |key, value|
+      self.write(key)
+      self.write(value)
+    end
+    self
+  end
+
+  def write_hash_start(length)
     case length
     when (0x00..0x0F)
       write_byte(0x80 + length)
@@ -94,30 +103,30 @@ class MessagePack::Packer
     else
       raise("invalid length")
     end
-
-    value.each do |key, value|
-      self.write(key)
-      self.write(value)
-    end
     self
   end
 
   def write(value : Array(Type))
-    case value.size
-    when (0x00..0x0F)
-      write_byte(0x90 + value.size)
-    when (0x0000..0xFFFF)
-      write_byte(0xDC)
-      write_value(value.size.to_u16)
-    when (0x00000000..0xFFFFFFFF)
-      write_byte(0xDD)
-      write_value(value.size.to_u32)
-    else
-      raise("invalid length")
-    end
+    write_array_start(value.size)
 
     value.each do |item|
       self.write(item)
+    end
+    self
+  end
+
+  def write_array_start(length)
+    case length
+    when (0x00..0x0F)
+      write_byte(0x90 + length)
+    when (0x0000..0xFFFF)
+      write_byte(0xDC)
+      write_value(length.to_u16)
+    when (0x00000000..0xFFFFFFFF)
+      write_byte(0xDD)
+      write_value(length.to_u32)
+    else
+      raise("invalid length")
     end
     self
   end
