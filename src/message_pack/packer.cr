@@ -26,17 +26,17 @@ class MessagePack::Packer
     when (0x00..0x1F)
       # fixraw
       write_byte(0xA0 + value.size)
-      IO.copy(MemoryIO.new(value.to_slice), @io)
+      write_slice(value.to_slice)
     when (0x0000..0xFFFF)
       # raw16
       write_byte(0xDA)
       write_value(value.size.to_u16)
-      IO.copy(MemoryIO.new(value.to_slice), @io)
+      write_slice(value.to_slice)
     when (0x00000000..0xFFFFFFFF)
       # raw32
       write_byte(0xDB)
       write_value(value.size.to_u32)
-      IO.copy(MemoryIO.new(value.to_slice), @io)
+      write_slice(value.to_slice)
     else
       raise("invalid length")
     end
@@ -128,6 +128,10 @@ class MessagePack::Packer
 
   private def write_value(value)
     @io.write_bytes(value, IO::ByteFormat::BigEndian)
+  end
+
+  private def write_slice(slice)
+    IO.copy(MemoryIO.new(slice), @io)
   end
 
   def to_slice
