@@ -5,7 +5,7 @@ def test_pack(name, count, data)
   print name
   res = 0
   count.times do |i|
-    res += MessagePack::Packer.new.write(data).to_slice.size
+    res += data.to_msgpack.size
   end
   puts " = #{res}, #{Time.now - t}"
 end

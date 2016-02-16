@@ -1,5 +1,4 @@
-require "msgpack"
-# gem install msgpack
+require "msgpack" # gem install msgpack
 
 def test_pack(name, count, data)
   t = Time.now
