@@ -27,25 +27,22 @@ struct MessagePack::Packer
     when (0x00..0x1F)
       # fixraw
       write_byte(0xA0 + bytesize)
-      write_slice(value.to_slice)
     when (0x0000..0xFF)
       # raw8
       write_byte(0xD9)
       write_value(bytesize.to_u8)
-      write_slice(value.to_slice)
     when (0x0000..0xFFFF)
       # raw16
       write_byte(0xDA)
       write_value(bytesize.to_u16)
-      write_slice(value.to_slice)
     when (0x00000000..0xFFFFFFFF)
       # raw32
       write_byte(0xDB)
       write_value(bytesize.to_u32)
-      write_slice(value.to_slice)
     else
       raise Error.new("invalid length")
     end
+    write_slice(value.to_slice)
     self
   end
 
