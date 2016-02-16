@@ -18,5 +18,8 @@ test_pack("hash string string", 10000, (0..1000).reduce({} of String => String) 
 test_pack("hash string float64", 10000, (0..1000).reduce({} of String => Float64) { |h, i| h["key#{i}"] = i / 10.0.to_f64; h })
 test_pack("array of strings", 10000, Array.new(1000) { |i| "data#{i}" })
 test_pack("array of floats", 20000, Array.new(3000) { |i| i / 10.0 })
-test_pack("array of mix int sizes", 20000, Array.new(3000) { |i| { 0xFF, 0xFFFF, 0xFFFFFFFF }[i % 3] })
+
+ints = [1, -1, 0x21, -0x21, 128, -128, -0x8000, 0x8000, 0xFFFF, -0xFFFF, -0x80000000, 0x80000000, -9223372036854775808, 9223372036854775808, 0xFFFFFFFF, -0xFFFFFFFF]
+test_pack("array of mix int sizes", 2000, Array.new(30000) { |i| ints[i % ints.size] })
+
 puts "Summary time: #{Time.now - t}"
