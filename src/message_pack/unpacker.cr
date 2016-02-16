@@ -6,8 +6,17 @@ class MessagePack::Unpacker
     next_token
   end
 
+  def self.new(array : Array(UInt8))
+    slice = Slice(UInt8).new(array.to_unsafe, array.size)
+    new(slice)
+  end
+
   def has_next
     token.type != :EOF
+  end
+
+  def kind
+    token.type
   end
 
   def read
@@ -41,6 +50,15 @@ class MessagePack::Unpacker
     nil.tap { next_token }
   end
 
+  def read_nil_or
+    if token.type == :nil
+      next_token
+      nil
+    else
+      yield
+    end
+  end
+
   def read_bool
     case token.type
     when :true
@@ -54,28 +72,32 @@ class MessagePack::Unpacker
     end
   end
 
-  def read_array
-    size = token.size
-    next_token
+  def read_array_size
+    token_size.tap { next_token }
+  end
 
-    size.times do
+  def token_size
+    token.size
+  end
+
+  def read_array
+    read_array_size.times do
       yield
     end
   end
 
   def read_array
-    size = token.size
-    next_token
-    Array(Type).new(size.to_i32) do
+    Array(Type).new(read_array_size.to_i32) do
       read_value
     end
   end
 
-  def read_hash(read_key = true)
-    size = token.size
-    next_token
+  def read_hash_size
+    token_size.tap { next_token }
+  end
 
-    size.times do
+  def read_hash(read_key = true)
+    read_hash_size.times do
       if read_key
         key = read_value
         yield key
@@ -86,7 +108,7 @@ class MessagePack::Unpacker
   end
 
   def read_hash
-    hash = Hash(Type, Type).new(initial_capacity: token.size.to_i32)
+    hash = Hash(Type, Type).new(initial_capacity: token_size.to_i32)
     read_hash do |key|
       hash[key] = read_value
     end
@@ -113,6 +135,19 @@ class MessagePack::Unpacker
       read_array
     when :HASH
       read_hash
+    else
+      unexpected_token
+    end
+  end
+
+  def skip_value
+    case token.type
+    when :INT, :UINT, :FLOAT, :STRING, :nil, :true, :false
+      next_token
+    when :ARRAY
+      read_array_size.times { skip_value }
+    when :HASH
+      read_hash_size.times { skip_value; skip_value }
     else
       unexpected_token
     end

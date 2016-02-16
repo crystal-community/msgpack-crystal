@@ -44,7 +44,7 @@ struct MessagePack::Packer
       write_value(bytesize.to_u32)
       write_slice(value.to_slice)
     else
-      raise("invalid length")
+      raise Error.new("invalid length")
     end
     self
   end
@@ -111,7 +111,7 @@ struct MessagePack::Packer
       write_byte(0xDF)
       write_value(length.to_u32)
     else
-      raise("invalid length")
+      raise Error.new("invalid length")
     end
     self
   end
@@ -136,7 +136,7 @@ struct MessagePack::Packer
       write_byte(0xDD)
       write_value(length.to_u32)
     else
-      raise("invalid length")
+      raise Error.new("invalid length")
     end
     self
   end

@@ -145,7 +145,7 @@ class MessagePack::Lexer
   end
 
   private def unexpected_byte(byte = current_byte)
-    raise "unexpected byte '#{byte}'"
+    raise Error.new("unexpected byte '#{byte}'")
   end
 
   private def raise(msg)
