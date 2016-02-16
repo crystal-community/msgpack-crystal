@@ -156,7 +156,6 @@ describe "MessagePack serialization" do
 
     it "ints" do
       data = Int64[1, -1, 0x21, -0x21, 128, -128, -0x8000, 0x8000, 0xFFFF, -0xFFFF, -0x80000000, 0x80000000, -9223372036854775808, 9223372036854775807, 4294967295, -4294967295]
-      p data
       data.class.should eq(Array(Int64))
       data.to_msgpack.should eq(as_slice(UInt8[220, 0, 16, 1, 255, 33, 208, 223, 204, 128, 208, 128, 209, 128, 0, 205, 128, 0, 205, 255, 255, 210, 255, 255, 0, 1, 210, 128, 0, 0, 0, 206, 128, 0, 0, 0, 211, 128, 0, 0, 0, 0, 0, 0, 0, 207, 127, 255, 255, 255, 255, 255, 255, 255, 206, 255, 255, 255, 255, 211, 255, 255, 255, 255, 0, 0, 0, 1]))
       typeof(data).from_msgpack(data.to_msgpack).should eq data
