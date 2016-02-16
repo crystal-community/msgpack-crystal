@@ -3,7 +3,7 @@ guard 'process', :name => 'Spec', :command => 'crystal spec'  do
   watch(/src\/(.*).cr$/)
 end
 
-guard 'process', :name => 'Worksheet', :command => 'crystal run worksheet.cr' do
+guard 'process', :name => 'Worksheet', :command => 'crystal run private/worksheet.cr' do
   watch(/src\/(.*).cr$/)
   watch('worksheet.cr')
 end

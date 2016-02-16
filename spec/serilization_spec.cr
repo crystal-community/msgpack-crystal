@@ -81,7 +81,7 @@ describe "MessagePack serialization" do
     end
 
     it "does for Int32" do
-      1.to_msgpack.should eq as_slice(UInt8[210, 0, 0, 0, 1])
+      1.to_msgpack.should eq as_slice(UInt8[1])
     end
 
     it "does for Float64" do
@@ -93,32 +93,31 @@ describe "MessagePack serialization" do
     end
 
     it "does for Array" do
-      [1, 2, 3].to_msgpack.should eq as_slice(UInt8[147, 210, 0, 0, 0, 1, 210, 0, 0, 0, 2, 210, 0, 0, 0, 3])
+      [1, 2, 3].to_msgpack.should eq as_slice(UInt8[147, 1, 2, 3])
     end
 
     it "does for Set" do
-      Set(Int32).new([1, 1, 2]).to_msgpack.should eq as_slice(UInt8[146, 210, 0, 0, 0, 1, 210, 0, 0, 0, 2])
+      Set(Int32).new([1, 1, 2]).to_msgpack.should eq as_slice(UInt8[146, 1, 2])
     end
 
     it "does for Hash" do
-      {"foo" => 1, "bar" => 2}.to_msgpack.should eq as_slice(UInt8[130, 163, 102, 111, 111, 210, 0, 0, 0, 1, 163, 98, 97, 114, 210, 0, 0, 0, 2])
+      {"foo" => 1, "bar" => 2}.to_msgpack.should eq as_slice(UInt8[130, 163, 102, 111, 111, 1, 163, 98, 97, 114, 2])
     end
 
     it "does for Hash with non-string keys" do
-      {foo: 1, bar: 2}.to_msgpack.should eq as_slice(UInt8[130, 163, 102, 111, 111, 210, 0, 0, 0, 1, 163, 98, 97, 114, 210, 0, 0, 0, 2])
+      {foo: 1, bar: 2}.to_msgpack.should eq as_slice(UInt8[130, 163, 102, 111, 111, 1, 163, 98, 97, 114, 2])
     end
 
     it "does for Hash with non-string keys" do
-      {[1, 2, 3] => 1, [2] => 2}.to_msgpack.should eq as_slice(UInt8[130, 147, 210, 0, 0, 0, 1, 210, 0, 0, 0, 2, 210, 0, 0, 0, 3, 210, 0, 0, 0, 1, 145, 210, 0, 0, 0, 2, 210, 0, 0, 0, 2])
-      # TODO: it should be UInt8[130, 147, 1, 2, 3, 1, 145, 2, 2]
+      {[1, 2, 3] => 1, [2] => 2}.to_msgpack.should eq as_slice(UInt8[130, 147, 1, 2, 3, 1, 145, 2, 2])
     end
 
     it "does for Tuple" do
-      {1, "hello"}.to_msgpack.should eq as_slice(UInt8[146, 210, 0, 0, 0, 1, 165, 104, 101, 108, 108, 111])
+      {1, "hello"}.to_msgpack.should eq as_slice(UInt8[146, 1, 165, 104, 101, 108, 108, 111])
     end
 
     it "nested data" do
-      {"foo" => [1, 2, 3], "bar" => {"jo" => {1, :bla}}}.to_msgpack.should eq as_slice(UInt8[130, 163, 102, 111, 111, 147, 210, 0, 0, 0, 1, 210, 0, 0, 0, 2, 210, 0, 0, 0, 3, 163, 98, 97, 114, 129, 162, 106, 111, 146, 210, 0, 0, 0, 1, 163, 98, 108, 97])
+      {"foo" => [1, 2, 3], "bar" => {"jo" => {1, :bla}}}.to_msgpack.should eq as_slice(UInt8[130, 163, 102, 111, 111, 147, 1, 2, 3, 163, 98, 97, 114, 129, 162, 106, 111, 146, 1, 163, 98, 108, 97])
     end
 
     it "Time" do
@@ -154,5 +153,20 @@ describe "MessagePack serialization" do
       data = {"⬠ ⬡ ⬢ ⬣ ⬤ ⬥ ⬦" => {"bar" => true}, "zoo" => {"⬤" => false}}
       typeof(data).from_msgpack(data.to_msgpack).should eq data
     end
+
+    it "ints" do
+      data = Int64[1, -1, 0x21, -0x21, 128, -128, -0x8000, 0x8000, 0xFFFF, -0xFFFF, -0x80000000, 0x80000000, -9223372036854775808, 9223372036854775807, 4294967295, -4294967295]
+      data.class.should eq(Array(Int64))
+      data.to_msgpack.should eq(as_slice(UInt8[220, 0, 16, 1, 255, 33, 208, 223, 204, 128, 208, 128, 209, 128, 0, 205, 128, 0, 205, 255, 255, 210, 255, 255, 0, 1, 210, 128, 0, 0, 0, 206, 128, 0, 0, 0, 211, 128, 0, 0, 0, 0, 0, 0, 0, 207, 127, 255, 255, 255, 255, 255, 255, 255, 206, 255, 255, 255, 255, 211, 255, 255, 255, 255, 0, 0, 0, 1]))
+      typeof(data).from_msgpack(data.to_msgpack).should eq data
+    end
+
+    it "uints" do
+      data = UInt64[17223372036854775809]
+      data.class.should eq(Array(UInt64))
+      data.to_msgpack.should eq(as_slice(UInt8[145, 207, 239, 5, 181, 157, 59, 32, 0, 1]))
+      typeof(data).from_msgpack(data.to_msgpack).should eq data
+    end
+
   end
 end
