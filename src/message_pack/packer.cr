@@ -56,10 +56,8 @@ struct MessagePack::Packer
   def write(value : Float32 | Float64)
     case value
     when Float32
-      # Float32
       write_byte(0xCA)
     when Float64
-      # Float64
       write_byte(0xCB)
     end
     write_value(value)
@@ -67,42 +65,38 @@ struct MessagePack::Packer
   end
 
   def write(value : Int8 | Int16 | Int32 | Int64 | UInt8 | UInt16 | UInt32 | UInt64)
-    case value
-    when (-0x20..0x7F)
-      # positive fixnum, negative fixnum
-      write_value(value.to_i8)
-    when (0x00..0xFF)
-      # unit8
-      write_byte(0xCC)
-      write_value(value.to_u8)
-    when (-0x80..0x7F)
-      # int8
-      write_byte(0xD0)
-      write_value(value.to_i8)
-    when (0x0000..0xFFFF)
-      # UInt16
-      write_byte(0xCD)
-      write_value(value.to_u16)
-    when (-0x8000..0x7FFF)
-      # Int16
-      write_byte(0xD1)
-      write_value(value.to_i16)
-    when (0x00000000..0xFFFFFFFF)
-      # UInt32
-      write_byte(0xCE)
-      write_value(value.to_u32)
-    when Int32
-      # Int32
-      write_byte(0xD2)
-      write_value(value.to_i32)
-    when UInt64
-      # UInt64
-      write_byte(0xCF)
-      write_value(value.to_u64)
-    when Int64
-      # Int64
-      write_byte(0xD3)
-      write_value(value.to_i64)
+    if value >= 0
+      if 0x7F.to_u8 >= value
+        write_byte(value.to_u8)
+      elsif UInt8::MAX >= value
+        write_byte(0xCC)
+        write_byte(value.to_u8)
+      elsif UInt16::MAX >= value
+        write_byte(0xCD)
+        write_value(value.to_u16)
+      elsif UInt32::MAX >= value
+        write_byte(0xCE)
+        write_value(value.to_u32)
+      else
+        write_byte(0xCF)
+        write_value(value.to_u64)
+      end
+    else
+      if -0x20.to_i8 <= value
+        write_byte(value.to_i8)
+      elsif Int8::MIN <= value
+        write_byte(0xD0)
+        write_byte(value.to_i8)
+      elsif Int16::MIN <= value
+        write_byte(0xD1)
+        write_value(value.to_i16)
+      elsif Int32::MIN <= value
+        write_byte(0xD2)
+        write_value(value.to_i32)
+      else
+        write_byte(0xD3)
+        write_value(value.to_i64)
+      end
     end
     self
   end
