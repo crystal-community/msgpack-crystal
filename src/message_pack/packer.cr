@@ -71,9 +71,6 @@ struct MessagePack::Packer
     when (-0x20..0x7F)
       # positive fixnum, negative fixnum
       write_value(value.to_i8)
-    when (0x00..0x7f)
-      # positive fixnum
-      write_value(value.to_u8)
     when (0x00..0xFF)
       # unit8
       write_byte(0xCC)
