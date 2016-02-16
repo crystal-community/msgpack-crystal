@@ -81,7 +81,7 @@ describe "MessagePack serialization" do
     end
 
     it "does for Int32" do
-      1.to_msgpack.should eq as_slice(UInt8[210, 0, 0, 0, 1])
+      1.to_msgpack.should eq as_slice(UInt8[1])
     end
 
     it "does for Float64" do
@@ -93,32 +93,31 @@ describe "MessagePack serialization" do
     end
 
     it "does for Array" do
-      [1, 2, 3].to_msgpack.should eq as_slice(UInt8[147, 210, 0, 0, 0, 1, 210, 0, 0, 0, 2, 210, 0, 0, 0, 3])
+      [1, 2, 3].to_msgpack.should eq as_slice(UInt8[147, 1, 2, 3])
     end
 
     it "does for Set" do
-      Set(Int32).new([1, 1, 2]).to_msgpack.should eq as_slice(UInt8[146, 210, 0, 0, 0, 1, 210, 0, 0, 0, 2])
+      Set(Int32).new([1, 1, 2]).to_msgpack.should eq as_slice(UInt8[146, 1, 2])
     end
 
     it "does for Hash" do
-      {"foo" => 1, "bar" => 2}.to_msgpack.should eq as_slice(UInt8[130, 163, 102, 111, 111, 210, 0, 0, 0, 1, 163, 98, 97, 114, 210, 0, 0, 0, 2])
+      {"foo" => 1, "bar" => 2}.to_msgpack.should eq as_slice(UInt8[130, 163, 102, 111, 111, 1, 163, 98, 97, 114, 2])
     end
 
     it "does for Hash with non-string keys" do
-      {foo: 1, bar: 2}.to_msgpack.should eq as_slice(UInt8[130, 163, 102, 111, 111, 210, 0, 0, 0, 1, 163, 98, 97, 114, 210, 0, 0, 0, 2])
+      {foo: 1, bar: 2}.to_msgpack.should eq as_slice(UInt8[130, 163, 102, 111, 111, 1, 163, 98, 97, 114, 2])
     end
 
     it "does for Hash with non-string keys" do
-      {[1, 2, 3] => 1, [2] => 2}.to_msgpack.should eq as_slice(UInt8[130, 147, 210, 0, 0, 0, 1, 210, 0, 0, 0, 2, 210, 0, 0, 0, 3, 210, 0, 0, 0, 1, 145, 210, 0, 0, 0, 2, 210, 0, 0, 0, 2])
-      # TODO: it should be UInt8[130, 147, 1, 2, 3, 1, 145, 2, 2]
+      {[1, 2, 3] => 1, [2] => 2}.to_msgpack.should eq as_slice(UInt8[130, 147, 1, 2, 3, 1, 145, 2, 2])
     end
 
     it "does for Tuple" do
-      {1, "hello"}.to_msgpack.should eq as_slice(UInt8[146, 210, 0, 0, 0, 1, 165, 104, 101, 108, 108, 111])
+      {1, "hello"}.to_msgpack.should eq as_slice(UInt8[146, 1, 165, 104, 101, 108, 108, 111])
     end
 
     it "nested data" do
-      {"foo" => [1, 2, 3], "bar" => {"jo" => {1, :bla}}}.to_msgpack.should eq as_slice(UInt8[130, 163, 102, 111, 111, 147, 210, 0, 0, 0, 1, 210, 0, 0, 0, 2, 210, 0, 0, 0, 3, 163, 98, 97, 114, 129, 162, 106, 111, 146, 210, 0, 0, 0, 1, 163, 98, 108, 97])
+      {"foo" => [1, 2, 3], "bar" => {"jo" => {1, :bla}}}.to_msgpack.should eq as_slice(UInt8[130, 163, 102, 111, 111, 147, 1, 2, 3, 163, 98, 97, 114, 129, 162, 106, 111, 146, 1, 163, 98, 108, 97])
     end
 
     it "Time" do

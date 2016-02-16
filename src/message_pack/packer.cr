@@ -53,40 +53,60 @@ struct MessagePack::Packer
     write(value.to_s)
   end
 
-  def write(value : Float32 | Float64 | Int8 | Int16 | Int32 | Int64 | UInt8 | UInt16 | UInt32 | UInt64)
+  def write(value : Float32 | Float64)
     case value
     when Float32
+      # Float32
       write_byte(0xCA)
     when Float64
+      # Float64
       write_byte(0xCB)
-    when UInt8
-      case value
-      when 0x00..0x7f
-        # positive fixnum
-      else
-        write_byte(0xCC)
-      end
-    when UInt16
-      write_byte(0xCD)
-    when UInt32
-      write_byte(0xCE)
-    when UInt64
-      write_byte(0xCF)
-    when Int8
-      case value
-      when (-0x20..0x7F)
-        # positive fixnum, negative fixnum
-      else
-        write_byte(0xD0)
-      end
-    when Int16
-      write_byte(0xD1)
-    when Int32
-      write_byte(0xD2)
-    when Int64
-      write_byte(0xD3)
     end
     write_value(value)
+    self
+  end
+
+  def write(value : Int8 | Int16 | Int32 | Int64 | UInt8 | UInt16 | UInt32 | UInt64)
+    case value
+    when (-0x20..0x7F)
+      # positive fixnum, negative fixnum
+      write_value(value.to_i8)
+    when (0x00..0x7f)
+      # positive fixnum
+      write_value(value.to_u8)
+    when (0x00..0xFF)
+      # unit8
+      write_byte(0xCC)
+      write_value(value.to_u8)
+    when (-0x80..0x7F)
+      # int8
+      write_byte(0xD0)
+      write_value(value.to_i8)
+    when (0x0000..0xFFFF)
+      # UInt16
+      write_byte(0xCD)
+      write_value(value.to_u16)
+    when (-0x8000..0x7FFF)
+      # Int16
+      write_byte(0xD1)
+      write_value(value.to_i16)
+    when (0x00000000..0xFFFFFFFF)
+      # UInt32
+      write_byte(0xCE)
+      write_value(value.to_u32)
+    when Int32
+      # Int32
+      write_byte(0xD2)
+      write_value(value.to_i32)
+    when UInt64
+      # UInt64
+      write_byte(0xCF)
+      write_value(value.to_u64)
+    when Int64
+      # Int64
+      write_byte(0xD3)
+      write_value(value.to_i64)
+    end
     self
   end
 
