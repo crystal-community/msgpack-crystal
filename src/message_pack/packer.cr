@@ -5,8 +5,7 @@ struct MessagePack::Packer
     packer
   end
 
-  def initialize(io = MemoryIO.new : IO)
-    @io = io
+  def initialize(@io = MemoryIO.new : IO)
   end
 
   def write(value : Nil)
