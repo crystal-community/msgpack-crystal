@@ -9,15 +9,13 @@ struct MessagePack::Packer
     @io = io
   end
 
-  def write(value : Nil | Bool)
-    case value
-    when Nil
-      write_byte(0xC0)
-    when true
-      write_byte(0xC3)
-    when false
-      write_byte(0xC2)
-    end
+  def write(value : Nil)
+    write_byte(0xC0)
+    self
+  end
+
+  def write(value : Bool)
+    write_byte(value ? 0xC3 : 0xC2)
     self
   end
 
