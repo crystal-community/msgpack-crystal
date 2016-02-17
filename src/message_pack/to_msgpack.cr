@@ -1,7 +1,7 @@
 class Object
   def to_msgpack
     packer = MessagePack::Packer.new
-    to_msgpack packer
+    to_msgpack(packer)
     packer.to_slice
   end
 
@@ -13,18 +13,14 @@ end
 struct Set
   def to_msgpack(packer : MessagePack::Packer)
     packer.write_array_start(self.size)
-    each do |elem|
-      elem.to_msgpack(packer)
-    end
+    each { |elem| elem.to_msgpack(packer) }
   end
 end
 
 class Array
   def to_msgpack(packer : MessagePack::Packer)
     packer.write_array_start(self.size)
-    each do |elem|
-      elem.to_msgpack(packer)
-    end
+    each { |elem| elem.to_msgpack(packer) }
   end
 end
 
@@ -41,9 +37,7 @@ end
 struct Tuple
   def to_msgpack(packer : MessagePack::Packer)
     packer.write_array_start(self.size)
-    each do |elem|
-      elem.to_msgpack(packer)
-    end
+    each { |elem| elem.to_msgpack(packer) }
   end
 end
 
@@ -60,7 +54,7 @@ struct Time
 
   def to_msgpack(formatter : Time::Format)
     packer = MessagePack::Packer.new
-    to_msgpack formatter, packer
+    to_msgpack(formatter, packer)
     packer.to_slice
   end
 end
