@@ -102,6 +102,7 @@ struct MessagePack::Packer
       self.write(key)
       self.write(value)
     end
+
     self
   end
 
@@ -123,10 +124,7 @@ struct MessagePack::Packer
 
   def write(value : Array(Type))
     write_array_start(value.size)
-
-    value.each do |item|
-      self.write(item)
-    end
+    value.each { |item| self.write(item) }
     self
   end
 
@@ -148,9 +146,7 @@ struct MessagePack::Packer
 
   def write(value : Tuple)
     write_array_start(value.size)
-    value.each do |item|
-      self.write(item)
-    end
+    value.each { |item| self.write(item) }
     self
   end
 
