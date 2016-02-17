@@ -18,8 +18,7 @@ struct MessagePack::Packer
     self
   end
 
-  def write(value : String)
-    bytesize = value.bytesize
+  def write_binary_start(bytesize)
     case bytesize
     when (0x00..0x1F)
       # fixraw
@@ -39,6 +38,11 @@ struct MessagePack::Packer
     else
       raise Error.new("invalid length")
     end
+    self
+  end
+
+  def write(value : String)
+    write_binary_start(value.bytesize)
     write_slice(value.to_slice)
     self
   end
