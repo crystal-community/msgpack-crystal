@@ -1,4 +1,4 @@
-require 'msgpack'
+require 'json'
 
 coords = []
 chars = ('a'..'z').to_a
@@ -15,8 +15,8 @@ chars = ('a'..'z').to_a
 end
 
 t = Time.now
-msg = {'coordinates' => coords, 'info' => "some info"}.to_msgpack
+msg = {'coordinates' => coords, 'info' => "some info"}.to_json
 p "#{msg.size} bytes"
 p Time.now - t
 
-File.open("1.msg", 'w') { |f| f.write(msg) }
+File.open("1.js", 'w') { |f| f.write(msg) }
