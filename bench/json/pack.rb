@@ -1,4 +1,4 @@
-require "msgpack" # gem install msgpack
+require "json"
 
 $summary_packed = 0
 
@@ -7,7 +7,7 @@ def test_pack(name, count, data)
   print name
   res = 0
   count.times do |i|
-    res += data.to_msgpack.bytesize
+    res += data.to_json.bytesize
   end
   puts " = #{res}, #{Time.now - t}"
   $summary_packed += res
