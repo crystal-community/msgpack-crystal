@@ -5,47 +5,45 @@ struct MessagePack::Packer
     packer
   end
 
-  def initialize(io = MemoryIO.new : IO)
-    @io = io
+  def initialize(@io = MemoryIO.new : IO)
   end
 
-  def write(value : Nil | Bool)
-    case value
-    when Nil
-      write_byte(0xC0)
-    when true
-      write_byte(0xC3)
-    when false
-      write_byte(0xC2)
+  def write(value : Nil)
+    write_byte(0xC0)
+    self
+  end
+
+  def write(value : Bool)
+    write_byte(value ? 0xC3 : 0xC2)
+    self
+  end
+
+  def write_binary_start(bytesize)
+    case bytesize
+    when (0x00..0x1F)
+      # fixraw
+      write_byte(0xA0 + bytesize)
+    when (0x0000..0xFF)
+      # raw8
+      write_byte(0xD9)
+      write_value(bytesize.to_u8)
+    when (0x0000..0xFFFF)
+      # raw16
+      write_byte(0xDA)
+      write_value(bytesize.to_u16)
+    when (0x00000000..0xFFFFFFFF)
+      # raw32
+      write_byte(0xDB)
+      write_value(bytesize.to_u32)
+    else
+      raise Error.new("invalid length")
     end
     self
   end
 
   def write(value : String)
-    bytesize = value.bytesize
-    case bytesize
-    when (0x00..0x1F)
-      # fixraw
-      write_byte(0xA0 + bytesize)
-      write_slice(value.to_slice)
-    when (0x0000..0xFF)
-      # raw8
-      write_byte(0xD9)
-      write_value(bytesize.to_u8)
-      write_slice(value.to_slice)
-    when (0x0000..0xFFFF)
-      # raw16
-      write_byte(0xDA)
-      write_value(bytesize.to_u16)
-      write_slice(value.to_slice)
-    when (0x00000000..0xFFFFFFFF)
-      # raw32
-      write_byte(0xDB)
-      write_value(bytesize.to_u32)
-      write_slice(value.to_slice)
-    else
-      raise Error.new("invalid length")
-    end
+    write_binary_start(value.bytesize)
+    write_slice(value.to_slice)
     self
   end
 
@@ -108,6 +106,7 @@ struct MessagePack::Packer
       self.write(key)
       self.write(value)
     end
+
     self
   end
 
@@ -129,10 +128,7 @@ struct MessagePack::Packer
 
   def write(value : Array(Type))
     write_array_start(value.size)
-
-    value.each do |item|
-      self.write(item)
-    end
+    value.each { |item| self.write(item) }
     self
   end
 
@@ -154,9 +150,7 @@ struct MessagePack::Packer
 
   def write(value : Tuple)
     write_array_start(value.size)
-    value.each do |item|
-      self.write(item)
-    end
+    value.each { |item| self.write(item) }
     self
   end
 
