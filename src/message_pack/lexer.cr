@@ -16,38 +16,32 @@ class MessagePack::Lexer
     @byte_number = 0
     @current_byte = 0
     @eof = false
-    next_byte
   end
 
   def next_token
-    @token.byte_number = @byte_number
+    next_byte
 
-    if @eof
-      @token.type = :EOF
-      return @token
-    end
+    return @token if @eof
 
     case current_byte
     when 0xC0
-      next_byte(:nil, 0)
+      set_type_and_size(:nil, 0)
     when 0xC2
-      next_byte(:false, 0)
+      set_type_and_size(:false, 0)
     when 0xC3
-      next_byte(:true, 0)
+      set_type_and_size(:true, 0)
     when 0xA0..0xBF
       consume_string(current_byte - 0xA0)
     when 0xE0..0xFF
       @token.type = :INT
       @token.int_value = current_byte.to_i8
-      next_byte
     when 0x00..0x7f
       @token.type = :UINT
       @token.uint_value = current_byte
-      next_byte
     when 0x80..0x8f
-      next_byte(:HASH, current_byte - 0x80)
+      set_type_and_size(:HASH, current_byte - 0x80)
     when 0x90..0x9f
-      next_byte(:ARRAY, current_byte - 0x90)
+      set_type_and_size(:ARRAY, current_byte - 0x90)
     when 0xC4
       consume_string(next_byte)
     when 0xC5
@@ -81,13 +75,13 @@ class MessagePack::Lexer
     when 0xDB
       consume_string(read UInt32)
     when 0xDC
-      next_byte(:ARRAY, read UInt16)
+      set_type_and_size(:ARRAY, read UInt16)
     when 0xDD
-      next_byte(:ARRAY, read UInt32)
+      set_type_and_size(:ARRAY, read UInt32)
     when 0xDE
-      next_byte(:HASH, read UInt16)
+      set_type_and_size(:HASH, read UInt16)
     when 0xDF
-      next_byte(:HASH, read UInt32)
+      set_type_and_size(:HASH, read UInt32)
     when unexpected_byte
     end
 
@@ -100,33 +94,32 @@ class MessagePack::Lexer
 
     unless byte
       @eof = true
+      @token.type = :EOF
     end
+
+    @token.byte_number = @byte_number
 
     @current_byte = byte || 0.to_u8
   end
 
-  private def next_byte(type, size)
+  private def set_type_and_size(type, size)
     @token.type = type
     @token.size = size
-    next_byte
   end
 
   private def consume_uint(value)
     @token.type = :UINT
     @token.uint_value = value
-    next_byte
   end
 
   private def consume_int(value)
     @token.type = :INT
     @token.int_value = value
-    next_byte
   end
 
   private def consume_float(value)
     @token.type = :FLOAT
     @token.float_value = value
-    next_byte
   end
 
   private def consume_string(size)
@@ -136,7 +129,6 @@ class MessagePack::Lexer
       {size, 0}
     end
     @byte_number += size
-    next_byte
   end
 
   private def read(type : T.class)

@@ -142,4 +142,19 @@ describe Lexer do
   it_lexes_hashes("small hashes", 1, UInt8[0x81, 0xa3] + "foo".bytes + UInt8[0xa3] + "bar".bytes)
   it_lexes_hashes("medium hashes", 1, UInt8[0xde, 0x00, 0x01, 0xa3] + "foo".bytes + UInt8[0xa3] + "bar".bytes)
   it_lexes_hashes("big hashes", 1, UInt8[0xdf, 0x00, 0x00, 0x00, 0x01, 0xa3] + "foo".bytes + UInt8[0xa3] + "bar".bytes)
+
+  context "next_token" do
+    it "only calls next byte before reading not after reading" do
+      bytes = UInt8[0xff, 0xff]
+      string = String.new(bytes.to_unsafe, bytes.size)
+      lexer = Lexer.new(string)
+      lexer.next_token
+      lexer.next_token
+
+      lexer.current_byte.should eq 0xFF
+
+      lexer.next_token
+      lexer.current_byte.should eq 0
+    end
+  end
 end
