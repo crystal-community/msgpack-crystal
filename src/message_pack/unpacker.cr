@@ -44,15 +44,15 @@ class MessagePack::Unpacker
   def read_numeric
     next_token
     case token.type
-      when :INT
-        token.int_value
-      when :UINT
-        token.uint_value
-      when :FLOAT
-        token.float_value
-      else
-        unexpected_token
-      end
+    when :INT
+      token.int_value
+    when :UINT
+      token.uint_value
+    when :FLOAT
+      token.float_value
+    else
+      unexpected_token
+    end
   end
 
   {% for type in %w(int uint float string) %}
