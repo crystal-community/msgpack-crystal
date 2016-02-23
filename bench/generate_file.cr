@@ -2,11 +2,11 @@ require "../src/msgpack"
 
 class Coord
   MessagePack.mapping({
-    x: Float64,
-    y: Float64,
-    z: Float64,
+    x:    Float64,
+    y:    Float64,
+    z:    Float64,
     name: String,
-    opts: Hash(String, Tuple(Int32, Bool))
+    opts: Hash(String, Tuple(Int32, Bool)),
   })
 
   def initialize(@x, @y, @z, @name, @opts)
@@ -27,4 +27,3 @@ p "#{msg.size} bytes"
 p Time.now - t
 
 File.open("1.msg", "w") { |f| f.write(msg) }
-

@@ -1,24 +1,24 @@
 def Object.from_msgpack(string_or_io)
-  parser = MessagePack::Unpacker.new(string_or_io)
+  parser = MessagePack::PullParser.new(string_or_io)
   new parser
 end
 
 def Array.from_msgpack(string_or_io)
-  parser = MessagePack::Unpacker.new(string_or_io)
+  parser = MessagePack::PullParser.new(string_or_io)
   new(parser) do |element|
     yield element
   end
 end
 
-def Nil.new(pull : MessagePack::Unpacker)
+def Nil.new(pull : MessagePack::PullParser)
   pull.read_nil
 end
 
-def Bool.new(pull : MessagePack::Unpacker)
+def Bool.new(pull : MessagePack::PullParser)
   pull.read_bool
 end
 
-def Int32.new(pull : MessagePack::Unpacker)
+def Int32.new(pull : MessagePack::PullParser)
   case pull.kind
   when :UINT
     pull.read_uint.to_i
@@ -27,7 +27,7 @@ def Int32.new(pull : MessagePack::Unpacker)
   end
 end
 
-def Int64.new(pull : MessagePack::Unpacker)
+def Int64.new(pull : MessagePack::PullParser)
   case pull.kind
   when :UINT
     pull.read_uint.to_i64
@@ -36,7 +36,7 @@ def Int64.new(pull : MessagePack::Unpacker)
   end
 end
 
-def UInt32.new(pull : MessagePack::Unpacker)
+def UInt32.new(pull : MessagePack::PullParser)
   case pull.kind
   when :INT
     pull.read_int.to_u32
@@ -45,7 +45,7 @@ def UInt32.new(pull : MessagePack::Unpacker)
   end
 end
 
-def UInt64.new(pull : MessagePack::Unpacker)
+def UInt64.new(pull : MessagePack::PullParser)
   case pull.kind
   when :INT
     pull.read_int.to_u64
@@ -54,7 +54,7 @@ def UInt64.new(pull : MessagePack::Unpacker)
   end
 end
 
-def Float32.new(pull : MessagePack::Unpacker)
+def Float32.new(pull : MessagePack::PullParser)
   case pull.kind
   when :INT
     pull.read_int.to_f32
@@ -65,7 +65,7 @@ def Float32.new(pull : MessagePack::Unpacker)
   end
 end
 
-def Float64.new(pull : MessagePack::Unpacker)
+def Float64.new(pull : MessagePack::PullParser)
   case pull.kind
   when :INT
     pull.read_int.to_f
@@ -76,11 +76,11 @@ def Float64.new(pull : MessagePack::Unpacker)
   end
 end
 
-def String.new(pull : MessagePack::Unpacker)
+def String.new(pull : MessagePack::PullParser)
   pull.read_string
 end
 
-def Array.new(pull : MessagePack::Unpacker)
+def Array.new(pull : MessagePack::PullParser)
   ary = new(pull.token_size.to_i32)
   new(pull) do |element|
     ary << element
@@ -88,13 +88,13 @@ def Array.new(pull : MessagePack::Unpacker)
   ary
 end
 
-def Array.new(pull : MessagePack::Unpacker)
+def Array.new(pull : MessagePack::PullParser)
   pull.read_array do
     yield T.new(pull)
   end
 end
 
-def Set.new(pull : MessagePack::Unpacker)
+def Set.new(pull : MessagePack::PullParser)
   set = new
   pull.read_array do
     set << T.new(pull)
@@ -102,7 +102,7 @@ def Set.new(pull : MessagePack::Unpacker)
   set
 end
 
-def Hash.new(pull : MessagePack::Unpacker)
+def Hash.new(pull : MessagePack::PullParser)
   hash = new(initial_capacity: pull.token_size.to_i32)
   pull.read_hash(false) do
     k = K.new(pull)
@@ -115,7 +115,7 @@ def Hash.new(pull : MessagePack::Unpacker)
   hash
 end
 
-def Tuple.new(pull : MessagePack::Unpacker)
+def Tuple.new(pull : MessagePack::PullParser)
   {% if true %}
     pull.read_array_size
     value = Tuple.new(
@@ -128,7 +128,7 @@ def Tuple.new(pull : MessagePack::Unpacker)
 end
 
 struct Time::Format
-  def from_msgpack(pull : MessagePack::Unpacker)
+  def from_msgpack(pull : MessagePack::PullParser)
     string = pull.read_string
     parse(string)
   end
@@ -136,11 +136,11 @@ end
 
 struct Time
   def self.from_msgpack(formatter : Time::Format, string_or_io)
-    pull = MessagePack::Unpacker.new(string_or_io)
+    pull = MessagePack::PullParser.new(string_or_io)
     from_msgpack formatter, pull
   end
 
-  def self.from_msgpack(formatter : Time::Format, pull : MessagePack::Unpacker)
+  def self.from_msgpack(formatter : Time::Format, pull : MessagePack::PullParser)
     formatter.parse(pull.read_string)
   end
 end

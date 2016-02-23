@@ -3,7 +3,6 @@ require "./lexer"
 class MessagePack::Unpacker
   def initialize(string_or_io)
     @lexer = MessagePack::Lexer.new(string_or_io)
-    next_token
   end
 
   def self.new(array : Array(UInt8))
@@ -11,48 +10,19 @@ class MessagePack::Unpacker
     new(slice)
   end
 
-  def has_next
-    token.type != :EOF
-  end
-
-  def kind
-    token.type
-  end
-
   def read
-    value = read_value
-    check :EOF
-    value
-  end
-
-  def read_int
-    check :INT
-    token.int_value.tap { next_token }
-  end
-
-  def read_uint
-    check :UINT
-    token.uint_value.tap { next_token }
-  end
-
-  def read_float
-    check :FLOAT
-    token.float_value.tap { next_token }
-  end
-
-  def read_string
-    check :STRING
-    token.string_value.tap { next_token }
+    read_value
   end
 
   def read_nil
+    next_token
     check :nil
-    nil.tap { next_token }
+    nil
   end
 
   def read_nil_or
+    next_token
     if token.type == :nil
-      next_token
       nil
     else
       yield
@@ -60,44 +30,71 @@ class MessagePack::Unpacker
   end
 
   def read_bool
+    next_token
     case token.type
     when :true
-      next_token
       true
     when :false
-      next_token
       false
     else
       unexpected_token
     end
   end
 
+  def read_numeric
+    next_token
+    case token.type
+      when :INT
+        token.int_value
+      when :UINT
+        token.uint_value
+      when :FLOAT
+        token.float_value
+      else
+        unexpected_token
+      end
+  end
+
+  {% for type in %w(int uint float string) %}
+    def read_{{type.id}}                          # def read_int
+      next_token
+      check :{{type.id.upcase}}                   #   check :INT
+      token.{{type.id}}_value                     #   token.int_value
+    end                                           # end
+  {% end %}
+
   def read_array_size
-    token_size.tap { next_token }
+    next_token
+    check :ARRAY
+    token.size.to_i32
   end
 
-  def token_size
-    token.size
-  end
-
-  def read_array
-    read_array_size.times do
-      yield
-    end
-  end
-
-  def read_array
-    Array(Type).new(read_array_size.to_i32) do
+  def read_array(fetch_next_token = true)
+    next_token if fetch_next_token
+    check :ARRAY
+    Array(Type).new(token.size.to_i32) do
       read_value
     end
   end
 
-  def read_hash_size
-    token_size.tap { next_token }
+  def read_array(fetch_next_token = true)
+    next_token if fetch_next_token
+    check :ARRAY
+    token.size.times do
+      yield
+    end
   end
 
-  def read_hash(read_key = true)
-    read_hash_size.times do
+  def read_hash_size
+    next_token
+    check :HASH
+    token.size.to_i32
+  end
+
+  def read_hash(read_key = true, fetch_next_token = true)
+    next_token if fetch_next_token
+    check :HASH
+    token.size.times do
       if read_key
         key = read_value
         yield key
@@ -107,65 +104,69 @@ class MessagePack::Unpacker
     end
   end
 
-  def read_hash
-    hash = Hash(Type, Type).new(initial_capacity: token_size.to_i32)
-    read_hash do |key|
-      hash[key] = read_value
+  def read_hash(fetch_next_token = true)
+    next_token if fetch_next_token
+    check :HASH
+    hash = Hash(Type, Type).new(initial_capacity: token.size.to_i32)
+    token.size.times do
+      key = read_value
+      value = read_value
+      hash[key] = value
     end
     hash
   end
 
   def read_value
+    next_token
+
     case token.type
     when :INT
-      value_and_next_token token.int_value
+      token.int_value
     when :UINT
-      value_and_next_token token.uint_value
+      token.uint_value
     when :FLOAT
-      value_and_next_token token.float_value
+      token.float_value
     when :STRING
-      value_and_next_token token.string_value
+      token.string_value
     when :nil
-      value_and_next_token nil
+      nil
     when :true
-      value_and_next_token true
+      true
     when :false
-      value_and_next_token false
+      false
     when :ARRAY
-      read_array
+      read_array(false)
     when :HASH
-      read_hash
+      read_hash(false)
     else
-      unexpected_token
+      unexpected_token(token.type)
     end
   end
 
   def skip_value
+    next_token
     case token.type
     when :INT, :UINT, :FLOAT, :STRING, :nil, :true, :false
-      next_token
+      # Do nothing
     when :ARRAY
-      read_array_size.times { skip_value }
+      token.size.times { skip_value }
     when :HASH
-      read_hash_size.times { skip_value; skip_value }
+      token.size.times { skip_value; skip_value }
     else
-      unexpected_token
+      unexpected_token(token.type)
     end
   end
 
   private delegate token, @lexer
   private delegate next_token, @lexer
 
-  private def value_and_next_token(value)
-    next_token
-    value
-  end
-
   private def check(token_type)
-    unexpected_token unless token.type == token_type
+    unexpected_token(token_type) unless token.type == token_type
   end
 
-  private def unexpected_token
-    raise UnpackException.new("unexpected token '#{token}'", token.byte_number)
+  private def unexpected_token(token_type = nil)
+    message = "unexpected token '#{token}'"
+    message += " expected #{token_type}" if token_type
+    raise UnpackException.new(message, token.byte_number)
   end
 end

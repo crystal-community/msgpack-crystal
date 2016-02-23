@@ -1,4 +1,5 @@
 require "./spec_helper"
+require "socket"
 
 private def it_pulls_int(description, expected_value, bytes, file = __FILE__, line = __LINE__)
   string = String.new(bytes.to_unsafe, bytes.size)
@@ -123,15 +124,15 @@ describe "MessagePack::Unpacker" do
   it_pulls_bool("true", true, UInt8[0xC3])
   it_pulls_nil("nil", nil, UInt8[0xC0])
 
-  it "has next returns if the stream has more values" do
-    bytes = UInt8[0x92, 0x01, 0x02]
-    string = String.new(bytes.to_unsafe, bytes.size)
-    unpacker = MessagePack::Unpacker.new(MemoryIO.new(string))
-
-    unpacker.has_next.should eq true
-    unpacker.read_array
-    unpacker.has_next.should eq false
-  end
+  # it "has next returns if the stream has more values" do
+  #   bytes = UInt8[0x92, 0x01, 0x02]
+  #   string = String.new(bytes.to_unsafe, bytes.size)
+  #   unpacker = MessagePack::Unpacker.new(MemoryIO.new(string))
+  #
+  #   unpacker.has_next.should eq true
+  #   unpacker.read_array
+  #   unpacker.has_next.should eq false
+  # end
 
   it "pulls arrays" do
     bytes = UInt8[0x92, 0x01, 0x02]
@@ -185,5 +186,24 @@ describe "MessagePack::Unpacker" do
 
     unpacker.read_hash.should eq({"key" => "value", "key1" => 1, "key2" => true})
     unpacker.read_hash.should eq({"key" => "value2", "key1" => 2, "key2" => false})
+  end
+
+  it "unpacks form a socket" do
+    TCPServer.open("::", 0) do |server|
+      TCPSocket.open("::", server.addr.ip_port) do |client|
+        sock = server.accept
+
+        packer = MessagePack::Packer.new(client)
+        (1..3).each do |i|
+          packer.write(i)
+        end
+
+        unpacker = MessagePack::Unpacker.new(sock)
+
+        (1..3).each do |i|
+          unpacker.read_value.should eq i
+        end
+      end
+    end
   end
 end

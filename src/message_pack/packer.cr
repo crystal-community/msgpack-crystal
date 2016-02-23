@@ -167,7 +167,12 @@ struct MessagePack::Packer
   end
 
   def to_slice
-    @io.to_slice
+    io = @io
+    if io.responds_to?(:to_slice)
+      io.to_slice
+    else
+      raise "to slice not implemented for io type: #{typeof(io)}"
+    end
   end
 
   def to_s

@@ -167,6 +167,5 @@ describe "MessagePack serialization" do
       data.to_msgpack.should eq(as_slice(UInt8[145, 207, 239, 5, 181, 157, 59, 32, 0, 1]))
       typeof(data).from_msgpack(data.to_msgpack).should eq data
     end
-
   end
 end
