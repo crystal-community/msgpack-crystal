@@ -123,17 +123,6 @@ describe "MessagePack::Unpacker" do
   it_pulls_bool("false", false, UInt8[0xC2])
   it_pulls_bool("true", true, UInt8[0xC3])
   it_pulls_nil("nil", nil, UInt8[0xC0])
-
-  # it "has next returns if the stream has more values" do
-  #   bytes = UInt8[0x92, 0x01, 0x02]
-  #   string = String.new(bytes.to_unsafe, bytes.size)
-  #   unpacker = MessagePack::Unpacker.new(MemoryIO.new(string))
-  #
-  #   unpacker.has_next.should eq true
-  #   unpacker.read_array
-  #   unpacker.has_next.should eq false
-  # end
-
   it "pulls arrays" do
     bytes = UInt8[0x92, 0x01, 0x02]
     string = String.new(bytes.to_unsafe, bytes.size)
