@@ -168,5 +168,9 @@ describe "MessagePack serialization" do
       typeof(data).from_msgpack(data.to_msgpack).should eq data
     end
 
+    it "hash with nil, should ignore nil" do
+      data = {"bla" => 1, "heh" => nil}
+      Hash(String, Int32).from_msgpack(data.to_msgpack).should eq({"bla" => 1})
+    end
   end
 end

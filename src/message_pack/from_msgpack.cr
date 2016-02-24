@@ -19,7 +19,7 @@ def Bool.new(pull : MessagePack::Unpacker)
 end
 
 def Int32.new(pull : MessagePack::Unpacker)
-  case pull.kind
+  case pull.prefetch_token.type
   when :UINT
     pull.read_uint.to_i
   else
@@ -28,7 +28,7 @@ def Int32.new(pull : MessagePack::Unpacker)
 end
 
 def Int64.new(pull : MessagePack::Unpacker)
-  case pull.kind
+  case pull.prefetch_token.type
   when :UINT
     pull.read_uint.to_i64
   else
@@ -37,7 +37,7 @@ def Int64.new(pull : MessagePack::Unpacker)
 end
 
 def UInt32.new(pull : MessagePack::Unpacker)
-  case pull.kind
+  case pull.prefetch_token.type
   when :INT
     pull.read_int.to_u32
   else
@@ -46,7 +46,7 @@ def UInt32.new(pull : MessagePack::Unpacker)
 end
 
 def UInt64.new(pull : MessagePack::Unpacker)
-  case pull.kind
+  case pull.prefetch_token.type
   when :INT
     pull.read_int.to_u64
   else
@@ -55,7 +55,7 @@ def UInt64.new(pull : MessagePack::Unpacker)
 end
 
 def Float32.new(pull : MessagePack::Unpacker)
-  case pull.kind
+  case pull.prefetch_token.type
   when :INT
     pull.read_int.to_f32
   when :UINT
@@ -66,7 +66,7 @@ def Float32.new(pull : MessagePack::Unpacker)
 end
 
 def Float64.new(pull : MessagePack::Unpacker)
-  case pull.kind
+  case pull.prefetch_token.type
   when :INT
     pull.read_int.to_f
   when :UINT
@@ -81,7 +81,7 @@ def String.new(pull : MessagePack::Unpacker)
 end
 
 def Array.new(pull : MessagePack::Unpacker)
-  ary = new(pull.token_size.to_i32)
+  ary = new(pull.prefetch_token.size.to_i32)
   new(pull) do |element|
     ary << element
   end
@@ -103,10 +103,11 @@ def Set.new(pull : MessagePack::Unpacker)
 end
 
 def Hash.new(pull : MessagePack::Unpacker)
-  hash = new(initial_capacity: pull.token_size.to_i32)
+  hash = new(initial_capacity: pull.prefetch_token.size.to_i32)
   pull.read_hash(false) do
     k = K.new(pull)
-    if pull.kind == :nil
+    t = pull.prefetch_token
+    if t.type == :nil
       pull.skip_value
     else
       hash[k] = V.new(pull)

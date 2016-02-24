@@ -8,6 +8,7 @@ class MessagePack::Token
   property :float_value
   property :byte_number
   property :size
+  property :used
 
   @size : Int64
 
@@ -20,6 +21,7 @@ class MessagePack::Token
     @float_value = 0.0_f32
 
     @size = 0_i64
+    @used = true
   end
 
   def size=(size)
