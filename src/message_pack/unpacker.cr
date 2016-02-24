@@ -21,8 +21,9 @@ class MessagePack::Unpacker
   end
 
   def read_nil_or
-    next_token
+    token = prefetch_token
     if token.type == :nil
+      token.used = true
       nil
     else
       yield
@@ -159,6 +160,7 @@ class MessagePack::Unpacker
 
   private delegate token, @lexer
   private delegate next_token, @lexer
+  delegate prefetch_token, @lexer
 
   private def check(token_type)
     unexpected_token(token_type) unless token.type == token_type

@@ -167,5 +167,10 @@ describe "MessagePack serialization" do
       data.to_msgpack.should eq(as_slice(UInt8[145, 207, 239, 5, 181, 157, 59, 32, 0, 1]))
       typeof(data).from_msgpack(data.to_msgpack).should eq data
     end
+
+    it "hash with nil, should ignore nil" do
+      data = {"bla" => 1, "heh" => nil}
+      Hash(String, Int32).from_msgpack(data.to_msgpack).should eq({"bla" => 1})
+    end
   end
 end

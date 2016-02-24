@@ -18,10 +18,13 @@ class MessagePack::Lexer
     @eof = false
   end
 
-  def next_token
+  def prefetch_token
+    return @token unless @token.used
     next_byte
 
     return @token if @eof
+
+    @token.used = false
 
     case current_byte
     when 0xC0
@@ -86,6 +89,12 @@ class MessagePack::Lexer
     end
 
     @token
+  end
+
+  def next_token
+    token = prefetch_token
+    token.used = true
+    token
   end
 
   private def next_byte

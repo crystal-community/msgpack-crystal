@@ -32,20 +32,20 @@ module MessagePack
   #
   # The value of each key can be a single type (not a union type). Primitive types (numbers, string, boolean and nil)
   # are supported, as well as custom objects which use `MessagePack.mapping` or define a `new` method
-  # that accepts a `MessagePack::PullParser` and returns an object from it.
+  # that accepts a `MessagePack::Unpacker` and returns an object from it.
   #
   # The value can also be another hash literal with the following options:
   # * **type**: (required) the single type described above (you can use `MessagePack::Any` too)
   # * **key**: the property name in the MessagePack document (as opposed to the property name in the Crystal code)
   # * **nilable**: if true, the property can be `Nil`
   # * **default**: value to use if the property is missing in the MessagePack document, or if it's `null` and `nilable` was not set to `true`. If the default value creates a new instance of an object (for example `[1, 2, 3]` or `SomeObject.new`), a different instance will be used each time a MessagePack document is parsed.
-  # * **converter**: specify an alternate type for parsing and generation. The converter must define `from_msgpack(MessagePack::PullParser)` and `to_msgpack(value, MessagePack::Packer)` as class methods.
+  # * **converter**: specify an alternate type for parsing and generation. The converter must define `from_msgpack(MessagePack::Unpacker)` and `to_msgpack(value, MessagePack::Packer)` as class methods.
   #
   # The mapping also automatically defines Crystal properties (getters and setters) for each
   # of the keys. It doesn't define a constructor accepting those arguments, but you can provide
   # an overload.
   #
-  # The macro basically defines a constructor accepting a `MessagePack::PullParser` that reads from
+  # The macro basically defines a constructor accepting a `MessagePack::Unpacker` that reads from
   # it and initializes this type's instance variables. It also defines a `to_msgpack(MessagePack::Packer)` method
   # by invoking `to_msgpack(MessagePack::Packer)` on each of the properties (unless a converter is specified, in
   # which case `to_msgpack(value, MessagePack::Packer)` is invoked).
@@ -72,7 +72,7 @@ module MessagePack
       end
     {% end %}
 
-    def initialize(%pull : MessagePack::PullParser)
+    def initialize(%pull : MessagePack::Unpacker)
       {% for key, value in properties %}
         %var{key.id} = nil
         %found{key.id} = false
