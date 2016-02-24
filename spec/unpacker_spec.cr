@@ -176,23 +176,4 @@ describe "MessagePack::Unpacker" do
     unpacker.read_hash.should eq({"key" => "value", "key1" => 1, "key2" => true})
     unpacker.read_hash.should eq({"key" => "value2", "key1" => 2, "key2" => false})
   end
-
-  it "unpacks form a socket" do
-    TCPServer.open("::", 0) do |server|
-      TCPSocket.open("::", server.addr.ip_port) do |client|
-        sock = server.accept
-
-        packer = MessagePack::Packer.new(client)
-        (1..3).each do |i|
-          packer.write(i)
-        end
-
-        unpacker = MessagePack::Unpacker.new(sock)
-
-        (1..3).each do |i|
-          unpacker.read_value.should eq i
-        end
-      end
-    end
-  end
 end

@@ -1,0 +1,48 @@
+require "./spec_helper"
+
+class SocketPerson
+  MessagePack.mapping({
+    name: {type: String},
+    age:  {type: Int32, nilable: true},
+  })
+
+  def initialize(@name : String, @age = nil : Int32?)
+  end
+end
+
+describe "read from socket" do
+  it "unpacks form a socket" do
+    TCPServer.open("::", 0) do |server|
+      TCPSocket.open("::", server.addr.ip_port) do |client|
+        sock = server.accept
+
+        packer = MessagePack::Packer.new(client)
+        (1..3).each do |i|
+          packer.write(i)
+        end
+
+        unpacker = MessagePack::Unpacker.new(sock)
+
+        (1..3).each do |i|
+          unpacker.read_value.should eq i
+        end
+      end
+    end
+  end
+
+  it "unpack mapping from socket" do
+    TCPServer.open("::", 0) do |server|
+      TCPSocket.open("::", server.addr.ip_port) do |client|
+        sock = server.accept
+
+        person = SocketPerson.new "Albert", 25
+        client.write(person.to_msgpack)
+
+        pull = MessagePack::Unpacker.new(sock)
+        person2 = SocketPerson.new(pull)
+        person2.name.should eq "Albert"
+        person2.age.should eq 25
+      end
+    end
+  end
+end

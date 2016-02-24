@@ -1,25 +1,25 @@
 def Object.from_msgpack(string_or_io)
-  parser = MessagePack::PullParser.new(string_or_io)
+  parser = MessagePack::Unpacker.new(string_or_io)
   new parser
 end
 
 def Array.from_msgpack(string_or_io)
-  parser = MessagePack::PullParser.new(string_or_io)
+  parser = MessagePack::Unpacker.new(string_or_io)
   new(parser) do |element|
     yield element
   end
 end
 
-def Nil.new(pull : MessagePack::PullParser)
+def Nil.new(pull : MessagePack::Unpacker)
   pull.read_nil
 end
 
-def Bool.new(pull : MessagePack::PullParser)
+def Bool.new(pull : MessagePack::Unpacker)
   pull.read_bool
 end
 
-def Int32.new(pull : MessagePack::PullParser)
-  case pull.kind
+def Int32.new(pull : MessagePack::Unpacker)
+  case pull.prefetch_token.type
   when :UINT
     pull.read_uint.to_i
   else
@@ -27,8 +27,8 @@ def Int32.new(pull : MessagePack::PullParser)
   end
 end
 
-def Int64.new(pull : MessagePack::PullParser)
-  case pull.kind
+def Int64.new(pull : MessagePack::Unpacker)
+  case pull.prefetch_token.type
   when :UINT
     pull.read_uint.to_i64
   else
@@ -36,8 +36,8 @@ def Int64.new(pull : MessagePack::PullParser)
   end
 end
 
-def UInt32.new(pull : MessagePack::PullParser)
-  case pull.kind
+def UInt32.new(pull : MessagePack::Unpacker)
+  case pull.prefetch_token.type
   when :INT
     pull.read_int.to_u32
   else
@@ -45,8 +45,8 @@ def UInt32.new(pull : MessagePack::PullParser)
   end
 end
 
-def UInt64.new(pull : MessagePack::PullParser)
-  case pull.kind
+def UInt64.new(pull : MessagePack::Unpacker)
+  case pull.prefetch_token.type
   when :INT
     pull.read_int.to_u64
   else
@@ -54,8 +54,8 @@ def UInt64.new(pull : MessagePack::PullParser)
   end
 end
 
-def Float32.new(pull : MessagePack::PullParser)
-  case pull.kind
+def Float32.new(pull : MessagePack::Unpacker)
+  case pull.prefetch_token.type
   when :INT
     pull.read_int.to_f32
   when :UINT
@@ -65,8 +65,8 @@ def Float32.new(pull : MessagePack::PullParser)
   end
 end
 
-def Float64.new(pull : MessagePack::PullParser)
-  case pull.kind
+def Float64.new(pull : MessagePack::Unpacker)
+  case pull.prefetch_token.type
   when :INT
     pull.read_int.to_f
   when :UINT
@@ -76,25 +76,25 @@ def Float64.new(pull : MessagePack::PullParser)
   end
 end
 
-def String.new(pull : MessagePack::PullParser)
+def String.new(pull : MessagePack::Unpacker)
   pull.read_string
 end
 
-def Array.new(pull : MessagePack::PullParser)
-  ary = new(pull.token_size.to_i32)
+def Array.new(pull : MessagePack::Unpacker)
+  ary = new(pull.prefetch_token.size.to_i32)
   new(pull) do |element|
     ary << element
   end
   ary
 end
 
-def Array.new(pull : MessagePack::PullParser)
+def Array.new(pull : MessagePack::Unpacker)
   pull.read_array do
     yield T.new(pull)
   end
 end
 
-def Set.new(pull : MessagePack::PullParser)
+def Set.new(pull : MessagePack::Unpacker)
   set = new
   pull.read_array do
     set << T.new(pull)
@@ -102,11 +102,12 @@ def Set.new(pull : MessagePack::PullParser)
   set
 end
 
-def Hash.new(pull : MessagePack::PullParser)
-  hash = new(initial_capacity: pull.token_size.to_i32)
+def Hash.new(pull : MessagePack::Unpacker)
+  hash = new(initial_capacity: pull.prefetch_token.size.to_i32)
   pull.read_hash(false) do
     k = K.new(pull)
-    if pull.kind == :nil
+    t = pull.prefetch_token
+    if t.type == :nil
       pull.skip_value
     else
       hash[k] = V.new(pull)
@@ -115,7 +116,7 @@ def Hash.new(pull : MessagePack::PullParser)
   hash
 end
 
-def Tuple.new(pull : MessagePack::PullParser)
+def Tuple.new(pull : MessagePack::Unpacker)
   {% if true %}
     pull.read_array_size
     value = Tuple.new(
@@ -128,7 +129,7 @@ def Tuple.new(pull : MessagePack::PullParser)
 end
 
 struct Time::Format
-  def from_msgpack(pull : MessagePack::PullParser)
+  def from_msgpack(pull : MessagePack::Unpacker)
     string = pull.read_string
     parse(string)
   end
@@ -136,11 +137,11 @@ end
 
 struct Time
   def self.from_msgpack(formatter : Time::Format, string_or_io)
-    pull = MessagePack::PullParser.new(string_or_io)
+    pull = MessagePack::Unpacker.new(string_or_io)
     from_msgpack formatter, pull
   end
 
-  def self.from_msgpack(formatter : Time::Format, pull : MessagePack::PullParser)
+  def self.from_msgpack(formatter : Time::Format, pull : MessagePack::Unpacker)
     formatter.parse(pull.read_string)
   end
 end
