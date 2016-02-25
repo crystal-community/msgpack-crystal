@@ -55,13 +55,14 @@ private def it_lexes_string(description, string_value, bytes, file = __FILE__, l
 end
 
 private def it_lexes_binary(description, string_value, bytes, file = __FILE__, line = __LINE__)
-  string = Slice(UInt8).new(bytes.to_unsafe, bytes.size)
+  io = MemoryIO.new(as_slice(bytes))
+  binary_value = as_slice(string_value)
 
   it "lexes #{description}", file, line do
-    lexer = Lexer.new string
+    lexer = Lexer.new io
     token = lexer.next_token
-    token.type.should eq(:STRING)
-    token.string_value.should eq(string_value)
+    token.type.should eq(:BINARY)
+    token.binary_value.should eq(binary_value)
   end
 end
 

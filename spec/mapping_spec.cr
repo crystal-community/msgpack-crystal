@@ -103,6 +103,20 @@ class MessagePackCoordinates
   })
 end
 
+class MessagePackKVS
+  MessagePack.mapping({
+    key: String,
+    val: {type: Slice(UInt8), nilable: true},
+  })
+end
+
+class StrictMessagePackKVS
+  MessagePack.mapping({
+    key: String,
+    val: {type: Slice(UInt8), nilable: true},
+  }, true)
+end
+
 describe "MessagePack mapping" do
   it "parses person" do
     person = MessagePackPerson.from_msgpack({"name" => "John", "age" => 30}.to_msgpack)
@@ -205,6 +219,65 @@ describe "MessagePack mapping" do
   it "parses msgpack array as set" do
     msgpack = MessagePackWithSet.from_msgpack({"set" => ["a", "a", "b"]}.to_msgpack)
     msgpack.set.should eq(Set(String){"a", "b"})
+  end
+
+  describe "(binary support)" do
+    binary_data = Slice(UInt8).new(UInt8[0x08, 0xE7].to_unsafe, 2)
+    
+    it "parses binary data" do
+      kvs = MessagePackKVS.from_msgpack({"key" => "a", "val" => binary_data}.to_msgpack)
+      kvs.should be_a(MessagePackKVS)
+      kvs.key.should eq("a")
+      kvs.val.should eq(binary_data)
+    end
+
+    it "parses binary data with unknown attributes" do
+      kvs = MessagePackKVS.from_msgpack({"key" => "a", "val" => binary_data, "foo" => "bar"}.to_msgpack)
+      kvs.should be_a(MessagePackKVS)
+      kvs.key.should eq("a")
+      kvs.val.should eq(binary_data)
+    end
+
+    it "parses binary data without attributes" do
+      kvs = MessagePackKVS.from_msgpack({"key" => "a"}.to_msgpack)
+      kvs.should be_a(MessagePackKVS)
+      kvs.key.should eq("a")
+      kvs.val.should eq(nil)
+    end
+
+    it "parses binary data with nil value" do
+      kvs = MessagePackKVS.from_msgpack({"key" => "a", "val" => nil}.to_msgpack)
+      kvs.should be_a(MessagePackKVS)
+      kvs.key.should eq("a")
+      kvs.val.should eq(nil)
+    end
+
+    it "parses strict binary data" do
+      kvs = StrictMessagePackKVS.from_msgpack({"key" => "a", "val" => binary_data}.to_msgpack)
+      kvs.should be_a(StrictMessagePackKVS)
+      kvs.key.should eq("a")
+      kvs.val.should eq(binary_data)
+    end
+
+    it "parses strict binary data with unknown attributes" do
+      expect_raises MessagePack::Error, "unknown msgpack attribute: foo" do
+        StrictMessagePackKVS.from_msgpack({"key" => "a", "val" => binary_data, "foo" => "bar"}.to_msgpack)
+      end
+    end
+
+    it "parses strict binary data without attributes" do
+      kvs = StrictMessagePackKVS.from_msgpack({"key" => "a"}.to_msgpack)
+      kvs.should be_a(StrictMessagePackKVS)
+      kvs.key.should eq("a")
+      kvs.val.should eq(nil)
+    end
+
+    it "parses strict binary data with nil value" do
+      kvs = StrictMessagePackKVS.from_msgpack({"key" => "a", "val" => nil}.to_msgpack)
+      kvs.should be_a(StrictMessagePackKVS)
+      kvs.key.should eq("a")
+      kvs.val.should eq(nil)
+    end
   end
 
   describe "parses msgpack with defaults" do

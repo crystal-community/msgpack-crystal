@@ -46,11 +46,11 @@ class MessagePack::Lexer
     when 0x90..0x9f
       set_type_and_size(:ARRAY, current_byte - 0x90)
     when 0xC4
-      consume_string(next_byte)
+      consume_binary(next_byte)
     when 0xC5
-      consume_string(read UInt16)
+      consume_binary(read UInt16)
     when 0xC6
-      consume_string(read UInt32)
+      consume_binary(read UInt32)
     when 0xCA
       consume_float(read Float32)
     when 0xCB
@@ -129,6 +129,14 @@ class MessagePack::Lexer
   private def consume_float(value)
     @token.type = :FLOAT
     @token.float_value = value
+  end
+
+  private def consume_binary(size)
+    bytes = Slice(UInt8).new(size)
+    @io.read_fully(bytes)
+    @token.type = :BINARY
+    @token.binary_value = bytes
+    @byte_number += size
   end
 
   private def consume_string(size)

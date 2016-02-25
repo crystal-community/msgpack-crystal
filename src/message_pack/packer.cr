@@ -18,21 +18,21 @@ struct MessagePack::Packer
     self
   end
 
-  def write_binary_start(bytesize)
+  def write_string_start(bytesize)
     case bytesize
     when (0x00..0x1F)
       # fixraw
       write_byte(0xA0 + bytesize)
     when (0x0000..0xFF)
-      # raw8
+      # str8
       write_byte(0xD9)
       write_value(bytesize.to_u8)
     when (0x0000..0xFFFF)
-      # raw16
+      # str16
       write_byte(0xDA)
       write_value(bytesize.to_u16)
     when (0x00000000..0xFFFFFFFF)
-      # raw32
+      # str32
       write_byte(0xDB)
       write_value(bytesize.to_u32)
     else
@@ -41,9 +41,35 @@ struct MessagePack::Packer
     self
   end
 
+  def write_binary_start(bytesize)
+    case bytesize
+    when (0x0000..0xFF)
+      # bin8
+      write_byte(0xC4)
+      write_value(bytesize.to_u8)
+    when (0x0000..0xFFFF)
+      # bin16
+      write_byte(0xC5)
+      write_value(bytesize.to_u16)
+    when (0x00000000..0xFFFFFFFF)
+      # bin32
+      write_byte(0xC6)
+      write_value(bytesize.to_u32)
+    else
+      raise Error.new("invalid length")
+    end
+    self
+  end
+
   def write(value : String)
-    write_binary_start(value.bytesize)
+    write_string_start(value.bytesize)
     write_slice(value.to_slice)
+    self
+  end
+
+  def write(value : Slice(UInt8))
+    write_binary_start(value.bytesize)
+    write_slice(value)
     self
   end
 

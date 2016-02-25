@@ -56,7 +56,7 @@ class MessagePack::Unpacker
     end
   end
 
-  {% for type in %w(int uint float string) %}
+  {% for type in %w(int uint float string binary) %}
     def read_{{type.id}}                          # def read_int
       next_token
       check :{{type.id.upcase}}                   #   check :INT
@@ -129,6 +129,8 @@ class MessagePack::Unpacker
       token.float_value
     when :STRING
       token.string_value
+    when :BINARY
+      token.binary_value
     when :nil
       nil
     when :true
@@ -147,7 +149,7 @@ class MessagePack::Unpacker
   def skip_value
     next_token
     case token.type
-    when :INT, :UINT, :FLOAT, :STRING, :nil, :true, :false
+    when :INT, :UINT, :FLOAT, :STRING, :BINARY, :nil, :true, :false
       # Do nothing
     when :ARRAY
       token.size.times { skip_value }
