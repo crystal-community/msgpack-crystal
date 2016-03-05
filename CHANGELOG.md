@@ -1,4 +1,5 @@
-## 0.4.0 (next)
+## 0.4.0 (2016-3-5)
+* Support for binary (@Thanks @maiha)
 * Faster writes (Thanks @kostya)
 * Faster reads (Thanks @asterite)
 * Mapping (Thanks @kostya)
