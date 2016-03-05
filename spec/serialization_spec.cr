@@ -1,3 +1,4 @@
+# coding: utf-8
 require "./spec_helper"
 
 describe "MessagePack serialization" do
@@ -69,6 +70,13 @@ describe "MessagePack serialization" do
       tuple.should eq({1, "hello"})
       tuple.should be_a(Tuple(Int32, String))
     end
+
+    it "does for Slice(UInt8)" do
+      data = UInt8[196, 3, 1, 2, 3]
+      binary = Slice(UInt8).from_msgpack(data)
+      binary.should eq(as_slice(UInt8[1, 2, 3]))
+      binary.should be_a(Slice(UInt8))
+    end
   end
 
   describe "to_msgpack" do
@@ -90,6 +98,10 @@ describe "MessagePack serialization" do
 
     it "does for String" do
       "hello".to_msgpack.should eq as_slice(UInt8[165, 104, 101, 108, 108, 111])
+    end
+
+    it "does for Slice(UInt8)" do
+      as_slice(UInt8[1, 2, 3]).to_msgpack.should eq as_slice(UInt8[196, 3, 1, 2, 3])
     end
 
     it "does for Array" do
@@ -129,6 +141,11 @@ describe "MessagePack serialization" do
   end
 
   describe "pack unpack" do
+    it "binary" do
+      data = as_slice(UInt8[1, 2, 3])
+      typeof(data).from_msgpack(data.to_msgpack).should eq data
+    end
+
     it "array" do
       data = [1, 2, 3]
       typeof(data).from_msgpack(data.to_msgpack).should eq data
@@ -145,7 +162,7 @@ describe "MessagePack serialization" do
     end
 
     it "tuple" do
-      data = {"bla", 1, 1.5, true, nil}
+      data = {"bla", 1, 1.5, true, nil, as_slice(UInt8[1, 2, 3])}
       typeof(data).from_msgpack(data.to_msgpack).should eq data
     end
 
