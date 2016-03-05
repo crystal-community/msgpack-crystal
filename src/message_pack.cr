@@ -2,7 +2,7 @@ module MessagePack
   class Error < Exception; end
 
   # Represents a possible type inside a MessagePack Array or MessagePack Hash (Table)
-  alias Type = Nil | Bool | Int8 | Int16 | Int32 | Int64 | UInt8 | UInt16 | UInt32 | UInt64 | Float32 | Float64 | String | Array(Type) | Hash(Type, Type)
+  alias Type = Nil | Bool | Int8 | Int16 | Int32 | Int64 | UInt8 | UInt16 | UInt32 | UInt64 | Float32 | Float64 | String | Slice(UInt8) | Array(Type) | Hash(Type, Type)
 
   # A MessagePack Table. Just a convenience alias.
   alias Table = Hash(String, Type)

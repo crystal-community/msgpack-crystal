@@ -80,6 +80,10 @@ def String.new(pull : MessagePack::Unpacker)
   pull.read_string
 end
 
+def Slice(UInt8).new(pull : MessagePack::Unpacker)
+  pull.read_binary
+end
+
 def Array.new(pull : MessagePack::Unpacker)
   ary = new(pull.prefetch_token.size.to_i32)
   new(pull) do |element|

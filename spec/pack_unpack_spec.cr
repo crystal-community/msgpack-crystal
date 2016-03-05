@@ -1,3 +1,4 @@
+# coding: utf-8
 require "./spec_helper"
 
 describe "pack and unpack integration specs" do
@@ -59,6 +60,14 @@ describe "pack and unpack integration specs" do
     packer.write(str)
     unpack = MessagePack::Unpacker.new(packer.to_slice)
     unpack.read_string.should eq str
+  end
+
+  it "works with binary (invalid byte sequence for UTF-8)" do
+    bytes = as_slice(UInt8[0x08, 0xe7])
+    packer = MessagePack::Packer.new
+    packer.write(bytes)
+    unpack = MessagePack::Unpacker.new(packer.to_slice)
+    unpack.read_binary.should eq bytes
   end
 
   it "tuples" do
