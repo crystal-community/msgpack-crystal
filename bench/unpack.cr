@@ -13,7 +13,7 @@ def test_unpack(name, count, klass, data)
 end
 
 def bytes(size : Int32) : Slice(UInt8)
-  Slice(UInt8).new(size) {|i| i.to_u8 }
+  Slice(UInt8).new(size) { |i| i.to_u8 }
 end
 
 def byte(value : Int32) : Slice(UInt8)

@@ -6,14 +6,14 @@ class SocketPerson
     age:  {type: Int32, nilable: true},
   })
 
-  def initialize(@name : String, @age = nil : Int32?)
+  def initialize(@name : String, @age : Int32? = nil)
   end
 end
 
 describe "read from socket" do
   it "unpacks form a socket" do
     TCPServer.open("::", 0) do |server|
-      TCPSocket.open("::", server.addr.ip_port) do |client|
+      TCPSocket.open("::", server.local_address.port) do |client|
         sock = server.accept
 
         packer = MessagePack::Packer.new(client)
@@ -32,7 +32,7 @@ describe "read from socket" do
 
   it "unpack mapping from socket" do
     TCPServer.open("::", 0) do |server|
-      TCPSocket.open("::", server.addr.ip_port) do |client|
+      TCPSocket.open("::", server.local_address.port) do |client|
         sock = server.accept
 
         person = SocketPerson.new "Albert", 25

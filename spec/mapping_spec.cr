@@ -223,7 +223,6 @@ describe "MessagePack mapping" do
 
   describe "(binary support)" do
     binary_data = Slice(UInt8).new(UInt8[0x08, 0xE7].to_unsafe, 2)
-    
     it "parses binary data" do
       kvs = MessagePackKVS.from_msgpack({"key" => "a", "val" => binary_data}.to_msgpack)
       kvs.should be_a(MessagePackKVS)

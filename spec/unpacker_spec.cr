@@ -101,7 +101,6 @@ describe "MessagePack::Unpacker" do
   it_parses("huge binary", as_slice("\a" * 0x10000), UInt8[0xc6, 0x00, 0x01, 0x00, 0x00] + ("\a" * 0x10000).bytes)
 
   it_parses("invalid byte sequence", as_slice(UInt8[0x08, 0xe7]), UInt8[0xc4, 0x02] + UInt8[0x08, 0xe7])
-  
   it_parses("empty arrays", ([] of Type), UInt8[0x90])
   it_parses("small arrays", [1, 2], UInt8[0x92, 0x01, 0x02])
   it_parses("medium arrays", Array.new(0x111, false), UInt8[0xdc, 0x01, 0x11] + Array.new(0x111, 0xc2u8))
