@@ -12,6 +12,9 @@ class MessagePack::Token
   property :used
 
   @size : Int64
+  @int_value : Int::Signed
+  @uint_value : Int::Unsigned
+  @float_value : Float32 | Float64
 
   def initialize
     @type = :EOF

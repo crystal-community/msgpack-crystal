@@ -14,7 +14,7 @@ class MessagePack::Lexer
     @io = io
     @token = Token.new
     @byte_number = 0
-    @current_byte = 0
+    @current_byte = 0_u8
     @eof = false
   end
 
