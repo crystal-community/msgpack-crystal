@@ -4,9 +4,9 @@ class MessagePack::Token
 
   property :binary_value
   property :string_value
-  property :int_value
-  property :uint_value
-  property :float_value
+  property int_value : Int8 | Int16 | Int32 | Int64
+  property uint_value : UInt8 | UInt16 | UInt32 | UInt64
+  property float_value : Float32 | Float64
   property :byte_number
   property :size
   property :used
