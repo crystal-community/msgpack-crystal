@@ -8,13 +8,8 @@ class MessagePack::Token
   property uint_value : UInt8 | UInt16 | UInt32 | UInt64
   property float_value : Float32 | Float64
   property :byte_number
-  property :size
+  property size : Int64
   property :used
-
-  @size : Int64
-  @int_value : Int::Signed
-  @uint_value : Int::Unsigned
-  @float_value : Float32 | Float64
 
   def initialize
     @type = :EOF
