@@ -1,11 +1,11 @@
 struct MessagePack::Packer
-  def self.new(io = MemoryIO.new : IO)
+  def self.new(io : IO = MemoryIO.new)
     packer = new(io)
     yield packer
     packer
   end
 
-  def initialize(@io = MemoryIO.new : IO)
+  def initialize(@io : IO = MemoryIO.new)
   end
 
   def write(value : Nil)
