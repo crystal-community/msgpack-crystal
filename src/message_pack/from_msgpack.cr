@@ -18,41 +18,25 @@ def Bool.new(pull : MessagePack::Unpacker)
   pull.read_bool
 end
 
-def Int32.new(pull : MessagePack::Unpacker)
-  case pull.prefetch_token.type
-  when :UINT
-    pull.read_uint.to_i
-  else
-    pull.read_int.to_i
+{% for size in [8, 16, 32, 64] %}
+  def Int{{size.id}}.new(pull : MessagePack::Unpacker)
+    case pull.prefetch_token.type
+    when :UINT
+      pull.read_uint.to_i{{size.id}}
+    else
+      pull.read_int.to_i{{size.id}}
+    end
   end
-end
 
-def Int64.new(pull : MessagePack::Unpacker)
-  case pull.prefetch_token.type
-  when :UINT
-    pull.read_uint.to_i64
-  else
-    pull.read_int.to_i64
+  def UInt{{size.id}}.new(pull : MessagePack::Unpacker)
+    case pull.prefetch_token.type
+    when :INT
+      pull.read_int.to_u{{size.id}}
+    else
+      pull.read_uint.to_u{{size.id}}
+    end
   end
-end
-
-def UInt32.new(pull : MessagePack::Unpacker)
-  case pull.prefetch_token.type
-  when :INT
-    pull.read_int.to_u32
-  else
-    pull.read_uint.to_u32
-  end
-end
-
-def UInt64.new(pull : MessagePack::Unpacker)
-  case pull.prefetch_token.type
-  when :INT
-    pull.read_int.to_u64
-  else
-    pull.read_uint.to_u64
-  end
-end
+{% end %}
 
 def Float32.new(pull : MessagePack::Unpacker)
   case pull.prefetch_token.type

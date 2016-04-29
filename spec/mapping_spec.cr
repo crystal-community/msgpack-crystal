@@ -13,6 +13,19 @@ class MessagePackPerson
   end
 end
 
+class NumbersMessagePack
+  MessagePack.mapping({
+    int8:   Int8,
+    int16:  Int16,
+    int32:  Int32,
+    int64:  Int64,
+    uint8:  Int8,
+    uint16: Int16,
+    uint32: Int32,
+    uint64: Int64,
+  })
+end
+
 class StrictMessagePackPerson
   MessagePack.mapping({
     name: {type: String},
@@ -142,6 +155,21 @@ describe "MessagePack mapping" do
     person = MessagePackPerson.from_msgpack({"name" => "John", "age" => 30}.to_msgpack)
     person2 = MessagePackPerson.from_msgpack(person.to_msgpack)
     person2.should eq(person)
+  end
+
+  it "does from_msgpack with all ints" do
+    numbers = NumbersMessagePack.from_msgpack({
+      "int8" => 0_i8, "int16" => 0_i16, "int32" => 0_i32, "int64" => 0_i64,
+      "uint8" => 0_u8, "uint16" => 0_u16, "uint32" => 0_u32, "uint64" => 0_u64,
+    }.to_msgpack)
+    numbers.int8.should eq 0
+    numbers.int16.should eq 0
+    numbers.int32.should eq 0
+    numbers.int64.should eq 0
+    numbers.uint8.should eq 0
+    numbers.uint16.should eq 0
+    numbers.uint32.should eq 0
+    numbers.uint64.should eq 0
   end
 
   it "parses person with unknown attributes" do
