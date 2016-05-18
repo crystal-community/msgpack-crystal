@@ -118,6 +118,7 @@ describe "MessagePack serialization" do
 
     it "does for Hash with non-string keys" do
       {foo: 1, bar: 2}.to_msgpack.should eq as_slice(UInt8[130, 163, 102, 111, 111, 1, 163, 98, 97, 114, 2])
+      {:foo => 1, :bar => 2}.to_msgpack.should eq as_slice(UInt8[130, 163, 102, 111, 111, 1, 163, 98, 97, 114, 2])
     end
 
     it "does for Hash with non-string keys" do
