@@ -1,6 +1,6 @@
 require "../src/msgpack"
 
-$summary_packed = 0.to_u64
+$summary_packed = 0_u64
 
 def test_pack(name, count, data)
   t = Time.now
