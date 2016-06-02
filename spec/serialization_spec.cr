@@ -191,4 +191,16 @@ describe "MessagePack serialization" do
       Hash(String, Int32).from_msgpack(data.to_msgpack).should eq({"bla" => 1})
     end
   end
+
+  describe "base64" do
+    data = {"⬠ ⬡ ⬢ ⬣ ⬤ ⬥ ⬦" => {"bar" => true}, "zoo" => {"⬤" => false}}
+    str = "grvirKAg4qyhIOKsoiDirKMg4qykIOKspSDirKaBo2JhcsOjem9vgaPirKTC\n"
+    it "pack" do
+      data.to_msgpack64.should eq str
+    end
+
+    it "unpack" do
+      typeof(data).from_msgpack64(str).should eq data
+    end
+  end
 end

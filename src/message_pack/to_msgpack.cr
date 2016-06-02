@@ -1,8 +1,14 @@
+require "base64"
+
 class Object
   def to_msgpack
     packer = MessagePack::Packer.new
     to_msgpack(packer)
     packer.to_slice
+  end
+
+  def to_msgpack64
+    Base64.encode(to_msgpack)
   end
 
   def to_msgpack(packer : MessagePack::Packer)
