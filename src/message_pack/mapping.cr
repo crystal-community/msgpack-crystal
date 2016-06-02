@@ -88,6 +88,15 @@ module MessagePack
 
               {% if value[:converter] %}
                 {{value[:converter]}}.from_msgpack(%pull)
+              {% elsif value[:type].stringify.split("|").size > 1 %}
+                 case %pull.prefetch_token.type
+                  {% for type in value[:type].stringify.split("|") %}
+                    when :{{type.upcase.strip.gsub(/\d/, "").id}}
+                      {{type.id}}.new(%pull)
+                  {% end %}
+                 else
+                   raise MessagePack::Error.new("unknown token #{%pull.prefetch_token.type}, expected #{{{value[:type].stringify}}}")
+                 end
               {% else %}
                 {{value[:type]}}.new(%pull)
               {% end %}
