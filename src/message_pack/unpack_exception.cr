@@ -1,5 +1,5 @@
 # Raised on invalid MessagePack strings.
-class MessagePack::UnpackException < Exception
+class MessagePack::UnpackException < MessagePack::Error
   # The line number where the invalid MessagePack was detected.
   getter byte_number : Int32
 

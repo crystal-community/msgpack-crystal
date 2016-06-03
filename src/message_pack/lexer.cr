@@ -85,7 +85,8 @@ class MessagePack::Lexer
       set_type_and_size(:HASH, read UInt16)
     when 0xDF
       set_type_and_size(:HASH, read UInt32)
-    when unexpected_byte
+    else
+      unexpected_byte!
     end
 
     @token
@@ -153,11 +154,7 @@ class MessagePack::Lexer
     @io.read_bytes(T, IO::ByteFormat::BigEndian)
   end
 
-  private def unexpected_byte(byte = current_byte)
+  private def unexpected_byte!(byte = current_byte)
     raise Error.new("unexpected byte '#{byte}'")
-  end
-
-  private def raise(msg)
-    ::raise UnpackException.new(msg, @byte_number)
   end
 end
