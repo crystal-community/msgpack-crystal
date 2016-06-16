@@ -1,6 +1,12 @@
+require "base64"
+
 def Object.from_msgpack(string_or_io)
   parser = MessagePack::Unpacker.new(string_or_io)
   new parser
+end
+
+def Object.from_msgpack64(string_or_io)
+  from_msgpack(Base64.decode(string_or_io))
 end
 
 def Array.from_msgpack(string_or_io)
