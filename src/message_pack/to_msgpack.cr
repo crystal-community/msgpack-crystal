@@ -64,3 +64,9 @@ struct Time
     packer.to_slice
   end
 end
+
+struct Enum
+  def to_msgpack(packer : MessagePack::Packer)
+    value.to_msgpack(packer)
+  end
+end
