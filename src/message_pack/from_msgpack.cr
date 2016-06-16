@@ -110,6 +110,20 @@ def Hash.new(pull : MessagePack::Unpacker)
   hash
 end
 
+def Enum.new(pull : MessagePack::Unpacker)
+  type = pull.prefetch_token.type
+  case type
+  when :INT
+    from_value(pull.read_int)
+  when :UINT
+    from_value(pull.read_uint)
+  when :STRING
+    parse(pull.read_string)
+  else
+    raise "expecting int, uint or string in MessagePack for #{self.class}, not #{type}"
+  end
+end
+
 def Tuple.new(pull : MessagePack::Unpacker)
   {% if true %}
     pull.read_array_size
