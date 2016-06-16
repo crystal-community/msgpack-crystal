@@ -100,7 +100,7 @@ class MessagePack::Unpacker
         key = read_value
         yield key
       else
-        yield
+        yield nil
       end
     end
   end
@@ -160,9 +160,9 @@ class MessagePack::Unpacker
     end
   end
 
-  private delegate token, @lexer
-  private delegate next_token, @lexer
-  delegate prefetch_token, @lexer
+  private delegate token, to: @lexer
+  private delegate next_token, to: @lexer
+  delegate prefetch_token, to: @lexer
 
   private def check(token_type)
     unexpected_token(token_type) unless token.type == token_type
