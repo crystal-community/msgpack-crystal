@@ -124,6 +124,45 @@ def Enum.new(pull : MessagePack::Unpacker)
   end
 end
 
+def Union.new(pull : MessagePack::Unpacker)
+  # Optimization: use fast path for primitive types
+  {% begin %}
+    # Here we store types that are not primitive types
+    {% non_primitives = [] of Nil %}
+
+    {% for type, index in T %}
+      type = pull.prefetch_token.type
+      {% if type == Nil %}
+        return pull.read_nil if type == :NIL
+      {% elsif type == Bool ||
+               type == Int8 || type == Int16 || type == Int32 || type == Int64 ||
+               type == UInt8 || type == UInt16 || type == UInt32 || type == UInt64 ||
+               type == Float32 || type == Float64 ||
+               type == String %}
+        value = pull.read?({{type}})
+        return value unless value.nil?
+      {% else %}
+        {% non_primitives << type %}
+      {% end %}
+    {% end %}
+
+    # If after traversing all the types we are left with just one
+    # non-primitive type, we can parse it directly (no need to use `read_raw`)
+    {% if non_primitives.size == 1 %}
+      return {{non_primitives[0]}}.new(pull)
+    {% end %}
+  {% end %}
+
+  {% for type in T %}
+    begin
+      return {{type}}.new(pull)
+    rescue MessagePack::UnpackException
+      # Ignore
+    end
+  {% end %}
+  raise MessagePack::UnpackException.new("couldn't parse", 0)
+end
+
 def Tuple.new(pull : MessagePack::Unpacker)
   {% if true %}
     pull.read_array_size

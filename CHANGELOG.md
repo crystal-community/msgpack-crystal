@@ -1,3 +1,6 @@
+## 0.6.0 (2016-7-26)
+* Added union support
+
 ## 0.5.0 (2016-6-16)
 * Updated to crystal 0.18.0
 * Added enum support

@@ -89,6 +89,10 @@ class MessagePackWithSet
   MessagePack.mapping({set: Set(String)})
 end
 
+class MessagePackWithUnion
+  MessagePack.mapping({string_or_int: Union(Int32 | String)})
+end
+
 class MessagePackWithEnum
   enum Level
     Debug = 0
@@ -257,11 +261,18 @@ describe "MessagePack mapping" do
     msgpack.set.should eq(Set(String){"a", "b"})
   end
 
-  it "parses msgpack array as set" do
+  it "parses msgpack with enum" do
     msgpack = MessagePackWithEnum.from_msgpack({"level" => 0}.to_msgpack)
     msgpack.level.should eq(MessagePackWithEnum::Level::Debug)
     msgpack = MessagePackWithEnum.from_msgpack({"level" => "Info"}.to_msgpack)
     msgpack.level.should eq(MessagePackWithEnum::Level::Info)
+  end
+
+  it "parses msgpack with enum" do
+    msgpack = MessagePackWithUnion.from_msgpack({"string_or_int" => 0}.to_msgpack)
+    msgpack.string_or_int.should eq(0)
+    msgpack = MessagePackWithUnion.from_msgpack({"string_or_int" => "string"}.to_msgpack)
+    msgpack.string_or_int.should eq("string")
   end
 
   describe "(binary support)" do

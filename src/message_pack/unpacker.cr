@@ -160,6 +160,66 @@ class MessagePack::Unpacker
     end
   end
 
+  def read?(klass : Bool.class)
+    read_bool if token.type == :BOOL
+  end
+
+  def read?(klass : Int8.class)
+    read_int.to_i8 if token.type == :INT
+    read_uint.to_i8 if token.type == :UINT
+  end
+
+  def read?(klass : Int16.class)
+    read_int.to_i16 if token.type == :INT
+    read_uint.to_i16 if token.type == :UINT
+  end
+
+  def read?(klass : Int32.class)
+    read_int.to_i32 if token.type == :INT
+    read_uint.to_i32 if token.type == :UINT
+  end
+
+  def read?(klass : Int64.class)
+    read_int.to_i64 if token.type == :INT
+    read_uint.to_i64 if token.type == :UINT
+  end
+
+  def read?(klass : UInt8.class)
+    read_int.to_u8 if token.type == :INT
+    read_uint.to_u8 if token.type == :UINT
+  end
+
+  def read?(klass : UInt16.class)
+    read_int.to_u16 if token.type == :INT
+    read_uint.to_u16 if token.type == :UINT
+  end
+
+  def read?(klass : UInt32.class)
+    read_int.to_u32 if token.type == :INT
+    read_uint.to_u32 if token.type == :UINT
+  end
+
+  def read?(klass : UInt64.class)
+    read_int.to_u64 if token.type == :INT
+    read_uint.to_u64 if token.type == :UINT
+  end
+
+  def read?(klass : Float32.class)
+    return read_int.to_f32 if token.type == :INT
+    return read_uint.to_f32 if token.type == :UINT
+    return read_float.to_f32 if token.type == :FLOAT
+  end
+
+  def read?(klass : Float64.class)
+    return read_int.to_f64 if token.type == :INT
+    return read_uint.to_f64 if token.type == :UINT
+    return read_float.to_f64 if token.type == :FLOAT
+  end
+
+  def read?(klass : String.class)
+    read_string if token.type == :STRING
+  end
+
   private delegate token, to: @lexer
   private delegate next_token, to: @lexer
   delegate prefetch_token, to: @lexer
