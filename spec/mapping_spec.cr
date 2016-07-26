@@ -315,6 +315,10 @@ describe "MessagePack mapping" do
     it "parse a" do
       msgpack = MessagePackWithUnions.from_msgpack({"a" => "bla"}.to_msgpack)
       msgpack.a.should eq "bla"
+
+      expect_raises(MessagePack::Error) do
+        MessagePackWithUnions.from_msgpack({"a" => [1, 2, 3]}.to_msgpack)
+      end
     end
 
     it "parse b" do
@@ -323,6 +327,10 @@ describe "MessagePack mapping" do
 
       msgpack = MessagePackWithUnions.from_msgpack({"b" => %w(1 2 3)}.to_msgpack)
       msgpack.b.should eq %w(1 2 3)
+
+      expect_raises(MessagePack::Error) do
+        MessagePackWithUnions.from_msgpack({"b" => 1}.to_msgpack)
+      end
     end
 
     it "parse c" do
@@ -332,15 +340,28 @@ describe "MessagePack mapping" do
       h = {"bla" => "1"}
       msgpack = MessagePackWithUnions.from_msgpack({"c" => h}.to_msgpack)
       msgpack.c.should eq h
+
+      expect_raises(MessagePack::Error) do
+        MessagePackWithUnions.from_msgpack({"c" => 1}.to_msgpack)
+      end
     end
 
-    it "parse d" do
+    it "parse d coord" do
       coord = MessagePackCoordinate.new(1.0, 2.0, 3.0)
       msgpack = MessagePackWithUnions.from_msgpack({"d" => coord}.to_msgpack)
       msgpack.d.should eq coord
+    end
 
+    it "parse d coordinates" do
+      coord = MessagePackCoordinate.new(1.0, 2.0, 3.0)
       msgpack = MessagePackWithUnions.from_msgpack({"d" => {"coordinates" => [coord, coord]}}.to_msgpack)
       msgpack.d.should eq [coord, coord]
+    end
+
+    it "parse d unknown struct" do
+      expect_raises(MessagePack::Error) do
+        MessagePackWithUnions.from_msgpack({"d" => {"bla" => [1, 2, 3]}}.to_msgpack)
+      end
     end
   end
 
