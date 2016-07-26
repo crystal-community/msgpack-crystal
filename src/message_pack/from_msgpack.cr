@@ -71,7 +71,14 @@ def String.new(pull : MessagePack::Unpacker)
 end
 
 def Bytes.new(pull : MessagePack::Unpacker)
-  pull.read_binary
+  case token_type = pull.prefetch_token.type
+  when :STRING
+    pull.read_string.to_slice
+  when :BINARY
+    pull.read_binary
+  else
+    raise "expecting string, of binary, not #{token_type}"
+  end
 end
 
 def Array.new(pull : MessagePack::Unpacker)

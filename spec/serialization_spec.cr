@@ -147,6 +147,11 @@ describe "MessagePack serialization" do
       typeof(data).from_msgpack(data.to_msgpack).should eq data
     end
 
+    it "binary from string" do
+      data = "bla"
+      Bytes.from_msgpack(data.to_msgpack).should eq Bytes[98_u8, 108_u8, 97_u8]
+    end
+
     it "array" do
       data = [1, 2, 3]
       typeof(data).from_msgpack(data.to_msgpack).should eq data
