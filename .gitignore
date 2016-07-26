@@ -4,3 +4,4 @@
 private/
 *.msg
 *.js
+bin_*
