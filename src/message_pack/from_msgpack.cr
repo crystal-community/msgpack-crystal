@@ -135,10 +135,10 @@ def Union.new(pull : MessagePack::Unpacker)
       {% if type == Nil %}
         return pull.read_nil if type == :NIL
       {% elsif type == Bool ||
-               type == Int8 || type == Int16 || type == Int32 || type == Int64 ||
-               type == UInt8 || type == UInt16 || type == UInt32 || type == UInt64 ||
-               type == Float32 || type == Float64 ||
-               type == String %}
+                 type == Int8 || type == Int16 || type == Int32 || type == Int64 ||
+                 type == UInt8 || type == UInt16 || type == UInt32 || type == UInt64 ||
+                 type == Float32 || type == Float64 ||
+                 type == String %}
         value = pull.read?({{type}})
         return value unless value.nil?
       {% else %}
@@ -153,11 +153,12 @@ def Union.new(pull : MessagePack::Unpacker)
     {% end %}
   {% end %}
 
+  packed = pull.read.to_msgpack
   {% for type in T %}
     begin
-      return {{type}}.new(pull)
-    rescue MessagePack::UnpackException
-      # Ignore
+      return {{type}}.from_msgpack(packed)
+    rescue e : MessagePack::UnpackException
+      # ignore
     end
   {% end %}
   raise MessagePack::UnpackException.new("couldn't parse", 0)

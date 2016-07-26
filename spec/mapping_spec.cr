@@ -93,6 +93,10 @@ class MessagePackWithUnion
   MessagePack.mapping({string_or_int: Union(Int32 | String)})
 end
 
+class MessagePackWithCustomUnion
+  MessagePack.mapping({custom: {type: Union(MessagePackWithTime | MessagePackWithBool)}})
+end
+
 class MessagePackWithEnum
   enum Level
     Debug = 0
@@ -268,11 +272,23 @@ describe "MessagePack mapping" do
     msgpack.level.should eq(MessagePackWithEnum::Level::Info)
   end
 
-  it "parses msgpack with enum" do
+  it "parses msgpack with union" do
     msgpack = MessagePackWithUnion.from_msgpack({"string_or_int" => 0}.to_msgpack)
     msgpack.string_or_int.should eq(0)
+
     msgpack = MessagePackWithUnion.from_msgpack({"string_or_int" => "string"}.to_msgpack)
     msgpack.string_or_int.should eq("string")
+  end
+
+  it "parses msgpack with union of custom primitives" do
+    bool = MessagePackWithBool.from_msgpack({value: true}.to_msgpack)
+    msgpack = MessagePackWithCustomUnion.from_msgpack({"custom" => bool}.to_msgpack)
+    msgpack.custom.value.should eq true
+
+    time = MessagePackWithTime.from_msgpack({value: "2014-10-31 23:37:16"}.to_msgpack)
+    msgpack = MessagePackWithCustomUnion.from_msgpack({"custom" => time}.to_msgpack)
+    msgpack.custom.value.should be_a Time
+    msgpack.custom.value.to_s.should eq "2014-10-31 23:37:16"
   end
 
   describe "(binary support)" do
