@@ -6,7 +6,7 @@ class MessagePack::Lexer
     new MemoryIO.new(string)
   end
 
-  def self.new(slice : Slice(UInt8))
+  def self.new(slice : Bytes)
     new MemoryIO.new(slice)
   end
 
@@ -133,7 +133,7 @@ class MessagePack::Lexer
   end
 
   private def consume_binary(size)
-    bytes = Slice(UInt8).new(size)
+    bytes = Bytes.new(size)
     @io.read_fully(bytes)
     @token.type = :BINARY
     @token.binary_value = bytes

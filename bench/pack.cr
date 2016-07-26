@@ -13,15 +13,15 @@ def test_pack(name, count, data)
   $summary_packed += res
 end
 
-def bytes(size : Int32) : Slice(UInt8)
-  Slice(UInt8).new(size) { |i| i.to_u8 }
+def bytes(size : Int32) : Bytes
+  Bytes.new(size) { |i| i.to_u8 }
 end
 
-def byte(value : Int32) : Slice(UInt8)
-  Slice(UInt8).new(1) { value.to_u8 }
+def byte(value : Int32) : Bytes
+  Bytes.new(1) { value.to_u8 }
 end
 
-alias Binary = Slice(UInt8)
+alias Binary = Bytes
 
 t = Time.now
 

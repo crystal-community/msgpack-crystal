@@ -147,14 +147,14 @@ end
 class MessagePackKVS
   MessagePack.mapping({
     key: String,
-    val: {type: Slice(UInt8), nilable: true},
+    val: {type: Bytes, nilable: true},
   })
 end
 
 class StrictMessagePackKVS
   MessagePack.mapping({
     key: String,
-    val: {type: Slice(UInt8), nilable: true},
+    val: {type: Bytes, nilable: true},
   }, true)
 end
 
@@ -366,7 +366,7 @@ describe "MessagePack mapping" do
   end
 
   describe "(binary support)" do
-    binary_data = Slice(UInt8).new(UInt8[0x08, 0xE7].to_unsafe, 2)
+    binary_data = Bytes.new(UInt8[0x08, 0xE7].to_unsafe, 2)
     it "parses binary data" do
       kvs = MessagePackKVS.from_msgpack({"key" => "a", "val" => binary_data}.to_msgpack)
       kvs.should be_a(MessagePackKVS)

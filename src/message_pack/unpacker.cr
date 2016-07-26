@@ -6,7 +6,7 @@ class MessagePack::Unpacker
   end
 
   def self.new(array : Array(UInt8))
-    slice = Slice(UInt8).new(array.to_unsafe, array.size)
+    slice = Bytes.new(array.to_unsafe, array.size)
     new(slice)
   end
 

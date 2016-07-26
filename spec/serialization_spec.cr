@@ -71,11 +71,11 @@ describe "MessagePack serialization" do
       tuple.should be_a(Tuple(Int32, String))
     end
 
-    it "does for Slice(UInt8)" do
+    it "does for Bytes" do
       data = UInt8[196, 3, 1, 2, 3]
-      binary = Slice(UInt8).from_msgpack(data)
+      binary = Bytes.from_msgpack(data)
       binary.should eq(as_slice(UInt8[1, 2, 3]))
-      binary.should be_a(Slice(UInt8))
+      binary.should be_a(Bytes)
     end
   end
 
@@ -100,7 +100,7 @@ describe "MessagePack serialization" do
       "hello".to_msgpack.should eq as_slice(UInt8[165, 104, 101, 108, 108, 111])
     end
 
-    it "does for Slice(UInt8)" do
+    it "does for Bytes" do
       as_slice(UInt8[1, 2, 3]).to_msgpack.should eq as_slice(UInt8[196, 3, 1, 2, 3])
     end
 

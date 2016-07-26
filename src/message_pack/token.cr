@@ -14,7 +14,7 @@ class MessagePack::Token
   def initialize
     @type = :EOF
     @byte_number = 0
-    @binary_value = Slice(UInt8).new(0)
+    @binary_value = Bytes.new(0)
     @string_value = ""
     @int_value = 0_i8
     @uint_value = 0_u8

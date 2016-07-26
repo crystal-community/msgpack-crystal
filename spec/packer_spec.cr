@@ -48,7 +48,7 @@ describe "MessagePack::Packer" do
     packer = MessagePack::Packer.new(io)
     packer.write(1.to_i8)
 
-    io.to_slice.should eq Slice(UInt8).new(UInt8[0x01].to_unsafe, 1)
+    io.to_slice.should eq Bytes.new(UInt8[0x01].to_unsafe, 1)
   end
 
   context "packs numbers to the smallest size possible according to the value" do

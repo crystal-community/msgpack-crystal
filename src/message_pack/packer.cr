@@ -67,7 +67,7 @@ struct MessagePack::Packer
     self
   end
 
-  def write(value : Slice(UInt8))
+  def write(value : Bytes)
     write_binary_start(value.bytesize)
     write_slice(value)
     self
