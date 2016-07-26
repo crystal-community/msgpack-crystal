@@ -37,5 +37,5 @@ test_pack("array of floats", 20000, Array.new(3000) { |i| i / 10.0 })
 ints = [1, -1, 0x21, -0x21, 128, -128, -0x8000, 0x8000, 0xFFFF, -0xFFFF, -0x80000000, 0x80000000, -9223372036854775808, 9223372036854775807, 4294967295, -4294967295]
 test_pack("array of mix int sizes", 2000, Array.new(30000) { |i| ints[i % ints.size] })
 
-puts "Summary packed size: #{$summary_packed / 1024 / 1024} Mb"
+puts "Summary packed size: #{$summary_packed} bytes"
 puts "Summary time: #{Time.now - t}"

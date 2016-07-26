@@ -1,5 +1,7 @@
 require "../src/msgpack"
 
+$summary_unpacked = 0_u64
+
 def test_unpack(name, count, klass, data)
   slice = data.to_msgpack
   t = Time.now
@@ -9,6 +11,7 @@ def test_unpack(name, count, klass, data)
     obj = klass.from_msgpack(slice)
     res += obj.size
   end
+  $summary_unpacked += res
   puts " = #{res}, #{Time.now - t}"
 end
 
@@ -38,4 +41,5 @@ test_unpack("array of floats", 20000, Array(Float64), Array.new(3000) { |i| i / 
 ints = [1, -1, 0x21, -0x21, 128, -128, -0x8000, 0x8000, 0xFFFF, -0xFFFF, -0x80000000, 0x80000000, -9223372036854775808, 9223372036854775807, 4294967295, -4294967295]
 test_unpack("array of mix int sizes", 2000, Array(Int64), Array.new(30000) { |i| ints[i % ints.size] })
 
+puts "Summary unpacked size: #{$summary_unpacked}"
 puts "Summary time: #{Time.now - t}"
