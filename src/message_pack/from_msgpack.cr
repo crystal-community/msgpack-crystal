@@ -77,7 +77,7 @@ def Bytes.new(pull : MessagePack::Unpacker)
   when :BINARY
     pull.read_binary
   else
-    raise "expecting string, of binary, not #{token_type}"
+    raise MessagePack::UnpackException.new("expecting string, of binary, not #{token_type}")
   end
 end
 
@@ -127,7 +127,7 @@ def Enum.new(pull : MessagePack::Unpacker)
   when :STRING
     parse(pull.read_string)
   else
-    raise "expecting int, uint or string in MessagePack for #{self.class}, not #{type}"
+    raise MessagePack::UnpackException.new("expecting int, uint or string in MessagePack for #{self.class}, not #{type}")
   end
 end
 
