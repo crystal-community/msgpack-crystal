@@ -355,7 +355,7 @@ describe "MessagePack mapping" do
     it "parse d coordinates" do
       coord = MessagePackCoordinate.new(1.0, 2.0, 3.0)
       msgpack = MessagePackWithUnions.from_msgpack({"d" => {"coordinates" => [coord, coord]}}.to_msgpack)
-      msgpack.d.should eq [coord, coord]
+      msgpack.d.as(MessagePackCoordinates).coordinates.should eq [coord, coord]
     end
 
     it "parse d unknown struct" do

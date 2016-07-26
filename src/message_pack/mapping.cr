@@ -96,7 +96,7 @@ module MessagePack
         {% end %}
         else
           {% if strict %}
-            raise MessagePack::Error.new("unknown msgpack attribute: #{key}")
+            raise MessagePack::UnpackException.new("unknown msgpack attribute: #{key}")
           {% else %}
             %pull.skip_value
           {% end %}
@@ -106,7 +106,7 @@ module MessagePack
       {% for key, value in properties %}
         {% unless value[:nilable] || value[:default] != nil %}
           if %var{key.id}.is_a?(Nil) && !%found{key.id}
-            raise MessagePack::Error.new("missing msgpack attribute: {{(value[:key] || key).id}}")
+            raise MessagePack::UnpackException.new("missing msgpack attribute: {{(value[:key] || key).id}}")
           end
         {% end %}
       {% end %}

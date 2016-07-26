@@ -161,7 +161,7 @@ def Union.new(pull : MessagePack::Unpacker)
       # ignore
     end
   {% end %}
-  raise MessagePack::UnpackException.new("couldn't parse", 0)
+  raise MessagePack::UnpackException.new("couldn't parse")
 end
 
 def Tuple.new(pull : MessagePack::Unpacker)

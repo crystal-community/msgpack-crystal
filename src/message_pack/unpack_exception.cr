@@ -4,7 +4,7 @@ class MessagePack::UnpackException < MessagePack::Error
   getter byte_number : Int32
 
   # Creates a ParseException with the given message and byte number.
-  def initialize(message, @byte_number)
+  def initialize(message, @byte_number = 0)
     super "#{message} at #{@byte_number}"
   end
 end
