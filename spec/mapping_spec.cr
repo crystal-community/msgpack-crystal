@@ -97,6 +97,15 @@ class MessagePackWithCustomUnion
   MessagePack.mapping({custom: {type: Union(MessagePackWithTime | MessagePackWithBool)}})
 end
 
+class MessagePackWithUnions
+  MessagePack.mapping({
+    a: {type: Union(String, Int32), nilable: true},
+    b: {type: Union(Array(Int32), Array(String)), nilable: true},
+    c: {type: Union(Array(Int32), Hash(String, String)), nilable: true},
+    d: {type: Union(MessagePackCoordinate, MessagePackCoordinates), nilable: true},
+  })
+end
+
 class MessagePackWithEnum
   enum Level
     Debug = 0
@@ -124,6 +133,9 @@ struct MessagePackCoordinate
     y: Float64,
     z: Float64,
   })
+
+  def initialize(@x : Float64, @y : Float64, @z : Float64)
+  end
 end
 
 class MessagePackCoordinates
@@ -272,23 +284,64 @@ describe "MessagePack mapping" do
     msgpack.level.should eq(MessagePackWithEnum::Level::Info)
   end
 
-  it "parses msgpack with union" do
-    msgpack = MessagePackWithUnion.from_msgpack({"string_or_int" => 0}.to_msgpack)
-    msgpack.string_or_int.should eq(0)
+  describe "unions" do
+    it "parses msgpack with union" do
+      msgpack = MessagePackWithUnion.from_msgpack({"string_or_int" => 0}.to_msgpack)
+      msgpack.string_or_int.should eq(0)
 
-    msgpack = MessagePackWithUnion.from_msgpack({"string_or_int" => "string"}.to_msgpack)
-    msgpack.string_or_int.should eq("string")
-  end
+      msgpack = MessagePackWithUnion.from_msgpack({"string_or_int" => "string"}.to_msgpack)
+      msgpack.string_or_int.should eq("string")
+    end
 
-  it "parses msgpack with union of custom primitives" do
-    bool = MessagePackWithBool.from_msgpack({value: true}.to_msgpack)
-    msgpack = MessagePackWithCustomUnion.from_msgpack({"custom" => bool}.to_msgpack)
-    msgpack.custom.value.should eq true
+    it "parses msgpack with union of custom primitives" do
+      bool = MessagePackWithBool.from_msgpack({value: true}.to_msgpack)
+      msgpack = MessagePackWithCustomUnion.from_msgpack({"custom" => bool}.to_msgpack)
+      msgpack.custom.value.should eq true
 
-    time = MessagePackWithTime.from_msgpack({value: "2014-10-31 23:37:16"}.to_msgpack)
-    msgpack = MessagePackWithCustomUnion.from_msgpack({"custom" => time}.to_msgpack)
-    msgpack.custom.value.should be_a Time
-    msgpack.custom.value.to_s.should eq "2014-10-31 23:37:16"
+      time = MessagePackWithTime.from_msgpack({value: "2014-10-31 23:37:16"}.to_msgpack)
+      msgpack = MessagePackWithCustomUnion.from_msgpack({"custom" => time}.to_msgpack)
+      msgpack.custom.value.should be_a Time
+      msgpack.custom.value.to_s.should eq "2014-10-31 23:37:16"
+    end
+
+    it "parses msgpack with unions" do
+      msgpack = MessagePackWithUnions.from_msgpack(({} of String => String).to_msgpack)
+      msgpack.a.should eq nil
+      msgpack.b.should eq nil
+      msgpack.c.should eq nil
+      msgpack.d.should eq nil
+    end
+
+    it "parse a" do
+      msgpack = MessagePackWithUnions.from_msgpack({"a" => "bla"}.to_msgpack)
+      msgpack.a.should eq "bla"
+    end
+
+    it "parse b" do
+      msgpack = MessagePackWithUnions.from_msgpack({"b" => [1, 2, 3]}.to_msgpack)
+      msgpack.b.should eq [1, 2, 3]
+
+      msgpack = MessagePackWithUnions.from_msgpack({"b" => %w(1 2 3)}.to_msgpack)
+      msgpack.b.should eq %w(1 2 3)
+    end
+
+    it "parse c" do
+      msgpack = MessagePackWithUnions.from_msgpack({"c" => [1, 2, 3]}.to_msgpack)
+      msgpack.c.should eq [1, 2, 3]
+
+      h = {"bla" => "1"}
+      msgpack = MessagePackWithUnions.from_msgpack({"c" => h}.to_msgpack)
+      msgpack.c.should eq h
+    end
+
+    it "parse d" do
+      coord = MessagePackCoordinate.new(1.0, 2.0, 3.0)
+      msgpack = MessagePackWithUnions.from_msgpack({"d" => coord}.to_msgpack)
+      msgpack.d.should eq coord
+
+      msgpack = MessagePackWithUnions.from_msgpack({"d" => {"coordinates" => [coord, coord]}}.to_msgpack)
+      msgpack.d.should eq [coord, coord]
+    end
   end
 
   describe "(binary support)" do
