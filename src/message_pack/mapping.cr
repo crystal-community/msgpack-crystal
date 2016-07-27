@@ -78,10 +78,10 @@ module MessagePack
         %found{key.id} = false
       {% end %}
 
-      %pull.read_hash do |key|
-        case key
+      %pull.read_hash(false) do
+        case %key = Bytes.new(%pull)
         {% for key, value in properties %}
-          when {{value[:key] || key.id.stringify}}
+          when {{value[:key] || key.id.stringify}}.to_slice
             %found{key.id} = true
             %var{key.id} =
               {% if value[:nilable] || value[:default] != nil %} %pull.read_nil_or { {% end %}
@@ -96,7 +96,7 @@ module MessagePack
         {% end %}
         else
           {% if strict %}
-            raise MessagePack::UnpackException.new("unknown msgpack attribute: #{key}")
+            raise MessagePack::UnpackException.new("unknown msgpack attribute: #{String.new(%key)}")
           {% else %}
             %pull.skip_value
           {% end %}

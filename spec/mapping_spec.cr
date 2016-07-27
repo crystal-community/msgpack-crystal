@@ -250,6 +250,13 @@ describe "MessagePack mapping" do
     person.age.should eq(30)
   end
 
+  it "parses simple mapping, key is binary" do
+    person = MessagePackWithSimpleMapping.from_msgpack({"name".to_slice => "John", "age".to_slice => 30}.to_msgpack)
+    person.should be_a(MessagePackWithSimpleMapping)
+    person.name.should eq("John")
+    person.age.should eq(30)
+  end
+
   it "outputs with converter when nilable" do
     msgpack = MessagePackWithNilableTime.new
     msgpack.to_msgpack.should eq(as_slice(UInt8[129, 165, 118, 97, 108, 117, 101, 192]))
