@@ -9,7 +9,7 @@ def test_unpack(name, count, klass, data)
   res = 0
   count.times do |i|
     obj = klass.from_msgpack(slice)
-    res += obj.size
+    res += obj.is_a?(String) ? obj.bytesize : obj.size
   end
   $summary_unpacked += res
   puts " = #{res}, #{Time.now - t}"
