@@ -70,7 +70,7 @@ def String.new(pull : MessagePack::Unpacker)
   pull.read_string
 end
 
-def Bytes.new(pull : MessagePack::Unpacker)
+def Slice.new(pull : MessagePack::Unpacker)
   case token_type = pull.prefetch_token.type
   when :STRING
     pull.read_string.to_slice
