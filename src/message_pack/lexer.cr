@@ -133,6 +133,7 @@ class MessagePack::Lexer
   end
 
   private def consume_binary(size)
+    size = size.to_u32
     bytes = Bytes.new(size)
     @io.read_fully(bytes)
     @token.type = :BINARY
@@ -141,6 +142,7 @@ class MessagePack::Lexer
   end
 
   private def consume_string(size)
+    size = size.to_u32
     @token.type = :STRING
     @token.string_value = String.new(size) do |buffer|
       @io.read_fully(Slice.new(buffer, size))
