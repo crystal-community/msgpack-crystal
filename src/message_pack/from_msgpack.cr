@@ -200,3 +200,7 @@ struct Time
     formatter.parse(pull.read_string)
   end
 end
+
+def MessagePack::Type.new(pull : MessagePack::Unpacker)
+  pull.read
+end

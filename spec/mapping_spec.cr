@@ -158,6 +158,13 @@ class StrictMessagePackKVS
   }, true)
 end
 
+class UseTableClass
+  MessagePack.mapping({
+    name:       String,
+    attributes: MessagePack::Table,
+  })
+end
+
 describe "MessagePack mapping" do
   it "parses person" do
     person = MessagePackPerson.from_msgpack({"name" => "John", "age" => 30}.to_msgpack)
@@ -524,5 +531,13 @@ describe "MessagePack mapping" do
     coord.y.should be <= 1
     coord.z.should be >= 0
     coord.z.should be <= 1
+  end
+
+  context "unpack to table class" do
+    it "works" do
+      m = {"name" => "bar", "attributes" => {"foo" => "bar"}}.to_msgpack
+      u = UseTableClass.from_msgpack(m)
+      u.attributes["foo"].should eq "bar"
+    end
   end
 end
