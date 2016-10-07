@@ -63,7 +63,7 @@ describe "pack and unpack integration specs" do
   end
 
   it "works with binary (invalid byte sequence for UTF-8)" do
-    bytes = as_slice(UInt8[0x08, 0xe7])
+    bytes = Bytes[0x08, 0xe7]
     packer = MessagePack::Packer.new
     packer.write(bytes)
     unpack = MessagePack::Unpacker.new(packer.to_slice)

@@ -228,7 +228,7 @@ describe "MessagePack mapping" do
 
   it "emits null when doing to_msgpack" do
     person = MessagePackPersonEmittingNull.from_msgpack({"name" => "John"}.to_msgpack)
-    person.to_msgpack.should eq as_slice(UInt8[130, 164, 110, 97, 109, 101, 164, 74, 111, 104, 110, 163, 97, 103, 101, 192])
+    person.to_msgpack.should eq Bytes[130, 164, 110, 97, 109, 101, 164, 74, 111, 104, 110, 163, 97, 103, 101, 192]
   end
 
   it "doesn't raises on false value when not-nil" do
@@ -266,12 +266,12 @@ describe "MessagePack mapping" do
 
   it "outputs with converter when nilable" do
     msgpack = MessagePackWithNilableTime.new
-    msgpack.to_msgpack.should eq(as_slice(UInt8[129, 165, 118, 97, 108, 117, 101, 192]))
+    msgpack.to_msgpack.should eq(Bytes[129, 165, 118, 97, 108, 117, 101, 192])
   end
 
   it "outputs with converter when nilable" do
     msgpack = MessagePackWithNilableTimeEmittingNull.new
-    msgpack.to_msgpack.should eq(as_slice(UInt8[129, 165, 118, 97, 108, 117, 101, 192]))
+    msgpack.to_msgpack.should eq(Bytes[129, 165, 118, 97, 108, 117, 101, 192])
   end
 
   it "parses msgpack with keywords" do

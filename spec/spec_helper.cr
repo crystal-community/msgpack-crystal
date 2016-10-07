@@ -7,10 +7,6 @@ def as_slice(arr : Array(UInt8))
   Bytes.new(arr.to_unsafe, arr.size)
 end
 
-def as_slice(str : String)
-  as_slice(str.bytes)
-end
-
 def it_packs_method(type, bytes)
   packer = MessagePack::Packer.new
   result = packer.write(type)
