@@ -1,6 +1,16 @@
 require "../src/msgpack"
 
-$summary_packed = 0_u64
+module Global
+  @@summary_packed = 0_u64
+
+  def self.summary_packed
+    @@summary_packed
+  end
+
+  def self.summary_packed=(value)
+    @@summary_packed = value
+  end
+end
 
 def test_pack(name, count, data)
   t = Time.now
@@ -10,7 +20,7 @@ def test_pack(name, count, data)
     res += data.to_msgpack.size
   end
   puts " = #{res}, #{Time.now - t}"
-  $summary_packed += res
+  Global.summary_packed += res
 end
 
 def bytes(size : Int32) : Bytes
@@ -42,5 +52,5 @@ test_pack("array of mix int sizes", 2000, Array.new(30000) { |i| ints[i % ints.s
 data = [Array.new(30) { |i| i }, Array.new(30) { |i| i.to_s }, (0..30).reduce({} of Int32 => String) { |h, i| h[i] = i.to_s; h }, 1, "1"]
 test_pack("array of mix of data", 200, Array.new(10000) { |i| data[i % data.size] })
 
-puts "Summary packed size: #{$summary_packed} bytes"
+puts "Summary packed size: #{Global.summary_packed} bytes"
 puts "Summary time: #{Time.now - t}"
