@@ -1,6 +1,16 @@
 require "../src/msgpack"
 
-$summary_unpacked = 0_u64
+module Global
+  @@summary_unpacked = 0_u64
+
+  def self.summary_unpacked
+    @@summary_unpacked
+  end
+
+  def self.summary_unpacked=(value)
+    @@summary_unpacked = value
+  end
+end
 
 def test_unpack(name, count, klass, data)
   slice = data.to_msgpack
@@ -11,7 +21,7 @@ def test_unpack(name, count, klass, data)
     obj = klass.from_msgpack(slice)
     res += obj.is_a?(String) ? obj.bytesize : obj.size
   end
-  $summary_unpacked += res
+  Global.summary_unpacked += res
   puts " = #{res}, #{Time.now - t}"
 end
 
@@ -44,5 +54,5 @@ test_unpack("array of mix int sizes", 2000, Array(Int64), Array.new(30000) { |i|
 data = [Array.new(30) { |i| i }, Array.new(30) { |i| i.to_s }, (0..30).reduce({} of Int32 => String) { |h, i| h[i] = i.to_s; h }, 1, "1"]
 test_unpack("array of mix of data", 200, Array(Array(Int32) | Array(String) | Hash(Int32, String) | Int32 | String), Array.new(10000) { |i| data[i % data.size] })
 
-puts "Summary unpacked size: #{$summary_unpacked}"
+puts "Summary unpacked size: #{Global.summary_unpacked}"
 puts "Summary time: #{Time.now - t}"
