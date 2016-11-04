@@ -93,6 +93,10 @@ class MessagePackWithUnion
   MessagePack.mapping({string_or_int: Union(Int32 | String)})
 end
 
+class MessagePackWithNilUnion
+  MessagePack.mapping({int_or_nil: Union(Int32 | Nil)})
+end
+
 class MessagePackWithCustomUnion
   MessagePack.mapping({custom: {type: Union(MessagePackWithTime | MessagePackWithBool)}})
 end
@@ -375,6 +379,23 @@ describe "MessagePack mapping" do
     it "parse d unknown struct" do
       expect_raises(MessagePack::Error) do
         MessagePackWithUnions.from_msgpack({"d" => {"bla" => [1, 2, 3]}}.to_msgpack)
+      end
+    end
+
+    context "union with nil" do
+      it "int" do
+        m = MessagePackWithNilUnion.from_msgpack({"int_or_nil" => 1}.to_msgpack)
+        m.int_or_nil.should eq 1
+      end
+
+      it "hash with nil" do
+        m = MessagePackWithNilUnion.from_msgpack({"int_or_nil" => nil}.to_msgpack)
+        m.int_or_nil.should eq nil
+      end
+
+      it "empty hash" do
+        m = MessagePackWithNilUnion.from_msgpack(({} of String => Int32).to_msgpack)
+        m.int_or_nil.should eq nil
       end
     end
   end

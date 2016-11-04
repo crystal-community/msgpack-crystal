@@ -140,7 +140,7 @@ def Union.new(pull : MessagePack::Unpacker)
     {% for type, index in T %}
       type = pull.prefetch_token.type
       {% if type == Nil %}
-        return pull.read_nil if type == :NIL
+        return pull.read_nil if type == :nil
       {% elsif type == Bool ||
                  type == Int8 || type == Int16 || type == Int32 || type == Int64 ||
                  type == UInt8 || type == UInt16 || type == UInt32 || type == UInt64 ||

@@ -105,7 +105,7 @@ module MessagePack
 
       {% for key, value in properties %}
         {% unless value[:nilable] || value[:default] != nil %}
-          if %var{key.id}.is_a?(Nil) && !%found{key.id}
+          if %var{key.id}.is_a?(Nil) && !%found{key.id} && !Union({{value[:type]}}).nilable?
             raise MessagePack::UnpackException.new("missing msgpack attribute: {{(value[:key] || key).id}}")
           end
         {% end %}
@@ -121,7 +121,7 @@ module MessagePack
         {% elsif value[:default] != nil %}
           @{{key.id}} = %var{key.id}.is_a?(Nil) ? {{value[:default]}} : %var{key.id}
         {% else %}
-          @{{key.id}} = %var{key.id}.not_nil!
+          @{{key.id}} = %var{key.id}.as({{value[:type]}})
         {% end %}
       {% end %}
     end

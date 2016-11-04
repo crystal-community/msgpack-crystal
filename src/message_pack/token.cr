@@ -30,8 +30,8 @@ class MessagePack::Token
 
   def to_s(io)
     case @type
-    when :NIL
-      io << :NIL
+    when :nil
+      io << :nil
     when :STRING
       @string_value.inspect(io)
     when :BINARY
