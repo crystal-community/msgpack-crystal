@@ -90,15 +90,15 @@ class MessagePackWithSet
 end
 
 class MessagePackWithUnion
-  MessagePack.mapping({string_or_int: Union(Int32 | String)})
+  MessagePack.mapping({string_or_int: Union(Int32, String)})
 end
 
 class MessagePackWithNilUnion
-  MessagePack.mapping({int_or_nil: Union(Int32 | Nil)})
+  MessagePack.mapping({int_or_nil: Int32?})
 end
 
 class MessagePackWithCustomUnion
-  MessagePack.mapping({custom: {type: Union(MessagePackWithTime | MessagePackWithBool)}})
+  MessagePack.mapping({custom: {type: Union(MessagePackWithTime, MessagePackWithBool)}})
 end
 
 class MessagePackWithUnions
