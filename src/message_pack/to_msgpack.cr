@@ -11,6 +11,12 @@ class Object
     Base64.encode(to_msgpack)
   end
 
+  def to_msgpack(io : IO)
+    packer = MessagePack::Packer.new(io)
+    to_msgpack(packer)
+    self
+  end
+
   def to_msgpack(packer : MessagePack::Packer)
     packer.write(self)
   end

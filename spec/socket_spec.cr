@@ -45,4 +45,20 @@ describe "read from socket" do
       end
     end
   end
+
+  it "to_msgpack pack directly to socket, unpack mapping from socket" do
+    TCPServer.open("::", 0) do |server|
+      TCPSocket.open("::", server.local_address.port) do |client|
+        sock = server.accept
+
+        person = SocketPerson.new "Albert", 25
+        person.to_msgpack(client)
+
+        pull = MessagePack::Unpacker.new(sock)
+        person2 = SocketPerson.new(pull)
+        person2.name.should eq "Albert"
+        person2.age.should eq 25
+      end
+    end
+  end
 end
