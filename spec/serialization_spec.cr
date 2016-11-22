@@ -50,7 +50,7 @@ describe "MessagePack serialization" do
     end
 
     it "does for Array(Int32) from IO" do
-      io = MemoryIO.new
+      io = IO::Memory.new
       io.write_byte(147.to_u8); io.write_byte(1.to_u8); io.write_byte(2.to_u8); io.write_byte(3.to_u8)
       io.rewind
       Array(Int32).from_msgpack(io).should eq([1, 2, 3])

@@ -44,7 +44,7 @@ describe "MessagePack::Packer" do
   it_packs({"foo" => "bar"}, UInt8[0x81, 0xA3] + "foo".bytes + UInt8[0xA3] + "bar".bytes)
 
   it "packs to the IO" do
-    io = MemoryIO.new
+    io = IO::Memory.new
     packer = MessagePack::Packer.new(io)
     packer.write(1.to_i8)
 

@@ -13,7 +13,7 @@ module MessagePack
 
   # Parses a string, returning a `MessagePack::Table`.
   def self.unpack(string_or_io : (String | IO))
-    io = string_or_io.is_a?(String) ? MemoryIO.new(string_or_io) : string_or_io
+    io = string_or_io.is_a?(String) ? IO::Memory.new(string_or_io) : string_or_io
     Unpacker.new(io).read
   end
 end

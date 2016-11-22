@@ -3,11 +3,11 @@ class MessagePack::Lexer
   getter current_byte
 
   def self.new(string : String)
-    new MemoryIO.new(string)
+    new IO::Memory.new(string)
   end
 
   def self.new(slice : Bytes)
-    new MemoryIO.new(slice)
+    new IO::Memory.new(slice)
   end
 
   def initialize(io : IO)

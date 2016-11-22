@@ -4,7 +4,7 @@ require "socket"
 private def it_pulls_int(description, expected_value, bytes, file = __FILE__, line = __LINE__)
   string = String.new(bytes.to_unsafe, bytes.size)
   it "pulls #{description}", file, line do
-    unpacker = MessagePack::Unpacker.new(MemoryIO.new(string))
+    unpacker = MessagePack::Unpacker.new(IO::Memory.new(string))
     unpacker.read_int.should eq(expected_value)
   end
 end
@@ -12,7 +12,7 @@ end
 private def it_pulls_uint(description, expected_value, bytes, file = __FILE__, line = __LINE__)
   string = String.new(bytes.to_unsafe, bytes.size)
   it "pulls #{description}", file, line do
-    unpacker = MessagePack::Unpacker.new(MemoryIO.new(string))
+    unpacker = MessagePack::Unpacker.new(IO::Memory.new(string))
     unpacker.read_uint.should eq(expected_value)
   end
 end
@@ -20,7 +20,7 @@ end
 private def it_pulls_float(description, expected_value, bytes, file = __FILE__, line = __LINE__)
   string = String.new(bytes.to_unsafe, bytes.size)
   it "pulls #{description}", file, line do
-    unpacker = MessagePack::Unpacker.new(MemoryIO.new(string))
+    unpacker = MessagePack::Unpacker.new(IO::Memory.new(string))
     unpacker.read_float.should eq(expected_value)
   end
 end
@@ -28,7 +28,7 @@ end
 private def it_pulls_string(description, expected_value, bytes, file = __FILE__, line = __LINE__)
   string = String.new(bytes.to_unsafe, bytes.size)
   it "pulls #{description}", file, line do
-    unpacker = MessagePack::Unpacker.new(MemoryIO.new(string))
+    unpacker = MessagePack::Unpacker.new(IO::Memory.new(string))
     unpacker.read_string.should eq(expected_value)
   end
 end
@@ -36,7 +36,7 @@ end
 private def it_pulls_bool(description, expected_value, bytes, file = __FILE__, line = __LINE__)
   string = String.new(bytes.to_unsafe, bytes.size)
   it "pulls #{description}", file, line do
-    unpacker = MessagePack::Unpacker.new(MemoryIO.new(string))
+    unpacker = MessagePack::Unpacker.new(IO::Memory.new(string))
     unpacker.read_bool.should eq(expected_value)
   end
 end
@@ -44,7 +44,7 @@ end
 private def it_pulls_nil(description, expected_value, bytes, file = __FILE__, line = __LINE__)
   string = String.new(bytes.to_unsafe, bytes.size)
   it "pulls #{description}", file, line do
-    unpacker = MessagePack::Unpacker.new(MemoryIO.new(string))
+    unpacker = MessagePack::Unpacker.new(IO::Memory.new(string))
     unpacker.read_nil.should eq(expected_value)
   end
 end
@@ -52,7 +52,7 @@ end
 private def it_parses(description, expected_value, bytes, file = __FILE__, line = __LINE__)
   string = String.new(bytes.to_unsafe, bytes.size)
   it "parses #{description}", file, line do
-    MessagePack.unpack(MemoryIO.new(string)).should eq(expected_value)
+    MessagePack.unpack(IO::Memory.new(string)).should eq(expected_value)
   end
 end
 
@@ -61,7 +61,7 @@ private def it_raises_on_parse(description, bytes, file = __FILE__, line = __LIN
 
   it "raises on parse #{description}", file, line do
     expect_raises MessagePack::UnpackException do
-      MessagePack.unpack(MemoryIO.new(string))
+      MessagePack.unpack(IO::Memory.new(string))
     end
   end
 end
@@ -127,11 +127,11 @@ describe "MessagePack::Unpacker" do
   it "pulls arrays" do
     bytes = UInt8[0x92, 0x01, 0x02]
     string = String.new(bytes.to_unsafe, bytes.size)
-    unpacker = MessagePack::Unpacker.new(MemoryIO.new(string))
+    unpacker = MessagePack::Unpacker.new(IO::Memory.new(string))
 
     unpacker.read_array.should eq([1, 2])
 
-    unpacker = MessagePack::Unpacker.new(MemoryIO.new(string))
+    unpacker = MessagePack::Unpacker.new(IO::Memory.new(string))
 
     i = 0
     unpacker.read_array do
@@ -148,18 +148,18 @@ describe "MessagePack::Unpacker" do
   it "pulls hashes" do
     bytes = UInt8[0x81, 0xa3] + "foo".bytes + UInt8[0xa3] + "bar".bytes
     string = String.new(bytes.to_unsafe, bytes.size)
-    unpacker = MessagePack::Unpacker.new(MemoryIO.new(string))
+    unpacker = MessagePack::Unpacker.new(IO::Memory.new(string))
 
     unpacker.read_hash.should eq({"foo" => "bar"})
 
-    unpacker = MessagePack::Unpacker.new(MemoryIO.new(string))
+    unpacker = MessagePack::Unpacker.new(IO::Memory.new(string))
 
     unpacker.read_hash do |key|
       key.should eq("foo")
       unpacker.read_string.should eq("bar")
     end
 
-    unpacker = MessagePack::Unpacker.new(MemoryIO.new(string))
+    unpacker = MessagePack::Unpacker.new(IO::Memory.new(string))
 
     unpacker.read_hash(false) do
       unpacker.read_string.should eq("foo")

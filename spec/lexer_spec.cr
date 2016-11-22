@@ -55,7 +55,7 @@ private def it_lexes_string(description, string_value, bytes, file = __FILE__, l
 end
 
 private def it_lexes_binary(description, string_value, bytes, file = __FILE__, line = __LINE__)
-  io = MemoryIO.new(as_slice(bytes))
+  io = IO::Memory.new(as_slice(bytes))
   binary_value = string_value.to_slice
 
   it "lexes #{description}", file, line do
