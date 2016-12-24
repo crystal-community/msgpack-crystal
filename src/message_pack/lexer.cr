@@ -151,7 +151,7 @@ class MessagePack::Lexer
     @byte_number += size
   end
 
-  private def read(type : T.class)
+  private def read(type : T.class) forall T
     @byte_number += sizeof(T)
     @io.read_bytes(T, IO::ByteFormat::BigEndian)
   end
