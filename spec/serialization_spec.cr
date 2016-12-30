@@ -129,6 +129,11 @@ describe "MessagePack serialization" do
       {1, "hello"}.to_msgpack.should eq Bytes[146, 1, 165, 104, 101, 108, 108, 111]
     end
 
+    it "write for NamedTuple(Array(Hash)), was a compile bug" do
+      data = (1..3).map { |i| {:id => i} }
+      {data: data}.to_msgpack.should eq Bytes[129, 164, 100, 97, 116, 97, 147, 129, 162, 105, 100, 1, 129, 162, 105, 100, 2, 129, 162, 105, 100, 3]
+    end
+
     it "nested data" do
       {"foo" => [1, 2, 3], "bar" => {"jo" => {1, :bla}}}.to_msgpack.should eq Bytes[130, 163, 102, 111, 111, 147, 1, 2, 3, 163, 98, 97, 114, 129, 162, 106, 111, 146, 1, 163, 98, 108, 97]
     end

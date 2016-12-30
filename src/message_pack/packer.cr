@@ -125,7 +125,7 @@ struct MessagePack::Packer
     self
   end
 
-  def write(value : Hash(Type, Type))
+  def write(value : Hash)
     write_hash_start(value.size)
 
     value.each do |key, value|
@@ -152,7 +152,7 @@ struct MessagePack::Packer
     self
   end
 
-  def write(value : Array(Type))
+  def write(value : Array)
     write_array_start(value.size)
     value.each { |item| self.write(item) }
     self
