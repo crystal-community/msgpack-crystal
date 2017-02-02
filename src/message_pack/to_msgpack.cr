@@ -53,6 +53,16 @@ struct Tuple
   end
 end
 
+struct NamedTuple
+  def to_msgpack(packer : MessagePack::Packer)
+    packer.write_hash_start(self.size)
+    {% for key in T.keys %}
+      {{key.stringify}}.to_msgpack(packer)
+      self[{{key.symbolize}}].to_msgpack(packer)
+    {% end %}
+  end
+end
+
 struct Time::Format
   def to_msgpack(value : Time, packer : MessagePack::Packer)
     format(value).to_msgpack(packer)

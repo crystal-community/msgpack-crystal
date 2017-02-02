@@ -129,6 +129,14 @@ describe "MessagePack serialization" do
       {1, "hello"}.to_msgpack.should eq Bytes[146, 1, 165, 104, 101, 108, 108, 111]
     end
 
+    it "does for NamedTuple" do
+      data = {a: 1, b: "hello"}
+      raw = data.to_msgpack
+      raw.should eq Bytes[130, 161, 97, 1, 161, 98, 165, 104, 101, 108, 108, 111]
+
+      typeof(data).from_msgpack(raw).should eq data
+    end
+
     it "write for NamedTuple(Array(Hash)), was a compile bug" do
       data = (1..3).map { |i| {:id => i} }
       {data: data}.to_msgpack.should eq Bytes[129, 164, 100, 97, 116, 97, 147, 129, 162, 105, 100, 1, 129, 162, 105, 100, 2, 129, 162, 105, 100, 3]

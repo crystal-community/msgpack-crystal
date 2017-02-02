@@ -183,6 +183,37 @@ def Tuple.new(pull : MessagePack::Unpacker)
  {% end %}
 end
 
+def NamedTuple.new(pull : MessagePack::Unpacker)
+  {% begin %}
+    {% for key in T.keys %}
+      %var{key.id} = nil
+    {% end %}
+
+    pull.read_hash(false) do
+      case Bytes.new(pull)
+        {% for key, type in T %}
+          when {{key.stringify}}.to_slice
+            %var{key.id} = {{type}}.new(pull)
+        {% end %}
+      else
+        pull.skip_value
+      end
+    end
+
+    {% for key in T.keys %}
+      if %var{key.id}.nil?
+        raise MessagePack::UnpackException.new("missing json attribute: {{key}}")
+      end
+    {% end %}
+
+    {
+      {% for key in T.keys %}
+        {{key}}: %var{key.id},
+      {% end %}
+    }
+  {% end %}
+end
+
 struct Time::Format
   def from_msgpack(pull : MessagePack::Unpacker)
     string = pull.read_string

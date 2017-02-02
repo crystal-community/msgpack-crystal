@@ -180,12 +180,6 @@ struct MessagePack::Packer
     self
   end
 
-  def write(value : NamedTuple)
-    write_hash_start(value.size)
-    value.each { |k, v| write(k); write(v) }
-    self
-  end
-
   private def write_byte(byte)
     @io.write_byte(byte.to_u8)
   end
