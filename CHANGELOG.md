@@ -1,3 +1,8 @@
+## 0.7.0 (2017-02-27)
+* Fixed NamedTuple packing, unpacking
+* Added method to_msgpack(io : IO)
+* Fixed packing unions with nils
+
 ## 0.6.0 (2016-7-26)
 * Added union support
 
