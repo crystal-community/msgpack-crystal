@@ -67,7 +67,14 @@ def Float64.new(pull : MessagePack::Unpacker)
 end
 
 def String.new(pull : MessagePack::Unpacker)
-  pull.read_string
+  case token_type = pull.prefetch_token.type
+  when :STRING
+    pull.read_string
+  when :BINARY
+    String.new(pull.read_binary)
+  else
+    raise MessagePack::UnpackException.new("expecting string or binary, not #{token_type}")
+  end
 end
 
 def Slice.new(pull : MessagePack::Unpacker)
@@ -77,7 +84,7 @@ def Slice.new(pull : MessagePack::Unpacker)
   when :BINARY
     pull.read_binary
   else
-    raise MessagePack::UnpackException.new("expecting string, of binary, not #{token_type}")
+    raise MessagePack::UnpackException.new("expecting string or binary, not #{token_type}")
   end
 end
 

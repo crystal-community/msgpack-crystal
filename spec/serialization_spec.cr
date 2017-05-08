@@ -77,6 +77,20 @@ describe "MessagePack serialization" do
       binary.should eq(Bytes[1, 2, 3])
       binary.should be_a(Bytes)
     end
+
+    context "String load from Bytes and from String" do
+      s1 = "bla"
+      s2 = "bla".to_slice
+
+      m1 = s1.to_msgpack
+      m2 = s2.to_msgpack
+
+      it { String.from_msgpack(m1).should eq s1 }
+      it { String.from_msgpack(m2).should eq s1 }
+
+      it { Bytes.from_msgpack(m1).should eq s2 }
+      it { Bytes.from_msgpack(m2).should eq s2 }
+    end
   end
 
   describe "to_msgpack" do
