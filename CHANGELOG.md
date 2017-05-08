@@ -1,3 +1,6 @@
+## 0.7.1 (2017-05-08)
+* Allow String load from String and from Binary
+
 ## 0.7.0 (2017-02-27)
 * Fixed NamedTuple packing, unpacking
 * Added method to_msgpack(io : IO)
