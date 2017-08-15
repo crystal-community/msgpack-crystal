@@ -63,13 +63,17 @@ module MessagePack
     {% for key, value in properties %}
       @{{key.id}} : {{value[:type]}} {{ (value[:nilable] ? "?" : "").id }}
 
-      def {{key.id}}=(_{{key.id}} : {{value[:type]}} {{ (value[:nilable] ? "?" : "").id }})
-        @{{key.id}} = _{{key.id}}
-      end
+      {% if value[:setter] == nil ? true : value[:setter] %}
+        def {{key.id}}=(_{{key.id}} : {{value[:type]}} {{ (value[:nilable] ? "?" : "").id }})
+          @{{key.id}} = _{{key.id}}
+        end
+      {% end %}
 
-      def {{key.id}}
-        @{{key.id}}
-      end
+      {% if value[:getter] == nil ? true : value[:getter] %}
+        def {{key.id}}
+          @{{key.id}}
+        end
+      {% end %}
     {% end %}
 
     def initialize(%pull : MessagePack::Unpacker)
