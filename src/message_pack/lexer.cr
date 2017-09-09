@@ -157,6 +157,6 @@ class MessagePack::Lexer
   end
 
   private def unexpected_byte!(byte = current_byte)
-    raise UnpackException.new("unexpected byte '#{byte}'", @byte_number)
+    raise UnpackException.new("Unexpected byte '#{byte}'", @byte_number)
   end
 end

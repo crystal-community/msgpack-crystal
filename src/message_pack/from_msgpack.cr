@@ -73,7 +73,7 @@ def String.new(pull : MessagePack::Unpacker)
   when :BINARY
     String.new(pull.read_binary)
   else
-    raise MessagePack::UnpackException.new("expecting string or binary, not #{token_type}")
+    raise MessagePack::UnpackException.new("Expecting string or binary, not #{token_type}")
   end
 end
 
@@ -84,7 +84,7 @@ def Slice.new(pull : MessagePack::Unpacker)
   when :BINARY
     pull.read_binary
   else
-    raise MessagePack::UnpackException.new("expecting string or binary, not #{token_type}")
+    raise MessagePack::UnpackException.new("Expecting string or binary, not #{token_type}")
   end
 end
 
@@ -134,7 +134,7 @@ def Enum.new(pull : MessagePack::Unpacker)
   when :STRING
     parse(pull.read_string)
   else
-    raise MessagePack::UnpackException.new("expecting int, uint or string in MessagePack for #{self.class}, not #{type}")
+    raise MessagePack::UnpackException.new("Expecting int, uint or string in MessagePack for #{self.class}, not #{type}")
   end
 end
 
@@ -175,7 +175,7 @@ def Union.new(pull : MessagePack::Unpacker)
       # ignore
     end
   {% end %}
-  raise MessagePack::UnpackException.new("couldn't parse data as " + {{T.stringify}})
+  raise MessagePack::UnpackException.new("Couldn't parse data as " + {{T.stringify}})
 end
 
 def Tuple.new(pull : MessagePack::Unpacker)
@@ -209,7 +209,7 @@ def NamedTuple.new(pull : MessagePack::Unpacker)
 
     {% for key in T.keys %}
       if %var{key.id}.nil?
-        raise MessagePack::UnpackException.new("missing json attribute: {{key}}")
+        raise MessagePack::UnpackException.new("Missing json attribute: {{key}}")
       end
     {% end %}
 
