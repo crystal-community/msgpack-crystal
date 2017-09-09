@@ -219,13 +219,13 @@ describe "MessagePack mapping" do
   end
 
   it "parses strict person with unknown attributes" do
-    expect_raises MessagePack::Error, "unknown msgpack attribute: foo" do
+    expect_raises MessagePack::Error, "Unknown msgpack attribute: foo" do
       StrictMessagePackPerson.from_msgpack({"name" => "John", "age" => 30, "foo" => "bar"}.to_msgpack)
     end
   end
 
   it "raises if non-nilable attribute is nil" do
-    expect_raises MessagePack::Error, "missing msgpack attribute: name" do
+    expect_raises MessagePack::Error, "Missing msgpack attribute: name" do
       MessagePackPerson.from_msgpack({"age" => 30}.to_msgpack)
     end
   end
@@ -438,7 +438,7 @@ describe "MessagePack mapping" do
     end
 
     it "parses strict binary data with unknown attributes" do
-      expect_raises MessagePack::Error, "unknown msgpack attribute: foo" do
+      expect_raises MessagePack::Error, "Unknown msgpack attribute: foo" do
         StrictMessagePackKVS.from_msgpack({"key" => "a", "val" => binary_data, "foo" => "bar"}.to_msgpack)
       end
     end
