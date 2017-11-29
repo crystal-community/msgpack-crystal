@@ -91,6 +91,13 @@ describe "MessagePack serialization" do
       it { Bytes.from_msgpack(m1).should eq s2 }
       it { Bytes.from_msgpack(m2).should eq s2 }
     end
+
+    it "does for Hash with a default value" do
+      packed = {"foo" => "bar"}.to_msgpack
+      Hash(String, String).from_msgpack(packed, "bla")["quux"].should eq "bla"
+      Hash(String, String).from_msgpack(packed) { "bla" }["quux"].should eq "bla"
+      Hash(String, String).from_msgpack(packed) { |hash, key| "_#{key}_" }["bar"].should eq "_bar_"
+    end
   end
 
   describe "to_msgpack" do
