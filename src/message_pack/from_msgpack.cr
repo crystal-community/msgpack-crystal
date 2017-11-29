@@ -16,6 +16,16 @@ def Array.from_msgpack(string_or_io)
   end
 end
 
+def Hash.from_msgpack(string_or_io, default_value)
+  parser = MessagePack::Unpacker.new(string_or_io)
+  new(parser, default_value)
+end
+
+def Hash.from_msgpack(string_or_io, &block : (Hash(K, V), K -> V))
+  parser = MessagePack::Unpacker.new(string_or_io)
+  new(parser, block)
+end
+
 def Nil.new(pull : MessagePack::Unpacker)
   pull.read_nil
 end
@@ -110,8 +120,22 @@ def Set.new(pull : MessagePack::Unpacker)
   set
 end
 
-def Hash.new(pull : MessagePack::Unpacker)
-  hash = new(initial_capacity: pull.prefetch_token.size.to_i32)
+def Hash.new(pull : MessagePack::Unpacker, block : (Hash(K, V), K -> V)? = nil)
+  hash = new(block, initial_capacity: pull.prefetch_token.size.to_i32)
+  pull.read_hash(false) do
+    k = K.new(pull)
+    t = pull.prefetch_token
+    if t.type == :nil
+      pull.skip_value
+    else
+      hash[k] = V.new(pull)
+    end
+  end
+  hash
+end
+
+def Hash.new(pull : MessagePack::Unpacker, default_value : V)
+  hash = new(default_value: default_value, initial_capacity: pull.prefetch_token.size.to_i32)
   pull.read_hash(false) do
     k = K.new(pull)
     t = pull.prefetch_token
