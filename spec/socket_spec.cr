@@ -1,4 +1,5 @@
 require "./spec_helper"
+require "socket"
 
 class SocketPerson
   MessagePack.mapping({
@@ -12,8 +13,8 @@ end
 
 describe "read from socket" do
   it "unpacks form a socket" do
-    TCPServer.open("::", 0) do |server|
-      TCPSocket.open("::", server.local_address.port) do |client|
+    TCPServer.open("localhost", 5000) do |server|
+      TCPSocket.open("localhost", server.local_address.port) do |client|
         sock = server.accept
 
         packer = MessagePack::Packer.new(client)
@@ -31,8 +32,8 @@ describe "read from socket" do
   end
 
   it "unpack mapping from socket" do
-    TCPServer.open("::", 0) do |server|
-      TCPSocket.open("::", server.local_address.port) do |client|
+    TCPServer.open("localhost", 5000) do |server|
+      TCPSocket.open("localhost", server.local_address.port) do |client|
         sock = server.accept
 
         person = SocketPerson.new "Albert", 25
@@ -47,8 +48,8 @@ describe "read from socket" do
   end
 
   it "to_msgpack pack directly to socket, unpack mapping from socket" do
-    TCPServer.open("::", 0) do |server|
-      TCPSocket.open("::", server.local_address.port) do |client|
+    TCPServer.open("localhost", 5000) do |server|
+      TCPSocket.open("localhost", server.local_address.port) do |client|
         sock = server.accept
 
         person = SocketPerson.new "Albert", 25
