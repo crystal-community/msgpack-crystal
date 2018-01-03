@@ -1,5 +1,5 @@
 # MessagePack
-[![Build Status](https://travis-ci.org/benoist/msgpack-crystal.svg)](https://travis-ci.org/benoist/msgpack-crystal)
+[![Build Status](https://travis-ci.org/crystal-community/msgpack-crystal.svg)](https://travis-ci.org/crystal-community/msgpack-crystal)
 
 MessagePack implementation in Crystal. It supports Packing and Unpacking from a string or an IO, Mappings, to_msgpack-from_msgpack methods.
 
