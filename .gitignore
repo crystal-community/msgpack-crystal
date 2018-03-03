@@ -5,3 +5,4 @@ private/
 *.msg
 *.js
 bin_*
+*.dwarf

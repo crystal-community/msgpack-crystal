@@ -55,7 +55,7 @@ module MessagePack
   # If `strict` is true, unknown properties in the MessagePack
   # document will raise a parse exception. The default is `false`, so unknown properties
   # are silently ignored.
-  macro mapping(properties, strict = false)
+  macro mapping(properties, strict = false, emit_nulls = true)
     {% for key, value in properties %}
       {% properties[key] = {type: value} unless value.is_a?(HashLiteral) || value.is_a?(NamedTupleLiteral) %}
     {% end %}
@@ -131,19 +131,34 @@ module MessagePack
     end
 
     def to_msgpack(packer : MessagePack::Packer)
-      packer.write_hash_start({{ properties.size }})
+      ready_fields = 0
+
       {% for key, value in properties %}
         _{{key.id}} = @{{key.id}}
-        packer.write({{value[:key] || key.id.stringify}})
-        {% if value[:converter] %}
-          if _{{key.id}}
-            {{ value[:converter] }}.to_msgpack(_{{key.id}}, packer)
-          else
-            nil.to_msgpack(packer)
-          end
+
+        {% if emit_nulls %}
+          ready_fields += 1
         {% else %}
-          _{{key.id}}.to_msgpack(packer)
+          ready_fields += 1 unless _{{key.id}}.nil?
         {% end %}
+      {% end %}
+
+      packer.write_hash_start(ready_fields)
+
+      {% for key, value in properties %}
+        unless _{{key.id}}.nil?
+          packer.write({{value[:key] || key.id.stringify}})
+          {% if value[:converter] %}
+            {{ value[:converter] }}.to_msgpack(_{{key.id}}, packer)
+          {% else %}
+            _{{key.id}}.to_msgpack(packer)
+          {% end %}
+        else
+          {% if emit_nulls %}
+            packer.write({{value[:key] || key.id.stringify}})
+            nil.to_msgpack(packer)
+          {% end %}
+        end
       {% end %}
     end
   end

@@ -169,6 +169,14 @@ class UseTableClass
   })
 end
 
+class EmitNullsFalse
+  MessagePack.mapping({
+    a: String,
+    b: String?,
+    c: Int32?,
+  }, emit_nulls: false)
+end
+
 describe "MessagePack mapping" do
   it "parses person" do
     person = MessagePackPerson.from_msgpack({"name" => "John", "age" => 30}.to_msgpack)
@@ -455,6 +463,13 @@ describe "MessagePack mapping" do
       kvs.should be_a(StrictMessagePackKVS)
       kvs.key.should eq("a")
       kvs.val.should eq(nil)
+    end
+  end
+
+  context "emit_nulls = false" do
+    it "work" do
+      e = EmitNullsFalse.from_msgpack({"a" => "1"}.to_msgpack)
+      e.to_msgpack.should eq Bytes[129, 161, 97, 161, 49]
     end
   end
 
