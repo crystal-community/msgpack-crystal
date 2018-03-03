@@ -471,6 +471,11 @@ describe "MessagePack mapping" do
       e = EmitNullsFalse.from_msgpack({"a" => "1"}.to_msgpack)
       e.to_msgpack.should eq Bytes[129, 161, 97, 161, 49]
     end
+
+    it "work" do
+      e = EmitNullsFalse.from_msgpack({"a" => "1", "c" => 2}.to_msgpack)
+      e.to_msgpack.should eq Bytes[130, 161, 97, 161, 49, 161, 99, 2]
+    end
   end
 
   describe "parses msgpack with defaults" do
