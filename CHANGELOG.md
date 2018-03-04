@@ -1,3 +1,8 @@
+## 0.8.0 (2018-03-04)
+* Add getter/setter option to mappings
+* Allow default value for hash
+* Add emit_nulls option for mappings
+
 ## 0.7.1 (2017-05-08)
 * Allow String load from String and from Binary
 
