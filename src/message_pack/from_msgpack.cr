@@ -233,7 +233,7 @@ def NamedTuple.new(pull : MessagePack::Unpacker)
 
     {% for key in T.keys %}
       if %var{key.id}.nil?
-        raise MessagePack::UnpackException.new("Missing json attribute: {{key}}")
+        raise MessagePack::UnpackException.new("Missing msgpack attribute: {{key}}")
       end
     {% end %}
 
