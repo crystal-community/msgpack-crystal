@@ -252,7 +252,7 @@ describe "MessagePack mapping" do
     msg = {"value" => "2014-10-31 23:37:16"}.to_msgpack
     msgpack = MessagePackWithTime.from_msgpack(msg)
     msgpack.value.should be_a(Time)
-    msgpack.value.to_s.should eq("2014-10-31 23:37:16")
+    msgpack.value.to_s.should eq("2014-10-31 23:37:16 UTC")
     msgpack.to_msgpack.should eq(msg)
   end
 
@@ -327,7 +327,7 @@ describe "MessagePack mapping" do
       time = MessagePackWithTime.from_msgpack({value: "2014-10-31 23:37:16"}.to_msgpack)
       msgpack = MessagePackWithCustomUnion.from_msgpack({"custom" => time}.to_msgpack)
       msgpack.custom.value.should be_a Time
-      msgpack.custom.value.to_s.should eq "2014-10-31 23:37:16"
+      msgpack.custom.value.to_s.should eq "2014-10-31 23:37:16 UTC"
     end
 
     it "parses msgpack with unions" do

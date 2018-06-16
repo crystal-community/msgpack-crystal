@@ -168,10 +168,10 @@ describe "MessagePack serialization" do
     end
 
     it "Time" do
-      msg = Time.new(1997, 11, 10, 0, 0, 0).to_msgpack(Time::Format.new("%F"))
+      msg = Time.utc(1997, 11, 10, 0, 0, 0).to_msgpack(Time::Format.new("%F"))
       msg.should eq Bytes[170, 49, 57, 57, 55, 45, 49, 49, 45, 49, 48]
       time = Time.from_msgpack(Time::Format.new("%F"), msg)
-      time.should eq Time.new(1997, 11, 10, 0, 0, 0)
+      time.should eq Time.utc(1997, 11, 10, 0, 0, 0)
     end
   end
 

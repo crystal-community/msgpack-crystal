@@ -248,7 +248,7 @@ end
 struct Time::Format
   def from_msgpack(pull : MessagePack::Unpacker)
     string = pull.read_string
-    parse(string)
+    parse(string, Time::Location::UTC)
   end
 end
 
@@ -259,7 +259,7 @@ struct Time
   end
 
   def self.from_msgpack(formatter : Time::Format, pull : MessagePack::Unpacker)
-    formatter.parse(pull.read_string)
+    formatter.parse(pull.read_string, Time::Location::UTC)
   end
 end
 
