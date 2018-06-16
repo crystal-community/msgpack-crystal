@@ -70,6 +70,18 @@ struct Time::Format
 end
 
 struct Time
+  # Emits a string formated according to [RFC 3339](https://tools.ietf.org/html/rfc3339)
+  # ([ISO 8601](http://xml.coverpages.org/ISO-FDIS-8601.pdf) profile).
+  #
+  # The MsgPack format itself does not specify a time data type, this method just
+  # assumes that a string holding a RFC 3339 time format will be interpreted as
+  # a time value.
+  #
+  # See `#from_msgpack` for reference.
+  def to_msgpack(packer : MessagePack::Packer)
+    Time::Format::RFC_3339.format(self, fraction_digits: 0).to_msgpack(packer)
+  end
+
   def to_msgpack(formatter : Time::Format, packer : MessagePack::Packer)
     formatter.format(self).to_msgpack(packer)
   end

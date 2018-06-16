@@ -173,6 +173,12 @@ describe "MessagePack serialization" do
       time = Time.from_msgpack(Time::Format.new("%F"), msg)
       time.should eq Time.utc(1997, 11, 10, 0, 0, 0)
     end
+
+    it "Time default format" do
+      msg = Time.new(1997, 11, 10, 0, 0, 0).to_msgpack
+      time = Time.from_msgpack(msg)
+      time.should eq Time.new(1997, 11, 10, 0, 0, 0)
+    end
   end
 
   describe "pack unpack" do

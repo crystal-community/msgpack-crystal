@@ -252,6 +252,18 @@ struct Time::Format
   end
 end
 
+# Reads a string from MsgPack parser as a time formated according to [RFC 3339](https://tools.ietf.org/html/rfc3339)
+# or other variations of [ISO 8601](http://xml.coverpages.org/ISO-FDIS-8601.pdf).
+#
+# The MsgPack format itself does not specify a time data type, this method just
+# assumes that a string holding a ISO 8601 time format can be # interpreted as a
+# time value.
+#
+# See `#to_msgpack` for reference.
+def Time.new(pull : MessagePack::Unpacker)
+  Time::Format::ISO_8601_DATE_TIME.parse(pull.read_string)
+end
+
 struct Time
   def self.from_msgpack(formatter : Time::Format, string_or_io)
     pull = MessagePack::Unpacker.new(string_or_io)
