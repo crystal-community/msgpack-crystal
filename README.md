@@ -33,7 +33,7 @@ class House
   property location : Location?
 end
 
-house = House.from_msgpack({"address" => "Road12", "location" => {"lat" => 12.3, "lng" => 34.5}}.to_msgpack)
+house = House.from_msgpack({address: "Road12", location: {lat: 12.3, lng: 34.5}}.to_msgpack)
 p house
 # => <House:0x1b06de0 @address="Road12", @location=#<Location:0x1b06dc0 @lat=12.3, @lng=34.5>>
 
