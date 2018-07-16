@@ -8,7 +8,7 @@ packer.write("a")
 packer.write(true)
 packer.write([1, "a", true])
 packer.write({"a" => 1})
-packer.write(Hash(MessagePack::Type, MessagePack::Type){"a" => 1, "b" => Array(MessagePack::Type){"a", "b", "c"}})
+packer.write({"a" => 1, "b" => {"a", "b", "c"}})
 
 file.close
 

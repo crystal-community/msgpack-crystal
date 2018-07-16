@@ -6,3 +6,4 @@ private/
 *.js
 bin_*
 *.dwarf
+*.bin
