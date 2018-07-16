@@ -1,3 +1,7 @@
+## 0.9.0 (2018-07-16)
+* Updated to crystal 0.25.0
+* Added MessagePack::Serializable
+
 ## 0.8.0 (2018-03-04)
 * Add getter/setter option to mappings
 * Allow default value for hash
