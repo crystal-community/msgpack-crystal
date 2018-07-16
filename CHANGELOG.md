@@ -1,4 +1,4 @@
-## 0.9.1 (2018-07-16)
+## 0.10.0 (2018-07-16)
 * Updated to crystal 0.25.0
 * Added MessagePack::Serializable
 
