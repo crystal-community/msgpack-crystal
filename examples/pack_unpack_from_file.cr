@@ -1,23 +1,21 @@
 require "../src/message_pack"
 
-file = File.open("packed.bin", "w+")
+io = File.open("packed.bin", "w+")
 
-packer = MessagePack::Packer.new(file)
-packer.write(1)
-packer.write("a")
-packer.write(true)
-packer.write([1, "a", true])
-packer.write({"a" => 1})
-packer.write({"a" => 1, "b" => {"a", "b", "c"}})
+1.to_msgpack(io)
+"a".to_msgpack(io)
+true.to_msgpack(io)
+{1, "a", true}.to_msgpack(io)
+{"a" => 1}.to_msgpack(io)
+{"a" => 1, "b" => {"a", "b", "c"}}.to_msgpack(io)
 
-file.close
+io.close
 
-file = File.open("packed.bin", "r")
-unpacker = MessagePack::Unpacker.new(file)
+io = File.open("packed.bin", "r")
 
-puts unpacker.read_int    # 1
-puts unpacker.read_string # "a"
-puts unpacker.read_bool   # true
-puts unpacker.read_array  # [1, "a", true]
-puts unpacker.read_hash   # {"a" => 1}
-puts unpacker.read_hash   # {"a" => 128, "b" => ["a", "b", "c"]}
+puts Int32.from_msgpack(io)                           # 1
+puts String.from_msgpack(io)                          # "a"
+puts Bool.from_msgpack(io)                            # true
+puts Tuple(Int32, String, Bool).from_msgpack(io)      # {1, "a", true}
+puts Hash(String, Int32).from_msgpack(io)             # {"a" => 1}
+puts Hash(String, MessagePack::Type).from_msgpack(io) # {"a" => 128, "b" => ["a", "b", "c"]}

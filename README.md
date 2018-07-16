@@ -52,7 +52,7 @@ p house
 
 ## More Examples
 
-([examples](https://github.com/benoist/msgpack-crystal/tree/master/examples))
+[examples](https://github.com/benoist/msgpack-crystal/tree/master/examples)
 
 ## Copyright
 
