@@ -194,7 +194,7 @@ module MessagePack
 
       protected def on_unknown_msgpack_attribute(pull, id)
         v = pull.read
-        msgpack_unmapped[id] = v if v
+        msgpack_unmapped[id] = v unless v.nil?
       end
 
       protected def on_to_msgpack_unknown_field(packer, id)
