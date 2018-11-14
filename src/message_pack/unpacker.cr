@@ -16,13 +16,13 @@ class MessagePack::Unpacker
 
   def read_nil
     next_token
-    check :nil
+    check Token::Type::Null
     nil
   end
 
   def read_nil_or
     token = prefetch_token
-    if token.type == :nil
+    if token.type.null?
       token.used = true
       nil
     else
@@ -33,9 +33,9 @@ class MessagePack::Unpacker
   def read_bool
     next_token
     case token.type
-    when :true
+    when .true?
       true
-    when :false
+    when .false?
       false
     else
       unexpected_token
@@ -45,34 +45,34 @@ class MessagePack::Unpacker
   def read_numeric
     next_token
     case token.type
-    when :INT
+    when .int?
       token.int_value
-    when :UINT
+    when .uint?
       token.uint_value
-    when :FLOAT
+    when .float?
       token.float_value
     else
       unexpected_token
     end
   end
 
-  {% for type in %w(int uint float string binary) %}
-    def read_{{type.id}}                          # def read_int
-      next_token
-      check :{{type.id.upcase}}                   #   check :INT
-      token.{{type.id}}_value                     #   token.int_value
+  {% for type in %w(Int Uint Float String Binary) %}
+    def read_{{type.id.downcase}}                 # def read_int
+      next_token                                  #   next_token
+      check Token::Type::{{type.id}}              #   check Token::Type::Int
+      token.{{type.id.downcase}}_value            #   token.int_value
     end                                           # end
   {% end %}
 
   def read_array_size
     next_token
-    check :ARRAY
+    check Token::Type::Array
     token.size.to_i32
   end
 
   def read_array(fetch_next_token = true)
     next_token if fetch_next_token
-    check :ARRAY
+    check Token::Type::Array
     Array(Type).new(token.size.to_i32) do
       read_value
     end
@@ -80,7 +80,7 @@ class MessagePack::Unpacker
 
   def read_array(fetch_next_token = true)
     next_token if fetch_next_token
-    check :ARRAY
+    check Token::Type::Array
     token.size.times do
       yield
     end
@@ -88,13 +88,13 @@ class MessagePack::Unpacker
 
   def read_hash_size
     next_token
-    check :HASH
+    check Token::Type::Hash
     token.size.to_i32
   end
 
   def read_hash(read_key = true, fetch_next_token = true)
     next_token if fetch_next_token
-    check :HASH
+    check Token::Type::Hash
     token.size.times do
       if read_key
         key = read_value
@@ -107,7 +107,7 @@ class MessagePack::Unpacker
 
   def read_hash(fetch_next_token = true)
     next_token if fetch_next_token
-    check :HASH
+    check Token::Type::Hash
     hash = Hash(Type, Type).new(initial_capacity: token.size.to_i32)
     token.size.times do
       key = read_value
@@ -121,25 +121,25 @@ class MessagePack::Unpacker
     next_token
 
     case token.type
-    when :INT
+    when .int?
       token.int_value
-    when :UINT
+    when .uint?
       token.uint_value
-    when :FLOAT
+    when .float?
       token.float_value
-    when :STRING
+    when .string?
       token.string_value
-    when :BINARY
+    when .binary?
       token.binary_value
-    when :nil
+    when .null?
       nil
-    when :true
+    when .true?
       true
-    when :false
+    when .false?
       false
-    when :ARRAY
+    when .array?
       read_array(false)
-    when :HASH
+    when .hash?
       read_hash(false)
     else
       unexpected_token(token.type)
@@ -149,11 +149,11 @@ class MessagePack::Unpacker
   def skip_value
     next_token
     case token.type
-    when :INT, :UINT, :FLOAT, :STRING, :BINARY, :nil, :true, :false
+    when .int?, .uint?, .float?, .string?, .binary?, .null?, .true?, .false?
       # Do nothing
-    when :ARRAY
+    when .array?
       token.size.times { skip_value }
-    when :HASH
+    when .hash?
       token.size.times { skip_value; skip_value }
     else
       unexpected_token(token.type)
@@ -161,63 +161,63 @@ class MessagePack::Unpacker
   end
 
   def read?(klass : Bool.class)
-    read_bool if token.type == :BOOL
+    read_bool if token.type.false? || token.type.true?
   end
 
   def read?(klass : Int8.class)
-    read_int.to_i8 if token.type == :INT
-    read_uint.to_i8 if token.type == :UINT
+    read_int.to_i8 if token.type.int?
+    read_uint.to_i8 if token.type.uint?
   end
 
   def read?(klass : Int16.class)
-    read_int.to_i16 if token.type == :INT
-    read_uint.to_i16 if token.type == :UINT
+    read_int.to_i16 if token.type.int?
+    read_uint.to_i16 if token.type.uint?
   end
 
   def read?(klass : Int32.class)
-    read_int.to_i32 if token.type == :INT
-    read_uint.to_i32 if token.type == :UINT
+    read_int.to_i32 if token.type.int?
+    read_uint.to_i32 if token.type.uint?
   end
 
   def read?(klass : Int64.class)
-    read_int.to_i64 if token.type == :INT
-    read_uint.to_i64 if token.type == :UINT
+    read_int.to_i64 if token.type.int?
+    read_uint.to_i64 if token.type.uint?
   end
 
   def read?(klass : UInt8.class)
-    read_int.to_u8 if token.type == :INT
-    read_uint.to_u8 if token.type == :UINT
+    read_int.to_u8 if token.type.int?
+    read_uint.to_u8 if token.type.uint?
   end
 
   def read?(klass : UInt16.class)
-    read_int.to_u16 if token.type == :INT
-    read_uint.to_u16 if token.type == :UINT
+    read_int.to_u16 if token.type.int?
+    read_uint.to_u16 if token.type.uint?
   end
 
   def read?(klass : UInt32.class)
-    read_int.to_u32 if token.type == :INT
-    read_uint.to_u32 if token.type == :UINT
+    read_int.to_u32 if token.type.int?
+    read_uint.to_u32 if token.type.uint?
   end
 
   def read?(klass : UInt64.class)
-    read_int.to_u64 if token.type == :INT
-    read_uint.to_u64 if token.type == :UINT
+    read_int.to_u64 if token.type.int?
+    read_uint.to_u64 if token.type.uint?
   end
 
   def read?(klass : Float32.class)
-    return read_int.to_f32 if token.type == :INT
-    return read_uint.to_f32 if token.type == :UINT
-    return read_float.to_f32 if token.type == :FLOAT
+    return read_int.to_f32 if token.type.int?
+    return read_uint.to_f32 if token.type.uint?
+    return read_float.to_f32 if token.type.float?
   end
 
   def read?(klass : Float64.class)
-    return read_int.to_f64 if token.type == :INT
-    return read_uint.to_f64 if token.type == :UINT
-    return read_float.to_f64 if token.type == :FLOAT
+    return read_int.to_f64 if token.type.int?
+    return read_uint.to_f64 if token.type.uint?
+    return read_float.to_f64 if token.type.float?
   end
 
   def read?(klass : String.class)
-    read_string if token.type == :STRING
+    read_string if token.type.string?
   end
 
   private delegate token, to: @lexer
