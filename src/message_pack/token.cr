@@ -1,5 +1,24 @@
 # :nodoc:
 class MessagePack::Token
+  enum Type
+    Eof
+    Null
+    False
+    True
+    Array
+    Hash
+    Structure
+    Int
+    Uint
+    Float
+    String
+    Binary
+
+    def to_s
+      super.upcase
+    end
+  end
+
   property :type
 
   property :binary_value
@@ -12,7 +31,7 @@ class MessagePack::Token
   property :used
 
   def initialize
-    @type = :EOF
+    @type = Type::Eof
     @byte_number = 0
     @binary_value = Bytes.new(0)
     @string_value = ""
@@ -30,15 +49,13 @@ class MessagePack::Token
 
   def to_s(io)
     case @type
-    when :nil
-      io << :nil
-    when :STRING
+    when .string?
       @string_value.inspect(io)
-    when :BINARY
+    when .binary?
       @binary_value.inspect(io)
-    when :INT
+    when .int?
       io << @int_value
-    when :FLOAT
+    when .float?
       io << @float_value
     else
       io << @type

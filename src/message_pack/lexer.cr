@@ -28,23 +28,23 @@ class MessagePack::Lexer
 
     case current_byte
     when 0xC0
-      set_type_and_size(:nil, 0)
+      set_type_and_size(Token::Type::Null, 0)
     when 0xC2
-      set_type_and_size(:false, 0)
+      set_type_and_size(Token::Type::False, 0)
     when 0xC3
-      set_type_and_size(:true, 0)
+      set_type_and_size(Token::Type::True, 0)
     when 0xA0..0xBF
       consume_string(current_byte - 0xA0)
     when 0xE0..0xFF
-      @token.type = :INT
+      @token.type = Token::Type::Int
       @token.int_value = current_byte.to_i8
     when 0x00..0x7f
-      @token.type = :UINT
+      @token.type = Token::Type::Uint
       @token.uint_value = current_byte
     when 0x80..0x8f
-      set_type_and_size(:HASH, current_byte - 0x80)
+      set_type_and_size(Token::Type::Hash, current_byte - 0x80)
     when 0x90..0x9f
-      set_type_and_size(:ARRAY, current_byte - 0x90)
+      set_type_and_size(Token::Type::Array, current_byte - 0x90)
     when 0xC4
       consume_binary(next_byte)
     when 0xC5
@@ -78,13 +78,13 @@ class MessagePack::Lexer
     when 0xDB
       consume_string(read UInt32)
     when 0xDC
-      set_type_and_size(:ARRAY, read UInt16)
+      set_type_and_size(Token::Type::Array, read UInt16)
     when 0xDD
-      set_type_and_size(:ARRAY, read UInt32)
+      set_type_and_size(Token::Type::Array, read UInt32)
     when 0xDE
-      set_type_and_size(:HASH, read UInt16)
+      set_type_and_size(Token::Type::Hash, read UInt16)
     when 0xDF
-      set_type_and_size(:HASH, read UInt32)
+      set_type_and_size(Token::Type::Hash, read UInt32)
     else
       unexpected_byte!
     end
@@ -104,7 +104,7 @@ class MessagePack::Lexer
 
     unless byte
       @eof = true
-      @token.type = :EOF
+      @token.type = Token::Type::Eof
     end
 
     @token.byte_number = @byte_number
@@ -118,17 +118,17 @@ class MessagePack::Lexer
   end
 
   private def consume_uint(value)
-    @token.type = :UINT
+    @token.type = Token::Type::Uint
     @token.uint_value = value
   end
 
   private def consume_int(value)
-    @token.type = :INT
+    @token.type = Token::Type::Int
     @token.int_value = value
   end
 
   private def consume_float(value)
-    @token.type = :FLOAT
+    @token.type = Token::Type::Float
     @token.float_value = value
   end
 
@@ -136,14 +136,14 @@ class MessagePack::Lexer
     size = size.to_u32
     bytes = Bytes.new(size)
     @io.read_fully(bytes)
-    @token.type = :BINARY
+    @token.type = Token::Type::Binary
     @token.binary_value = bytes
     @byte_number += size
   end
 
   private def consume_string(size)
     size = size.to_u32
-    @token.type = :STRING
+    @token.type = Token::Type::String
     @token.string_value = String.new(size) do |buffer|
       @io.read_fully(Slice.new(buffer, size))
       {size, 0}

@@ -16,7 +16,7 @@ private def it_lexes_int(description, int_value, bytes, file = __FILE__, line = 
   it "lexes #{description} from IO", file, line do
     lexer = Lexer.new string
     token = lexer.next_token
-    token.type.should eq(:INT)
+    token.type.should eq(Token::Type::Int)
     token.int_value.should eq(int_value)
   end
 end
@@ -27,7 +27,7 @@ private def it_lexes_uint(description, uint_value, bytes, file = __FILE__, line 
   it "lexes #{description} from IO", file, line do
     lexer = Lexer.new string
     token = lexer.next_token
-    token.type.should eq(:UINT)
+    token.type.should eq(Token::Type::Uint)
     token.uint_value.should eq(uint_value)
   end
 end
@@ -38,7 +38,7 @@ private def it_lexes_float(description, float_value, bytes, file = __FILE__, lin
   it "lexes #{description}", file, line do
     lexer = Lexer.new string
     token = lexer.next_token
-    token.type.should eq(:FLOAT)
+    token.type.should eq(Token::Type::Float)
     token.float_value.should eq(float_value)
   end
 end
@@ -49,7 +49,7 @@ private def it_lexes_string(description, string_value, bytes, file = __FILE__, l
   it "lexes #{description}", file, line do
     lexer = Lexer.new string
     token = lexer.next_token
-    token.type.should eq(:STRING)
+    token.type.should eq(Token::Type::String)
     token.string_value.should eq(string_value)
   end
 end
@@ -61,7 +61,7 @@ private def it_lexes_binary(description, string_value, bytes, file = __FILE__, l
   it "lexes #{description}", file, line do
     lexer = Lexer.new io
     token = lexer.next_token
-    token.type.should eq(:BINARY)
+    token.type.should eq(Token::Type::Binary)
     token.binary_value.should eq(binary_value)
   end
 end
@@ -72,7 +72,7 @@ private def it_lexes_arrays(description, size, bytes, file = __FILE__, line = __
   it "lexes #{description}", file, line do
     lexer = Lexer.new string
     token = lexer.next_token
-    token.type.should eq(:ARRAY)
+    token.type.should eq(Token::Type::Array)
     token.size.should eq(size)
   end
 end
@@ -83,7 +83,7 @@ private def it_lexes_hashes(description, size, bytes, file = __FILE__, line = __
   it "lexes #{description}", file, line do
     lexer = Lexer.new string
     token = lexer.next_token
-    token.type.should eq(:HASH)
+    token.type.should eq(Token::Type::Hash)
     token.size.should eq(size)
   end
 end
@@ -92,7 +92,7 @@ private def it_raises(io, file = __FILE__, line = __LINE__)
   it "raises on lex #{io.inspect}", file, line do
     expect_raises ParseException do
       lexer = Lexer.new(io)
-      while lexer.next_token.type != :EOF
+      until lexer.next_token.type.eof?
         # Nothing
       end
     end
@@ -100,10 +100,10 @@ private def it_raises(io, file = __FILE__, line = __LINE__)
 end
 
 describe Lexer do
-  it_lexes("EOF", :EOF, UInt8[])
-  it_lexes("nil", :nil, UInt8[0xC0u8])
-  it_lexes("false", :false, UInt8[0xC2u8])
-  it_lexes("true", :true, UInt8[0xC3u8])
+  it_lexes("EOF", Token::Type::Eof, UInt8[])
+  it_lexes("nil", Token::Type::Null, UInt8[0xC0u8])
+  it_lexes("false", Token::Type::False, UInt8[0xC2u8])
+  it_lexes("true", Token::Type::True, UInt8[0xC3u8])
 
   it_lexes_uint("zero", 0, UInt8[0x00])
   it_lexes_uint("fix num", 127, UInt8[0x7f])

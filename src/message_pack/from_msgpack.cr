@@ -37,7 +37,7 @@ end
 {% for size in [8, 16, 32, 64] %}
   def Int{{size.id}}.new(pull : MessagePack::Unpacker)
     case pull.prefetch_token.type
-    when :UINT
+    when .uint?
       pull.read_uint.to_i{{size.id}}
     else
       pull.read_int.to_i{{size.id}}
@@ -46,7 +46,7 @@ end
 
   def UInt{{size.id}}.new(pull : MessagePack::Unpacker)
     case pull.prefetch_token.type
-    when :INT
+    when .int?
       pull.read_int.to_u{{size.id}}
     else
       pull.read_uint.to_u{{size.id}}
@@ -56,9 +56,9 @@ end
 
 def Float32.new(pull : MessagePack::Unpacker)
   case pull.prefetch_token.type
-  when :INT
+  when .int?
     pull.read_int.to_f32
-  when :UINT
+  when .uint?
     pull.read_uint.to_f32
   else
     pull.read_float.to_f32
@@ -67,9 +67,9 @@ end
 
 def Float64.new(pull : MessagePack::Unpacker)
   case pull.prefetch_token.type
-  when :INT
+  when .int?
     pull.read_int.to_f
-  when :UINT
+  when .uint?
     pull.read_uint.to_f
   else
     pull.read_float.to_f
@@ -78,9 +78,9 @@ end
 
 def String.new(pull : MessagePack::Unpacker)
   case token_type = pull.prefetch_token.type
-  when :STRING
+  when .string?
     pull.read_string
-  when :BINARY
+  when .binary?
     String.new(pull.read_binary)
   else
     raise MessagePack::UnpackException.new("Expecting string or binary, not #{token_type}")
@@ -89,9 +89,9 @@ end
 
 def Slice.new(pull : MessagePack::Unpacker)
   case token_type = pull.prefetch_token.type
-  when :STRING
+  when .string?
     pull.read_string.to_slice
-  when :BINARY
+  when .binary?
     pull.read_binary
   else
     raise MessagePack::UnpackException.new("Expecting string or binary, not #{token_type}")
@@ -125,7 +125,7 @@ def Hash.new(pull : MessagePack::Unpacker, block : (Hash(K, V), K -> V)? = nil)
   pull.read_hash(false) do
     k = K.new(pull)
     t = pull.prefetch_token
-    if t.type == :nil
+    if t.type.null?
       pull.skip_value
     else
       hash[k] = V.new(pull)
@@ -139,7 +139,7 @@ def Hash.new(pull : MessagePack::Unpacker, default_value : V)
   pull.read_hash(false) do
     k = K.new(pull)
     t = pull.prefetch_token
-    if t.type == :nil
+    if t.type.null?
       pull.skip_value
     else
       hash[k] = V.new(pull)
@@ -151,11 +151,11 @@ end
 def Enum.new(pull : MessagePack::Unpacker)
   type = pull.prefetch_token.type
   case type
-  when :INT
+  when .int?
     from_value(pull.read_int)
-  when :UINT
+  when .uint?
     from_value(pull.read_uint)
-  when :STRING
+  when .string?
     parse(pull.read_string)
   else
     raise MessagePack::UnpackException.new("Expecting int, uint or string in MessagePack for #{self.class}, not #{type}")
@@ -171,7 +171,7 @@ def Union.new(pull : MessagePack::Unpacker)
     {% for type, index in T %}
       type = pull.prefetch_token.type
       {% if type == Nil %}
-        return pull.read_nil if type == :nil
+        return pull.read_nil if type.null?
       {% elsif type == Bool ||
                  type == Int8 || type == Int16 || type == Int32 || type == Int64 ||
                  type == UInt8 || type == UInt16 || type == UInt32 || type == UInt64 ||
