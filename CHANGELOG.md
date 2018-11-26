@@ -1,3 +1,7 @@
+## 0.11.0 (2018-11-26)
+* fixed unpack nilable option in NamedTuple, #49
+* refactor replace symbols with enums, thanks Fryguy, #47
+
 ## 0.10.0 (2018-07-16)
 * Updated to crystal 0.25.0
 * Added MessagePack::Serializable
