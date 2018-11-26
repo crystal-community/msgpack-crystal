@@ -231,8 +231,8 @@ def NamedTuple.new(pull : MessagePack::Unpacker)
       end
     end
 
-    {% for key in T.keys %}
-      if %var{key.id}.nil?
+    {% for key, type in T %}
+      if %var{key.id}.nil? && !::Union({{type}}).nilable?
         raise MessagePack::UnpackException.new("Missing msgpack attribute: {{key}}")
       end
     {% end %}

@@ -158,6 +158,12 @@ describe "MessagePack serialization" do
       typeof(data).from_msgpack(raw).should eq data
     end
 
+    it "does for NamedTuple with nilable, bug #49" do
+      data = ({aa: "a", bb: nil}).to_msgpack
+      NamedTuple(aa: String, bb: Nil).from_msgpack(data)[:bb].should eq nil
+      NamedTuple(aa: String, bb: String?).from_msgpack(data)[:bb].should eq nil
+    end
+
     it "write for NamedTuple(Array(Hash)), was a compile bug" do
       data = (1..3).map { |i| {:id => i} }
       {data: data}.to_msgpack.should eq Bytes[129, 164, 100, 97, 116, 97, 147, 129, 162, 105, 100, 1, 129, 162, 105, 100, 2, 129, 162, 105, 100, 3]
