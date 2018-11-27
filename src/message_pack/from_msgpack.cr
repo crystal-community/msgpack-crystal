@@ -235,6 +235,10 @@ def NamedTuple.new(pull : MessagePack::Unpacker)
       if %var{key.id}.nil? && !::Union({{type}}).nilable?
         raise MessagePack::UnpackException.new("Missing msgpack attribute: {{key}}")
       end
+      # type could be a Type or a Path.
+      {% unless type.is_a?(TypeNode) ? type.nilable? : type.names.includes?("Nil".id) %}
+        %var{key.id} = %var{key.id}.not_nil!
+      {% end %}
     {% end %}
 
     {

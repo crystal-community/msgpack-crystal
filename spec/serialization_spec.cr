@@ -162,6 +162,9 @@ describe "MessagePack serialization" do
       data = ({aa: "a", bb: nil}).to_msgpack
       NamedTuple(aa: String, bb: Nil).from_msgpack(data)[:bb].should eq nil
       NamedTuple(aa: String, bb: String?).from_msgpack(data)[:bb].should eq nil
+      typeof(NamedTuple(aa: String, bb: String?).from_msgpack(data)[:bb]).should eq String?
+      typeof(NamedTuple(aa: String, bb: Nil).from_msgpack(data)[:bb]).should eq Nil
+      typeof(NamedTuple(aa: String, bb: Nil).from_msgpack(data)[:aa]).should eq String
     end
 
     it "write for NamedTuple(Array(Hash)), was a compile bug" do
