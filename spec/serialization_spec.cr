@@ -158,10 +158,14 @@ describe "MessagePack serialization" do
       typeof(data).from_msgpack(raw).should eq data
     end
 
-    it "does for NamedTuple with nilable, bug #49" do
+    context "does for NamedTuple with nilable, bug #49" do
       data = ({aa: "a", bb: nil}).to_msgpack
-      NamedTuple(aa: String, bb: Nil).from_msgpack(data)[:bb].should eq nil
-      NamedTuple(aa: String, bb: String?).from_msgpack(data)[:bb].should eq nil
+      it { NamedTuple(aa: String, bb: Nil).from_msgpack(data)[:bb].should eq nil }
+      it { NamedTuple(aa: String, bb: String?).from_msgpack(data)[:bb].should eq nil }
+
+      it { typeof(NamedTuple(aa: String, bb: String?).from_msgpack(data)[:bb]).should eq String? }
+      it { typeof(NamedTuple(aa: String, bb: Nil).from_msgpack(data)[:bb]).should eq Nil }
+      it { typeof(NamedTuple(aa: String, bb: Nil).from_msgpack(data)[:aa]).should eq String }
     end
 
     it "write for NamedTuple(Array(Hash)), was a compile bug" do

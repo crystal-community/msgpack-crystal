@@ -238,8 +238,8 @@ def NamedTuple.new(pull : MessagePack::Unpacker)
     {% end %}
 
     {
-      {% for key in T.keys %}
-        {{key}}: %var{key.id},
+      {% for key, type in T %}
+        {{key}}: %var{key.id}.as({{type}}),
       {% end %}
     }
   {% end %}
