@@ -1,3 +1,6 @@
+## 0.11.1 (2018-11-27)
+* fixed nilable types in NamedTuple, #49
+
 ## 0.11.0 (2018-11-26)
 * fixed unpack nilable option in NamedTuple, #49
 * refactor replace symbols with enums, thanks Fryguy, #47
