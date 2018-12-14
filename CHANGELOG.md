@@ -1,3 +1,10 @@
+## 0.12.0 (2018-12-14)
+* Rename MessagePack::Unpacker to MessagePack::IOUnpacker
+* Add MessagePack::TokensUnpacker
+* Add unpacker method read_value_tokens, to read value as tokens array
+* Optimize read Unions, without create temporary msgpack
+* Fix #52, reading from stream when data types mismatch
+
 ## 0.11.1 (2018-11-27)
 * fixed nilable types in NamedTuple, #49
 
