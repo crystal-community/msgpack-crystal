@@ -1,10 +1,11 @@
 class MessagePack::TokensUnpacker < MessagePack::Unpacker
   EOF = MessagePack::Token.new
 
+  getter tokens
+
   def initialize(@tokens : Array(Token))
     @pos = 0
-    @used_id = 0
-    @tokens.each { |t| t.used = false }
+    reset
     @token = @tokens.size > 0 ? @tokens[@pos] : EOF
   end
 
@@ -25,5 +26,11 @@ class MessagePack::TokensUnpacker < MessagePack::Unpacker
     return @token if @pos >= @tokens.size
 
     @token = @tokens[@pos]
+  end
+
+  def reset
+    @pos = 0
+    @tokens.each { |t| t.used = false }
+    @token = @tokens.size > 0 ? @tokens[@pos] : EOF
   end
 end

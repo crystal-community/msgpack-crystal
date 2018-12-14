@@ -141,7 +141,7 @@ abstract class MessagePack::Unpacker
     end
   end
 
-  def read_value_as_array_of_tokens
+  def read_value_tokens
     res = [] of Token
     _read_value_as_array_of_tokens(res)
     res
@@ -149,11 +149,9 @@ abstract class MessagePack::Unpacker
 
   private def _read_value_as_array_of_tokens(res)
     next_token
-    t = token.dup
-    res << t
+    res << token.dup
 
     case token.type
-    when .int?, .uint?, .float?, .string?, .binary?, .null?, .true?, .false?
     when .array?
       token.size.times { _read_value_as_array_of_tokens(res) }
     when .hash?
@@ -161,8 +159,6 @@ abstract class MessagePack::Unpacker
         _read_value_as_array_of_tokens(res)
         _read_value_as_array_of_tokens(res)
       end
-    else
-      unexpected_token(token.type)
     end
 
     true

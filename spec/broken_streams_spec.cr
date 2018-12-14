@@ -68,7 +68,7 @@ describe "broken streaming" do
 
       pull = MessagePack::IOUnpacker.new(packer.to_slice)
 
-      tokens = pull.read_value_as_array_of_tokens
+      tokens = pull.read_value_tokens
       unpacker = MessagePack::TokensUnpacker.new(tokens)
 
       if raises

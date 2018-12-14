@@ -191,10 +191,10 @@ def Union.new(pull : MessagePack::Unpacker)
     {% end %}
   {% end %}
 
-  tokens = pull.read_value_as_array_of_tokens
+  tokens = pull.read_value_tokens
   {% for type in T %}
+    unpacker = MessagePack::TokensUnpacker.new(tokens)
     begin
-      unpacker = MessagePack::TokensUnpacker.new(tokens)
       return {{type}}.new(unpacker)
     rescue e : MessagePack::UnpackException
       # ignore
