@@ -1,3 +1,11 @@
+## 0.13.0 (2018-12-21)
+* Rewrite Unpacker logic, changed Token, Lexer and Unpacker
+* Add more exception types for every case
+* Remove unpacker methods: from_msgpack64, to_msgpack64
+* Remove Eof token (raises EofError instead)
+* Rename unpacker method read_value_tokens to read_node
+* Rename TokensUnpacker to NodeUnpacker
+
 ## 0.12.0 (2018-12-14)
 * Rename MessagePack::Unpacker to MessagePack::IOUnpacker
 * Add MessagePack::TokensUnpacker

@@ -9,14 +9,6 @@ private def it_pulls_int(description, expected_value, bytes, file = __FILE__, li
   end
 end
 
-private def it_pulls_uint(description, expected_value, bytes, file = __FILE__, line = __LINE__)
-  string = String.new(bytes.to_unsafe, bytes.size)
-  it "pulls #{description}", file, line do
-    unpacker = MessagePack::IOUnpacker.new(IO::Memory.new(string))
-    unpacker.read_uint.should eq(expected_value)
-  end
-end
-
 private def it_pulls_float(description, expected_value, bytes, file = __FILE__, line = __LINE__)
   string = String.new(bytes.to_unsafe, bytes.size)
   it "pulls #{description}", file, line do
@@ -56,16 +48,6 @@ private def it_parses(description, expected_value, bytes, file = __FILE__, line 
   end
 end
 
-private def it_raises_on_parse(description, bytes, file = __FILE__, line = __LINE__)
-  string = String.new(bytes.to_unsafe, bytes.size)
-
-  it "raises on parse #{description}", file, line do
-    expect_raises MessagePack::UnpackException do
-      MessagePack.unpack(IO::Memory.new(string))
-    end
-  end
-end
-
 describe "MessagePack::Unpacker" do
   it_parses("nil", nil, UInt8[0xC0])
   it_parses("false", false, UInt8[0xC2])
@@ -76,7 +58,7 @@ describe "MessagePack::Unpacker" do
   it_parses("small integers", 128, UInt8[0xcc, 0x80])
   it_parses("medium integers", 256, UInt8[0xcd, 0x01, 0x00])
   it_parses("large integers", 2 ** 31 - 1, UInt8[0xce, 0x7f, 0xff, 0xff, 0xff])
-  it_parses("huge integers", 2 ** 64_f64 - 1, UInt8[0xcf, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff])
+  it_parses("huge integers", 2 ** 64 - 1, UInt8[0xcf, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff])
 
   it_parses("-1", -1, UInt8[0xff])
   it_parses("-33", -33, UInt8[0xd0, 0xdf])
@@ -96,11 +78,11 @@ describe "MessagePack::Unpacker" do
   it_parses("big strings", "x" * 0xdddd, UInt8[0xDA, 0xDD, 0xDD] + ("x" * 0xdddd).bytes)
   it_parses("huge strings", "x" * 0x0000dddd, UInt8[0xDB, 0x00, 0x00, 0xDD, 0xDD] + ("x" * 0x0000dddd).bytes)
 
-  it_parses("medium binary", ("\a" * 0x5).to_slice, UInt8[0xc4, 0x05] + ("\a" * 0x5).bytes)
-  it_parses("big binary", ("\a" * 0x100).to_slice, UInt8[0xc5, 0x01, 0x00] + ("\a" * 0x100).bytes)
-  it_parses("huge binary", ("\a" * 0x10000).to_slice, UInt8[0xc6, 0x00, 0x01, 0x00, 0x00] + ("\a" * 0x10000).bytes)
+  it_parses("medium binary", ("\a" * 0x5), UInt8[0xc4, 0x05] + ("\a" * 0x5).bytes)
+  it_parses("big binary", ("\a" * 0x100), UInt8[0xc5, 0x01, 0x00] + ("\a" * 0x100).bytes)
+  it_parses("huge binary", ("\a" * 0x10000), UInt8[0xc6, 0x00, 0x01, 0x00, 0x00] + ("\a" * 0x10000).bytes)
 
-  it_parses("invalid byte sequence", Bytes[0x08, 0xe7], UInt8[0xc4, 0x02] + UInt8[0x08, 0xe7])
+  it_parses("invalid byte sequence", String.new(Bytes[0x08, 0xe7]), UInt8[0xc4, 0x02] + UInt8[0x08, 0xe7])
   it_parses("empty arrays", ([] of Type), UInt8[0x90])
   it_parses("small arrays", [1, 2], UInt8[0x92, 0x01, 0x02])
   it_parses("medium arrays", Array.new(0x111, false), UInt8[0xdc, 0x01, 0x11] + Array.new(0x111, 0xc2u8))
@@ -118,7 +100,7 @@ describe "MessagePack::Unpacker" do
   it_parses("hashes with nils", {"foo" => nil}, UInt8[0x81, 0xa3] + "foo".bytes + UInt8[0xc0])
 
   it_pulls_int("-1", -1, UInt8[0xff])
-  it_pulls_uint("127", 127, UInt8[0x7f])
+  it_pulls_int("127", 127, UInt8[0x7f])
   it_pulls_float("1.0", 1.0, UInt8[0xcb, 0x3f, 0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
   it_pulls_string("1.0", "hello world", UInt8[0xAB] + "hello world".bytes)
   it_pulls_bool("false", false, UInt8[0xC2])
@@ -134,12 +116,12 @@ describe "MessagePack::Unpacker" do
     unpacker = MessagePack::IOUnpacker.new(IO::Memory.new(string))
 
     i = 0
-    unpacker.read_array do
+    unpacker.consume_array do
       case i
       when 0
-        unpacker.read_uint.should eq(1)
+        unpacker.read_int.should eq(1)
       else
-        unpacker.read_uint.should eq(2)
+        unpacker.read_int.should eq(2)
       end
       i += 1
     end
@@ -154,15 +136,23 @@ describe "MessagePack::Unpacker" do
 
     unpacker = MessagePack::IOUnpacker.new(IO::Memory.new(string))
 
-    unpacker.read_hash do |key|
-      key.should eq("foo")
+    unpacker.consume_hash do
+      unpacker.read_string.should eq("foo")
       unpacker.read_string.should eq("bar")
     end
+  end
+
+  it "pulls tables" do
+    bytes = UInt8[0x81, 0xa3] + "foo".bytes + UInt8[0xa3] + "bar".bytes
+    string = String.new(bytes.to_unsafe, bytes.size)
+    unpacker = MessagePack::IOUnpacker.new(IO::Memory.new(string))
+
+    unpacker.read_hash.should eq({"foo" => "bar"})
 
     unpacker = MessagePack::IOUnpacker.new(IO::Memory.new(string))
 
-    unpacker.read_hash(false) do
-      unpacker.read_string.should eq("foo")
+    unpacker.consume_table do |key|
+      key.should eq("foo")
       unpacker.read_string.should eq("bar")
     end
   end
@@ -172,7 +162,7 @@ describe "MessagePack::Unpacker" do
     unpacker = MessagePack::IOUnpacker.new(file)
 
     unpacker.read_string.should eq("Some string")
-    unpacker.read_uint.should eq(1)
+    unpacker.read_int.should eq(1)
 
     unpacker.read_hash.should eq({"key" => "value", "key1" => 1, "key2" => true})
     unpacker.read_hash.should eq({"key" => "value2", "key1" => 2, "key2" => false})

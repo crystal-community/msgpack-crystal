@@ -1,11 +1,7 @@
 sh build.sh
 
-echo == Crystal Generate File
-./bin_generate_file
 echo == Crystal Generate File Ser
 ./bin_generate_file_ser
-echo == Crystal Load File
-./bin_load_file
 echo == Crystal Load File Ser
 ./bin_load_file_ser
 echo == Crystal Pack

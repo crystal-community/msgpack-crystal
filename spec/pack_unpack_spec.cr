@@ -67,7 +67,7 @@ describe "pack and unpack integration specs" do
     packer = MessagePack::Packer.new
     packer.write(bytes)
     unpack = MessagePack::IOUnpacker.new(packer.to_slice)
-    unpack.read_binary.should eq bytes
+    unpack.read_string.should eq String.new(bytes)
   end
 
   it "tuples" do
