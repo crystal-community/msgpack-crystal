@@ -54,6 +54,10 @@ p house
 
 [examples](https://github.com/benoist/msgpack-crystal/tree/master/examples)
 
+## Msgpack-RPC
+
+[implemented by simple_rpc shard](https://github.com/kostya/simple_rpc)
+
 ## Copyright
 
 Copyright 2015 Benoist Claassen
