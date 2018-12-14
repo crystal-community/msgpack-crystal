@@ -1,14 +1,9 @@
 require "./lexer"
 
-class MessagePack::Unpacker
-  def initialize(string_or_io)
-    @lexer = MessagePack::Lexer.new(string_or_io)
-  end
-
-  def self.new(array : Array(UInt8))
-    slice = Bytes.new(array.to_unsafe, array.size)
-    new(slice)
-  end
+abstract class MessagePack::Unpacker
+  abstract def token : Token
+  abstract def next_token : Token
+  abstract def prefetch_token : Token
 
   def read
     read_value
@@ -146,6 +141,33 @@ class MessagePack::Unpacker
     end
   end
 
+  def read_value_as_array_of_tokens
+    res = [] of Token
+    _read_value_as_array_of_tokens(res)
+    res
+  end
+
+  private def _read_value_as_array_of_tokens(res)
+    next_token
+    t = token.dup
+    res << t
+
+    case token.type
+    when .int?, .uint?, .float?, .string?, .binary?, .null?, .true?, .false?
+    when .array?
+      token.size.times { _read_value_as_array_of_tokens(res) }
+    when .hash?
+      token.size.times do
+        _read_value_as_array_of_tokens(res)
+        _read_value_as_array_of_tokens(res)
+      end
+    else
+      unexpected_token(token.type)
+    end
+
+    true
+  end
+
   def skip_value
     next_token
     case token.type
@@ -220,10 +242,6 @@ class MessagePack::Unpacker
     read_string if token.type.string?
   end
 
-  private delegate token, to: @lexer
-  private delegate next_token, to: @lexer
-  delegate prefetch_token, to: @lexer
-
   private def check(token_type)
     unexpected_token(token_type) unless token.type == token_type
   end
@@ -232,5 +250,50 @@ class MessagePack::Unpacker
     message = "unexpected token '#{token}'"
     message += " expected #{token_type}" if token_type
     raise UnpackException.new(message, token.byte_number)
+  end
+end
+
+class MessagePack::IOUnpacker < MessagePack::Unpacker
+  def initialize(string_or_io)
+    @lexer = MessagePack::Lexer.new(string_or_io)
+  end
+
+  def self.new(array : Array(UInt8))
+    slice = Bytes.new(array.to_unsafe, array.size)
+    new(slice)
+  end
+
+  delegate token, to: @lexer
+  delegate next_token, to: @lexer
+  delegate prefetch_token, to: @lexer
+end
+
+class MessagePack::TokensUnpacker < MessagePack::Unpacker
+  EOF = MessagePack::Token.new
+
+  def initialize(@tokens : Array(Token))
+    @pos = 0
+    @used_id = 0
+    @tokens.each { |t| t.used = false }
+    @token = @tokens.size > 0 ? @tokens[@pos] : EOF
+  end
+
+  def token : Token
+    @token
+  end
+
+  def next_token : Token
+    token = prefetch_token
+    token.used = true
+    token
+  end
+
+  def prefetch_token : Token
+    return @token unless @token.used
+    @pos += 1
+
+    return @token if @pos >= @tokens.size
+
+    @token = @tokens[@pos]
   end
 end

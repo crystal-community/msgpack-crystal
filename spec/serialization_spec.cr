@@ -247,6 +247,54 @@ describe "MessagePack serialization" do
     end
   end
 
+  describe "unpack unions" do
+    context "work" do
+      type = Union(Array(Int32), Hash(String, String), String, Float64)
+
+      it "Float64" do
+        val = type.from_msgpack(1.0.to_msgpack)
+        val.class.should eq Float64
+        val.should eq 1.0
+      end
+
+      it "Array" do
+        val = type.from_msgpack([1, 2, 3].to_msgpack)
+        val.class.should eq Array(Int32)
+        val.should eq [1, 2, 3]
+      end
+
+      it "Hash" do
+        val = type.from_msgpack({"1" => "2", "3" => "4"}.to_msgpack)
+        val.class.should eq Hash(String, String)
+        val.should eq({"1" => "2", "3" => "4"})
+      end
+
+      it "String" do
+        val = type.from_msgpack("bla".to_msgpack)
+        val.class.should eq String
+        val.should eq("bla")
+      end
+
+      it "not matched type" do
+        expect_raises(MessagePack::Error, "Couldn't parse data as") do
+          type.from_msgpack(["bla"].to_msgpack)
+        end
+      end
+
+      it "not matched type" do
+        expect_raises(MessagePack::Error, "Couldn't parse data as") do
+          type.from_msgpack({"1" => "2", "3" => 4}.to_msgpack)
+        end
+      end
+
+      it "not matched type" do
+        expect_raises(MessagePack::Error, "Couldn't parse data as") do
+          type.from_msgpack({1, 2, "3"}.to_msgpack)
+        end
+      end
+    end
+  end
+
   describe "base64" do
     data = {"⬠ ⬡ ⬢ ⬣ ⬤ ⬥ ⬦" => {"bar" => true}, "zoo" => {"⬤" => false}}
     str = "grvirKAg4qyhIOKsoiDirKMg4qykIOKspSDirKaBo2JhcsOjem9vgaPirKTC\n"

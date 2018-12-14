@@ -1,7 +1,7 @@
 require "base64"
 
 def Object.from_msgpack(string_or_io)
-  parser = MessagePack::Unpacker.new(string_or_io)
+  parser = MessagePack::IOUnpacker.new(string_or_io)
   new parser
 end
 
@@ -10,19 +10,19 @@ def Object.from_msgpack64(string_or_io)
 end
 
 def Array.from_msgpack(string_or_io)
-  parser = MessagePack::Unpacker.new(string_or_io)
+  parser = MessagePack::IOUnpacker.new(string_or_io)
   new(parser) do |element|
     yield element
   end
 end
 
 def Hash.from_msgpack(string_or_io, default_value)
-  parser = MessagePack::Unpacker.new(string_or_io)
+  parser = MessagePack::IOUnpacker.new(string_or_io)
   new(parser, default_value)
 end
 
 def Hash.from_msgpack(string_or_io, &block : (Hash(K, V), K -> V))
-  parser = MessagePack::Unpacker.new(string_or_io)
+  parser = MessagePack::IOUnpacker.new(string_or_io)
   new(parser, block)
 end
 
@@ -191,10 +191,11 @@ def Union.new(pull : MessagePack::Unpacker)
     {% end %}
   {% end %}
 
-  packed = pull.read.to_msgpack
+  tokens = pull.read_value_as_array_of_tokens
   {% for type in T %}
     begin
-      return {{type}}.from_msgpack(packed)
+      unpacker = MessagePack::TokensUnpacker.new(tokens)
+      return {{type}}.new(unpacker)
     rescue e : MessagePack::UnpackException
       # ignore
     end
@@ -266,7 +267,7 @@ end
 
 struct Time
   def self.from_msgpack(formatter : Time::Format, string_or_io)
-    pull = MessagePack::Unpacker.new(string_or_io)
+    pull = MessagePack::IOUnpacker.new(string_or_io)
     from_msgpack formatter, pull
   end
 
