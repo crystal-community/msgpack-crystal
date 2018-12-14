@@ -253,47 +253,4 @@ abstract class MessagePack::Unpacker
   end
 end
 
-class MessagePack::IOUnpacker < MessagePack::Unpacker
-  def initialize(string_or_io)
-    @lexer = MessagePack::Lexer.new(string_or_io)
-  end
-
-  def self.new(array : Array(UInt8))
-    slice = Bytes.new(array.to_unsafe, array.size)
-    new(slice)
-  end
-
-  delegate token, to: @lexer
-  delegate next_token, to: @lexer
-  delegate prefetch_token, to: @lexer
-end
-
-class MessagePack::TokensUnpacker < MessagePack::Unpacker
-  EOF = MessagePack::Token.new
-
-  def initialize(@tokens : Array(Token))
-    @pos = 0
-    @used_id = 0
-    @tokens.each { |t| t.used = false }
-    @token = @tokens.size > 0 ? @tokens[@pos] : EOF
-  end
-
-  def token : Token
-    @token
-  end
-
-  def next_token : Token
-    token = prefetch_token
-    token.used = true
-    token
-  end
-
-  def prefetch_token : Token
-    return @token unless @token.used
-    @pos += 1
-
-    return @token if @pos >= @tokens.size
-
-    @token = @tokens[@pos]
-  end
-end
+require "./unpacker/*"
