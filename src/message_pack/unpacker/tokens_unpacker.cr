@@ -1,12 +1,13 @@
 class MessagePack::TokensUnpacker < MessagePack::Unpacker
   EOF = MessagePack::Token.new
 
+  @pos = 0
+  @token = EOF
+
   getter tokens
 
   def initialize(@tokens : Array(Token))
-    @pos = 0
     reset
-    @token = @tokens.size > 0 ? @tokens[@pos] : EOF
   end
 
   def token : Token
