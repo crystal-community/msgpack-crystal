@@ -7,7 +7,6 @@ class MessagePack::Token
     True
     Array
     Hash
-    Structure
     Int
     Uint
     Float

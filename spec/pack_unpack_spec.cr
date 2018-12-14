@@ -6,7 +6,7 @@ describe "pack and unpack integration specs" do
     data = {"bla" => 11.5}
     packer = MessagePack::Packer.new
     packer.write(data)
-    unpack = MessagePack::Unpacker.new(packer.to_slice)
+    unpack = MessagePack::IOUnpacker.new(packer.to_slice)
     unpack.read_hash.should eq data
   end
 
@@ -17,7 +17,7 @@ describe "pack and unpack integration specs" do
     packer.write(11.5)
     packer.write("key2")
     packer.write(true)
-    unpack = MessagePack::Unpacker.new(packer.to_slice)
+    unpack = MessagePack::IOUnpacker.new(packer.to_slice)
     unpack.read_hash.should eq({"key1" => 11.5, "key2" => true})
   end
 
@@ -25,7 +25,7 @@ describe "pack and unpack integration specs" do
     data = ["bla", 11.5]
     packer = MessagePack::Packer.new
     packer.write(data)
-    unpack = MessagePack::Unpacker.new(packer.to_slice)
+    unpack = MessagePack::IOUnpacker.new(packer.to_slice)
     unpack.read_array.should eq data
   end
 
@@ -36,7 +36,7 @@ describe "pack and unpack integration specs" do
     packer.write(11.5)
     packer.write("key2")
     packer.write(true)
-    unpack = MessagePack::Unpacker.new(packer.to_slice)
+    unpack = MessagePack::IOUnpacker.new(packer.to_slice)
     unpack.read_array.should eq(["key1", 11.5, "key2", true])
   end
 
@@ -50,7 +50,7 @@ describe "pack and unpack integration specs" do
     packer.write(true)
     packer.write("value")
     packer.write(38)
-    unpack = MessagePack::Unpacker.new(packer.to_slice)
+    unpack = MessagePack::IOUnpacker.new(packer.to_slice)
     unpack.read_hash.should eq({"key1" => 11.5, "key2" => [true, "value", 38]})
   end
 
@@ -58,7 +58,7 @@ describe "pack and unpack integration specs" do
     str = "⬠ ⬡ ⬢ ⬣ ⬤ ⬥ ⬦"
     packer = MessagePack::Packer.new
     packer.write(str)
-    unpack = MessagePack::Unpacker.new(packer.to_slice)
+    unpack = MessagePack::IOUnpacker.new(packer.to_slice)
     unpack.read_string.should eq str
   end
 
@@ -66,7 +66,7 @@ describe "pack and unpack integration specs" do
     bytes = Bytes[0x08, 0xe7]
     packer = MessagePack::Packer.new
     packer.write(bytes)
-    unpack = MessagePack::Unpacker.new(packer.to_slice)
+    unpack = MessagePack::IOUnpacker.new(packer.to_slice)
     unpack.read_binary.should eq bytes
   end
 
@@ -74,7 +74,7 @@ describe "pack and unpack integration specs" do
     tuple = {1, true, "false", 1.5}
     packer = MessagePack::Packer.new
     packer.write(tuple)
-    unpack = MessagePack::Unpacker.new(packer.to_slice)
+    unpack = MessagePack::IOUnpacker.new(packer.to_slice)
     unpack.read_array.should eq([1, true, "false", 1.5])
   end
 
@@ -82,7 +82,7 @@ describe "pack and unpack integration specs" do
     val = :bla
     packer = MessagePack::Packer.new
     packer.write(val)
-    unpack = MessagePack::Unpacker.new(packer.to_slice)
+    unpack = MessagePack::IOUnpacker.new(packer.to_slice)
     unpack.read_string.should eq "bla"
   end
 end

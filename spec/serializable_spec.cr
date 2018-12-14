@@ -408,7 +408,7 @@ describe "MessagePack mapping" do
     person.msgpack_unmapped.delete("y")
     person.msgpack_unmapped["q"] = "w"
     res = person.to_msgpack
-    MessagePack::Unpacker.new(res).read.should eq({"name" => "John1", "age" => 30_u8, "x" => "1", "z" => [1_u8, 2_u8, 3_u8], "q" => "w"})
+    MessagePack::IOUnpacker.new(res).read.should eq({"name" => "John1", "age" => 30_u8, "x" => "1", "z" => [1_u8, 2_u8, 3_u8], "q" => "w"})
   end
 
   it "raises if non-nilable attribute is nil" do

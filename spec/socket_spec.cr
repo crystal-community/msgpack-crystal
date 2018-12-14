@@ -22,7 +22,7 @@ describe "read from socket" do
           packer.write(i)
         end
 
-        unpacker = MessagePack::Unpacker.new(sock)
+        unpacker = MessagePack::IOUnpacker.new(sock)
 
         (1..3).each do |i|
           unpacker.read_value.should eq i
@@ -39,7 +39,7 @@ describe "read from socket" do
         person = SocketPerson.new "Albert", 25
         client.write(person.to_msgpack)
 
-        pull = MessagePack::Unpacker.new(sock)
+        pull = MessagePack::IOUnpacker.new(sock)
         person2 = SocketPerson.new(pull)
         person2.name.should eq "Albert"
         person2.age.should eq 25
@@ -55,7 +55,7 @@ describe "read from socket" do
         person = SocketPerson.new "Albert", 25
         person.to_msgpack(client)
 
-        pull = MessagePack::Unpacker.new(sock)
+        pull = MessagePack::IOUnpacker.new(sock)
         person2 = SocketPerson.new(pull)
         person2.name.should eq "Albert"
         person2.age.should eq 25
