@@ -5,6 +5,7 @@
 * Remove Eof token (raises EofError instead)
 * Rename unpacker method read_value_tokens to read_node
 * Rename TokensUnpacker to NodeUnpacker
+* Rename UnpackException to UnpackError
 
 ## 0.12.0 (2018-12-14)
 * Rename MessagePack::Unpacker to MessagePack::IOUnpacker
