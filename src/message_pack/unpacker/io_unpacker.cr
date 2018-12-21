@@ -8,7 +8,7 @@ class MessagePack::IOUnpacker < MessagePack::Unpacker
     new(slice)
   end
 
-  delegate token, to: @lexer
-  delegate next_token, to: @lexer
-  delegate prefetch_token, to: @lexer
+  delegate current_token, to: @lexer
+  delegate finish_token!, to: @lexer
+  delegate read_token, to: @lexer
 end

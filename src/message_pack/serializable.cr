@@ -151,15 +151,14 @@ module MessagePack
           %found{name} = false
         {% end %}
 
-        pull.read_hash(false) do
-          key = Bytes.new(pull)
+        pull.consume_table do |%key|
           {% if properties.size > 0 %}
-            case key
+            case %key
             {% for name, value in properties %}
-              when {{value[:key]}}.to_slice
+              when {{value[:key]}}
                 %found{name} = true
                 %var{name} =
-                  {% if value[:nilable] || value[:has_default] %} pull.read_nil_or { {% end %}
+                  {% if value[:nilable] || value[:has_default] %} pull.read_nil_or do {% end %}
 
                   {% if value[:converter] %}
                     {{value[:converter]}}.from_msgpack(pull)
@@ -167,20 +166,20 @@ module MessagePack
                     ::Union({{value[:type]}}).new(pull)
                   {% end %}
 
-                  {% if value[:nilable] || value[:has_default] %} } {% end %}
+                  {% if value[:nilable] || value[:has_default] %} end {% end %}
             {% end %}
             else
-              on_unknown_msgpack_attribute(pull, String.new(key))
+              on_unknown_msgpack_attribute(pull, %key)
             end
           {% else %}
-            on_unknown_msgpack_attribute(pull, String.new(key))
+            on_unknown_msgpack_attribute(pull, %key)
           {% end %}
         end
 
         {% for name, value in properties %}
           {% unless value[:nilable] || value[:has_default] %}
             if %var{name}.nil? && !%found{name} && !::Union({{value[:type]}}).nilable?
-              raise ::MessagePack::UnpackException.new("Missing msgpack attribute: {{value[:key].id}}")
+              raise ::MessagePack::TypeCastError.new("Missing msgpack attribute: {{value[:key].id}}")
             end
           {% end %}
 
@@ -275,7 +274,7 @@ module MessagePack
 
     module Strict
       protected def on_unknown_msgpack_attribute(pull, key)
-        raise ::MessagePack::UnpackException.new("Unknown msgpack attribute: #{key}")
+        raise ::MessagePack::TypeCastError.new("Unknown msgpack attribute: #{key}")
       end
     end
 

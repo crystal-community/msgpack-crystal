@@ -7,3 +7,4 @@ private/
 bin_*
 *.dwarf
 *.bin
+.todo

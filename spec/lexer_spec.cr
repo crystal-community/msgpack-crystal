@@ -5,8 +5,8 @@ private def it_lexes(description, expected_type, bytes, file = __FILE__, line = 
 
   it "lexes #{description} from IO", file, line do
     lexer = Lexer.new string
-    token = lexer.next_token
-    token.type.should eq(expected_type)
+    token = lexer.read_token
+    token.class.should eq(expected_type)
   end
 end
 
@@ -15,20 +15,13 @@ private def it_lexes_int(description, int_value, bytes, file = __FILE__, line = 
 
   it "lexes #{description} from IO", file, line do
     lexer = Lexer.new string
-    token = lexer.next_token
-    token.type.should eq(Token::Type::Int)
-    token.int_value.should eq(int_value)
-  end
-end
-
-private def it_lexes_uint(description, uint_value, bytes, file = __FILE__, line = __LINE__)
-  string = Bytes.new(bytes.to_unsafe, bytes.size)
-
-  it "lexes #{description} from IO", file, line do
-    lexer = Lexer.new string
-    token = lexer.next_token
-    token.type.should eq(Token::Type::Uint)
-    token.uint_value.should eq(uint_value)
+    token = lexer.read_token
+    case token
+    when Token::IntT
+      token.value.should eq int_value
+    else
+      raise "unexpected token type #{token.inspect}"
+    end
   end
 end
 
@@ -37,9 +30,13 @@ private def it_lexes_float(description, float_value, bytes, file = __FILE__, lin
 
   it "lexes #{description}", file, line do
     lexer = Lexer.new string
-    token = lexer.next_token
-    token.type.should eq(Token::Type::Float)
-    token.float_value.should eq(float_value)
+    token = lexer.read_token
+    case token
+    when Token::FloatT
+      token.value.should eq float_value
+    else
+      raise "unexpected token type #{token.inspect}"
+    end
   end
 end
 
@@ -48,21 +45,13 @@ private def it_lexes_string(description, string_value, bytes, file = __FILE__, l
 
   it "lexes #{description}", file, line do
     lexer = Lexer.new string
-    token = lexer.next_token
-    token.type.should eq(Token::Type::String)
-    token.string_value.should eq(string_value)
-  end
-end
-
-private def it_lexes_binary(description, string_value, bytes, file = __FILE__, line = __LINE__)
-  io = IO::Memory.new(as_slice(bytes))
-  binary_value = string_value.to_slice
-
-  it "lexes #{description}", file, line do
-    lexer = Lexer.new io
-    token = lexer.next_token
-    token.type.should eq(Token::Type::Binary)
-    token.binary_value.should eq(binary_value)
+    token = lexer.read_token
+    case token
+    when Token::StringT
+      token.value.should eq string_value
+    else
+      raise "unexpected token type #{token.inspect}"
+    end
   end
 end
 
@@ -71,9 +60,13 @@ private def it_lexes_arrays(description, size, bytes, file = __FILE__, line = __
 
   it "lexes #{description}", file, line do
     lexer = Lexer.new string
-    token = lexer.next_token
-    token.type.should eq(Token::Type::Array)
-    token.size.should eq(size)
+    token = lexer.read_token
+    case token
+    when Token::ArrayT
+      token.size.should eq size
+    else
+      raise "unexpected token type #{token.inspect}"
+    end
   end
 end
 
@@ -82,35 +75,27 @@ private def it_lexes_hashes(description, size, bytes, file = __FILE__, line = __
 
   it "lexes #{description}", file, line do
     lexer = Lexer.new string
-    token = lexer.next_token
-    token.type.should eq(Token::Type::Hash)
-    token.size.should eq(size)
-  end
-end
-
-private def it_raises(io, file = __FILE__, line = __LINE__)
-  it "raises on lex #{io.inspect}", file, line do
-    expect_raises ParseException do
-      lexer = Lexer.new(io)
-      until lexer.next_token.type.eof?
-        # Nothing
-      end
+    token = lexer.read_token
+    case token
+    when Token::HashT
+      token.size.should eq size
+    else
+      raise "unexpected token type #{token.inspect}"
     end
   end
 end
 
 describe Lexer do
-  it_lexes("EOF", Token::Type::Eof, UInt8[])
-  it_lexes("nil", Token::Type::Null, UInt8[0xC0u8])
-  it_lexes("false", Token::Type::False, UInt8[0xC2u8])
-  it_lexes("true", Token::Type::True, UInt8[0xC3u8])
+  it_lexes("nil", Token::NullT, UInt8[0xC0u8])
+  it_lexes("false", Token::BoolT, UInt8[0xC2u8])
+  it_lexes("true", Token::BoolT, UInt8[0xC3u8])
 
-  it_lexes_uint("zero", 0, UInt8[0x00])
-  it_lexes_uint("fix num", 127, UInt8[0x7f])
-  it_lexes_uint("small integers", 128, UInt8[0xcc, 0x80])
-  it_lexes_uint("medium integers", 256, UInt8[0xcd, 0x01, 0x00])
-  it_lexes_uint("large integers", 2 ** 31 - 1, UInt8[0xce, 0x7f, 0xff, 0xff, 0xff])
-  it_lexes_uint("huge integers", 2 ** 64_f64 - 1, UInt8[0xcf, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff])
+  it_lexes_int("zero", 0, UInt8[0x00])
+  it_lexes_int("fix num", 127, UInt8[0x7f])
+  it_lexes_int("small integers", 128, UInt8[0xcc, 0x80])
+  it_lexes_int("medium integers", 256, UInt8[0xcd, 0x01, 0x00])
+  it_lexes_int("large integers", 2 ** 31 - 1, UInt8[0xce, 0x7f, 0xff, 0xff, 0xff])
+  it_lexes_int("huge integers", 2 ** 64 - 1, UInt8[0xcf, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff])
 
   it_lexes_int("-1", -1, UInt8[0xff])
   it_lexes_int("-33", -33, UInt8[0xd0, 0xdf])
@@ -130,9 +115,9 @@ describe Lexer do
   it_lexes_string("big strings", "x" * 0xdddd, UInt8[0xDA, 0xDD, 0xDD] + ("x" * 0xdddd).bytes)
   it_lexes_string("huge strings", "x" * 0x0000dddd, UInt8[0xDB, 0x00, 0x00, 0xDD, 0xDD] + ("x" * 0x0000dddd).bytes)
 
-  it_lexes_binary("medium binary", "\a" * 0x5, UInt8[0xc4, 0x05] + ("\a" * 0x5).bytes)
-  it_lexes_binary("big binary", "\a" * 0x100, UInt8[0xc5, 0x01, 0x00] + ("\a" * 0x100).bytes)
-  it_lexes_binary("huge binary", "\a" * 0x10000, UInt8[0xc6, 0x00, 0x01, 0x00, 0x00] + ("\a" * 0x10000).bytes)
+  it_lexes_string("medium binary", "\a" * 0x5, UInt8[0xc4, 0x05] + ("\a" * 0x5).bytes)
+  it_lexes_string("big binary", "\a" * 0x100, UInt8[0xc5, 0x01, 0x00] + ("\a" * 0x100).bytes)
+  it_lexes_string("huge binary", "\a" * 0x10000, UInt8[0xc6, 0x00, 0x01, 0x00, 0x00] + ("\a" * 0x10000).bytes)
 
   it_lexes_arrays("empty arrays", 0, UInt8[0x90])
   it_lexes_arrays("small arrays", 2, UInt8[0x92, 0x01, 0x02])
@@ -149,13 +134,11 @@ describe Lexer do
       bytes = UInt8[0xff, 0xff]
       string = String.new(bytes.to_unsafe, bytes.size)
       lexer = Lexer.new(string)
-      lexer.next_token
-      lexer.next_token
-
-      lexer.current_byte.should eq 0xFF
-
-      lexer.next_token
-      lexer.current_byte.should eq 0
+      lexer.read_token.should eq Token::IntT.new(0, -1, 1, true)
+      lexer.read_token.should eq Token::IntT.new(1, -1, 1, true)
+      expect_raises(MessagePack::EofError) do
+        lexer.read_token
+      end
     end
   end
 end

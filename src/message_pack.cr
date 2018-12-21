@@ -1,8 +1,8 @@
 module MessagePack
-  class Error < Exception; end
+  VERSION = "0.13.0"
 
-  # Represents a possible type inside a MessagePack Array or MessagePack Hash (Table)
-  alias Type = Nil | Bool | Int8 | Int16 | Int32 | Int64 | UInt8 | UInt16 | UInt32 | UInt64 | Float32 | Float64 | String | Bytes | Array(Type) | Hash(Type, Type)
+  # Represents MessagePack Type
+  alias Type = Nil | Bool | Int64 | Float64 | String | Array(Type) | Hash(Type, Type)
 
   # A MessagePack Table. Just a convenience alias.
   alias Table = Hash(String, Type)
@@ -13,8 +13,7 @@ module MessagePack
 
   # Parses a string, returning a `MessagePack::Table`.
   def self.unpack(string_or_io : (String | IO))
-    io = string_or_io.is_a?(String) ? IO::Memory.new(string_or_io) : string_or_io
-    IOUnpacker.new(io).read
+    IOUnpacker.new(string_or_io).read
   end
 end
 

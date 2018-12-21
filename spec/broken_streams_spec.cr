@@ -50,11 +50,11 @@ describe "broken streaming" do
     { {1, 2, 3.5, 4, 5}, Tuple(Int32, Int32, Int32, Int32, Int32), true },
     { {1, 2, 3.5, 4, 5}, Tuple(Int32, Int32, Int32, Int32), true },
     { {1, 2, 3.5, 4}, Tuple(Int32, Int32, Int32, Int32, Int32), true },
-    { {1, 2, 3, 4, 5}, Tuple(Int32, Int32, Int32, Int32), false },     # incorrect size
-    { {1, 2, 3, 4}, Tuple(Int32, Int32, Int32, Int32, Int32), false }, # incorrect size
+    { {1, 2, 3, 4, 5}, Tuple(Int32, Int32, Int32, Int32), false },    # incorrect size
+    { {1, 2, 3, 4}, Tuple(Int32, Int32, Int32, Int32, Int32), true }, # incorrect size
     { {"a" => 1, 2 => "2"}, NamedTuple(a: Int32, bla: String), true },
-    { {"a" => 1, "bla" => 1}, NamedTuple(a: Int32, bla: String), true },
-    # { {"a" => 1, "bla" => "2"}, NamedTuple(a: Int32, bla: Int32) }, # crashed
+    { {"a" => 1, "fen" => 1}, NamedTuple(a: Int32, fen: String), true },
+    { {"a" => 1, "go" => "2"}, NamedTuple(a: Int32, go: Int32), true },
     {1.5, BrokenEnum, true},
     {1, String | Array(Int32), true},
     { {"a" => 1, "b" => 2, "c" => 3}, BrokenMapping, true },
@@ -67,12 +67,10 @@ describe "broken streaming" do
       packer.write("k")
 
       pull = MessagePack::IOUnpacker.new(packer.to_slice)
-
-      tokens = pull.read_value_tokens
-      unpacker = MessagePack::TokensUnpacker.new(tokens)
+      unpacker = MessagePack::NodeUnpacker.new(pull.read_node)
 
       if raises
-        expect_raises(MessagePack::Error) do
+        expect_raises(MessagePack::TypeCastError) do
           type.new(unpacker)
         end
       else

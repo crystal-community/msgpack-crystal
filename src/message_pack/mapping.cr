@@ -82,13 +82,13 @@ module MessagePack
         %found{key.id} = false
       {% end %}
 
-      %pull.read_hash(false) do
-        case %key = Bytes.new(%pull)
+      %pull.consume_table do |%key|
+        case %key
         {% for key, value in properties %}
-          when {{value[:key] || key.id.stringify}}.to_slice
+          when {{value[:key] || key.id.stringify}}
             %found{key.id} = true
             %var{key.id} =
-              {% if value[:nilable] || value[:default] != nil %} %pull.read_nil_or { {% end %}
+              {% if value[:nilable] || value[:default] != nil %} %pull.read_nil_or do {% end %}
 
               {% if value[:converter] %}
                 {{value[:converter]}}.from_msgpack(%pull)
@@ -96,11 +96,11 @@ module MessagePack
                 {{value[:type]}}.new(%pull)
               {% end %}
 
-            {% if value[:nilable] || value[:default] != nil %} } {% end %}
+            {% if value[:nilable] || value[:default] != nil %} end {% end %}
         {% end %}
         else
           {% if strict %}
-            raise MessagePack::UnpackException.new("Unknown msgpack attribute: #{String.new(%key)}")
+            raise MessagePack::TypeCastError.new("Unknown msgpack attribute: #{%key}")
           {% else %}
             %pull.skip_value
           {% end %}
@@ -110,7 +110,7 @@ module MessagePack
       {% for key, value in properties %}
         {% unless value[:nilable] || value[:default] != nil %}
           if %var{key.id}.is_a?(Nil) && !%found{key.id} && !Union({{value[:type]}}).nilable?
-            raise MessagePack::UnpackException.new("Missing msgpack attribute: {{(value[:key] || key).id}}")
+            raise MessagePack::TypeCastError.new("Missing msgpack attribute: {{(value[:key] || key).id}}")
           end
         {% end %}
       {% end %}

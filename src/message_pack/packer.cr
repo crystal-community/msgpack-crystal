@@ -36,7 +36,7 @@ struct MessagePack::Packer
       write_byte(0xDB)
       write_value(bytesize.to_u32)
     else
-      raise Error.new("invalid length")
+      raise PackError.new("invalid length")
     end
     self
   end
@@ -56,7 +56,7 @@ struct MessagePack::Packer
       write_byte(0xC6)
       write_value(bytesize.to_u32)
     else
-      raise Error.new("invalid length")
+      raise PackError.new("invalid length")
     end
     self
   end
@@ -147,7 +147,7 @@ struct MessagePack::Packer
       write_byte(0xDF)
       write_value(length.to_u32)
     else
-      raise Error.new("invalid length")
+      raise PackError.new("invalid length")
     end
     self
   end
@@ -169,7 +169,7 @@ struct MessagePack::Packer
       write_byte(0xDD)
       write_value(length.to_u32)
     else
-      raise Error.new("invalid length")
+      raise PackError.new("invalid length")
     end
     self
   end
@@ -197,7 +197,7 @@ struct MessagePack::Packer
     if io.responds_to?(:to_slice)
       io.to_slice
     else
-      raise "to slice not implemented for io type: #{typeof(io)}"
+      raise Error.new("to slice not implemented for io type: #{typeof(io)}")
     end
   end
 

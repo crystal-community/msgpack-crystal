@@ -1,19 +1,6 @@
-require "base64"
-
 def Object.from_msgpack(string_or_io)
   parser = MessagePack::IOUnpacker.new(string_or_io)
   new parser
-end
-
-def Object.from_msgpack64(string_or_io)
-  from_msgpack(Base64.decode(string_or_io))
-end
-
-def Array.from_msgpack(string_or_io)
-  parser = MessagePack::IOUnpacker.new(string_or_io)
-  new(parser) do |element|
-    yield element
-  end
 end
 
 def Hash.from_msgpack(string_or_io, default_value)
@@ -36,149 +23,93 @@ end
 
 {% for size in [8, 16, 32, 64] %}
   def Int{{size.id}}.new(pull : MessagePack::Unpacker)
-    case pull.prefetch_token.type
-    when .uint?
-      pull.read_uint.to_i{{size.id}}
-    else
-      pull.read_int.to_i{{size.id}}
-    end
+    pull.read_int.to_i{{size.id}} # TODO: raise here size error?
   end
 
   def UInt{{size.id}}.new(pull : MessagePack::Unpacker)
-    case pull.prefetch_token.type
-    when .int?
-      pull.read_int.to_u{{size.id}}
-    else
-      pull.read_uint.to_u{{size.id}}
-    end
+    pull.read_int.to_u{{size.id}} # TODO: raise here size error?
   end
 {% end %}
 
 def Float32.new(pull : MessagePack::Unpacker)
-  case pull.prefetch_token.type
-  when .int?
-    pull.read_int.to_f32
-  when .uint?
-    pull.read_uint.to_f32
-  else
-    pull.read_float.to_f32
-  end
+  pull.read_numeric.to_f32
 end
 
 def Float64.new(pull : MessagePack::Unpacker)
-  case pull.prefetch_token.type
-  when .int?
-    pull.read_int.to_f
-  when .uint?
-    pull.read_uint.to_f
-  else
-    pull.read_float.to_f
-  end
+  pull.read_numeric.to_f
 end
 
 def String.new(pull : MessagePack::Unpacker)
-  case token_type = pull.prefetch_token.type
-  when .string?
-    pull.read_string
-  when .binary?
-    String.new(pull.read_binary)
-  else
-    raise MessagePack::UnpackException.new("Expecting string or binary, not #{token_type}")
-  end
+  pull.read_string
 end
 
 def Slice.new(pull : MessagePack::Unpacker)
-  case token_type = pull.prefetch_token.type
-  when .string?
-    pull.read_string.to_slice
-  when .binary?
-    pull.read_binary
-  else
-    raise MessagePack::UnpackException.new("Expecting string or binary, not #{token_type}")
-  end
+  pull.read_string.to_slice
 end
 
 def Array.new(pull : MessagePack::Unpacker)
-  ary = new(pull.prefetch_token.size.to_i32)
-  new(pull) do |element|
-    ary << element
-  end
-  ary
-end
-
-def Array.new(pull : MessagePack::Unpacker)
-  pull.read_array do
-    yield T.new(pull)
-  end
+  arr = new(pull.read_array_size)
+  pull.consume_array { arr << T.new(pull) }
+  arr
 end
 
 def Set.new(pull : MessagePack::Unpacker)
   set = new
-  pull.read_array do
-    set << T.new(pull)
-  end
+  pull.consume_array { set << T.new(pull) }
   set
 end
 
 def Hash.new(pull : MessagePack::Unpacker, block : (Hash(K, V), K -> V)? = nil)
-  hash = new(block, initial_capacity: pull.prefetch_token.size.to_i32)
-  pull.read_hash(false) do
+  hash = new(block, initial_capacity: pull.read_hash_size)
+  pull.consume_hash do
     k = K.new(pull)
-    t = pull.prefetch_token
-    if t.type.null?
-      pull.skip_value
-    else
-      hash[k] = V.new(pull)
-    end
+    pull.read_nil_or { hash[k] = V.new(pull) }
   end
   hash
 end
 
 def Hash.new(pull : MessagePack::Unpacker, default_value : V)
-  hash = new(default_value: default_value, initial_capacity: pull.prefetch_token.size.to_i32)
-  pull.read_hash(false) do
+  hash = new(default_value: default_value, initial_capacity: pull.read_hash_size)
+  pull.consume_hash do
     k = K.new(pull)
-    t = pull.prefetch_token
-    if t.type.null?
-      pull.skip_value
-    else
-      hash[k] = V.new(pull)
-    end
+    pull.read_nil_or { hash[k] = V.new(pull) }
   end
   hash
 end
 
 def Enum.new(pull : MessagePack::Unpacker)
-  type = pull.prefetch_token.type
-  case type
-  when .int?
-    from_value(pull.read_int)
-  when .uint?
-    from_value(pull.read_uint)
-  when .string?
-    parse(pull.read_string)
+  case token = pull.current_token
+  when Token::IntT
+    pull.finish_token!
+    from_value(token.value)
+  when Token::StringT
+    pull.finish_token!
+    parse(token.value)
   else
-    raise MessagePack::UnpackException.new("Expecting int, uint or string in MessagePack for #{self.class}, not #{type}")
+    pull.unexpected_token(token, "Int or String")
   end
 end
 
 def Union.new(pull : MessagePack::Unpacker)
+  token = pull.current_token
+
   # Optimization: use fast path for primitive types
   {% begin %}
     # Here we store types that are not primitive types
     {% non_primitives = [] of Nil %}
 
     {% for type, index in T %}
-      type = pull.prefetch_token.type
       {% if type == Nil %}
-        return pull.read_nil if type.null?
-      {% elsif type == Bool ||
-                 type == Int8 || type == Int16 || type == Int32 || type == Int64 ||
-                 type == UInt8 || type == UInt16 || type == UInt32 || type == UInt64 ||
-                 type == Float32 || type == Float64 ||
-                 type == String %}
-        value = pull.read?({{type}})
-        return value unless value.nil?
+        return pull.read_nil if token.is_a?(MessagePack::Token::NullT)
+      {% elsif type == Bool %}
+        return pull.read_bool if token.is_a?(MessagePack::Token::BoolT)
+      {% elsif type == String %}
+        return pull.read_string if token.is_a?(MessagePack::Token::StringT)
+      {% elsif type == Int8 || type == Int16 || type == Int32 || type == Int64 ||
+                 type == UInt8 || type == UInt16 || type == UInt32 || type == UInt64 %}
+        return {{type}}.new(pull) if token.is_a?(MessagePack::Token::IntT)
+      {% elsif type == Float32 || type == Float64 %}
+        return {{type}}.new(pull) if token.is_a?(MessagePack::Token::FloatT) || token.is_a?(MessagePack::Token::IntT)
       {% else %}
         {% non_primitives << type %}
       {% end %}
@@ -191,28 +122,38 @@ def Union.new(pull : MessagePack::Unpacker)
     {% end %}
   {% end %}
 
-  tokens = pull.read_value_tokens
+  node = pull.read_node
   {% for type in T %}
-    unpacker = MessagePack::TokensUnpacker.new(tokens)
+    unpacker = MessagePack::NodeUnpacker.new(node)
     begin
       return {{type}}.new(unpacker)
-    rescue e : MessagePack::UnpackException
+    rescue e : MessagePack::TypeCastError
       # ignore
     end
   {% end %}
-  raise MessagePack::UnpackException.new("Couldn't parse data as " + {{T.stringify}})
+
+  raise MessagePack::TypeCastError.new("Couldn't parse data as " + {{T.stringify}})
 end
 
 def Tuple.new(pull : MessagePack::Unpacker)
-  {% if true %}
-    pull.read_array_size
+  {% begin %}
+    size = pull.read_array_size
+
+    unless {{ @type.size }} <= size
+      raise MessagePack::TypeCastError.new("Expected array with size #{ {{ @type.size }} }, but got #{size}")
+    end
+    pull.finish_token!
+
     value = Tuple.new(
       {% for i in 0...@type.size %}
         (self[{{i}}].new(pull)),
       {% end %}
     )
+
+    (size - {{ @type.size }}).times { pull.skip_value }
+
     value
- {% end %}
+  {% end %}
 end
 
 def NamedTuple.new(pull : MessagePack::Unpacker)
@@ -221,10 +162,10 @@ def NamedTuple.new(pull : MessagePack::Unpacker)
       %var{key.id} = nil
     {% end %}
 
-    pull.read_hash(false) do
-      case Bytes.new(pull)
+    pull.consume_table do |key|
+      case key
         {% for key, type in T %}
-          when {{key.stringify}}.to_slice
+          when {{key.stringify}}
             %var{key.id} = {{type}}.new(pull)
         {% end %}
       else
@@ -234,7 +175,7 @@ def NamedTuple.new(pull : MessagePack::Unpacker)
 
     {% for key, type in T %}
       if %var{key.id}.nil? && !::Union({{type}}).nilable?
-        raise MessagePack::UnpackException.new("Missing msgpack attribute: {{key}}")
+        raise MessagePack::TypeCastError.new("Missing msgpack attribute: {{key}}")
       end
     {% end %}
 

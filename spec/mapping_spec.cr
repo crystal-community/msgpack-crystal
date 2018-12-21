@@ -227,13 +227,13 @@ describe "MessagePack mapping" do
   end
 
   it "parses strict person with unknown attributes" do
-    expect_raises MessagePack::Error, "Unknown msgpack attribute: foo" do
+    expect_raises MessagePack::TypeCastError, "Unknown msgpack attribute: foo" do
       StrictMessagePackPerson.from_msgpack({"name" => "John", "age" => 30, "foo" => "bar"}.to_msgpack)
     end
   end
 
   it "raises if non-nilable attribute is nil" do
-    expect_raises MessagePack::Error, "Missing msgpack attribute: name" do
+    expect_raises MessagePack::TypeCastError, "Missing msgpack attribute: name" do
       MessagePackPerson.from_msgpack({"age" => 30}.to_msgpack)
     end
   end
@@ -342,7 +342,7 @@ describe "MessagePack mapping" do
       msgpack = MessagePackWithUnions.from_msgpack({"a" => "bla"}.to_msgpack)
       msgpack.a.should eq "bla"
 
-      expect_raises(MessagePack::Error) do
+      expect_raises(MessagePack::TypeCastError) do
         MessagePackWithUnions.from_msgpack({"a" => [1, 2, 3]}.to_msgpack)
       end
     end
@@ -354,7 +354,7 @@ describe "MessagePack mapping" do
       msgpack = MessagePackWithUnions.from_msgpack({"b" => %w(1 2 3)}.to_msgpack)
       msgpack.b.should eq %w(1 2 3)
 
-      expect_raises(MessagePack::Error) do
+      expect_raises(MessagePack::TypeCastError) do
         MessagePackWithUnions.from_msgpack({"b" => 1}.to_msgpack)
       end
     end
@@ -367,7 +367,7 @@ describe "MessagePack mapping" do
       msgpack = MessagePackWithUnions.from_msgpack({"c" => h}.to_msgpack)
       msgpack.c.should eq h
 
-      expect_raises(MessagePack::Error) do
+      expect_raises(MessagePack::TypeCastError) do
         MessagePackWithUnions.from_msgpack({"c" => 1}.to_msgpack)
       end
     end
@@ -385,7 +385,7 @@ describe "MessagePack mapping" do
     end
 
     it "parse d unknown struct" do
-      expect_raises(MessagePack::Error) do
+      expect_raises(MessagePack::TypeCastError) do
         MessagePackWithUnions.from_msgpack({"d" => {"bla" => [1, 2, 3]}}.to_msgpack)
       end
     end
@@ -446,7 +446,7 @@ describe "MessagePack mapping" do
     end
 
     it "parses strict binary data with unknown attributes" do
-      expect_raises MessagePack::Error, "Unknown msgpack attribute: foo" do
+      expect_raises MessagePack::TypeCastError, "Unknown msgpack attribute: foo" do
         StrictMessagePackKVS.from_msgpack({"key" => "a", "val" => binary_data, "foo" => "bar"}.to_msgpack)
       end
     end

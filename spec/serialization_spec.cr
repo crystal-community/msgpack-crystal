@@ -56,14 +56,6 @@ describe "MessagePack serialization" do
       Array(Int32).from_msgpack(io).should eq([1, 2, 3])
     end
 
-    it "does for Array(Int32) with block" do
-      elements = [] of Int32
-      Array(Int32).from_msgpack(UInt8[147, 1, 2, 3]) do |element|
-        elements << element
-      end
-      elements.should eq([1, 2, 3])
-    end
-
     it "does for tuple" do
       data = UInt8[146, 1, 165, 104, 101, 108, 108, 111]
       tuple = Tuple(Int32, String).from_msgpack(data)
@@ -245,6 +237,12 @@ describe "MessagePack serialization" do
       data = {"bla" => 1, "heh" => nil}
       Hash(String, Int32).from_msgpack(data.to_msgpack).should eq({"bla" => 1})
     end
+
+    it "NamedTuple crashed case" do
+      expect_raises(MessagePack::TypeCastError, "Unexpected token '\"2\"' expected Token::IntT at 8") do
+        NamedTuple(a: Int32, bla: Int32).from_msgpack({"a" => 1, "bla" => "2"}.to_msgpack)
+      end
+    end
   end
 
   describe "unpack unions" do
@@ -276,34 +274,22 @@ describe "MessagePack serialization" do
       end
 
       it "not matched type" do
-        expect_raises(MessagePack::Error, "Couldn't parse data as") do
+        expect_raises(MessagePack::TypeCastError, "Couldn't parse data as") do
           type.from_msgpack(["bla"].to_msgpack)
         end
       end
 
       it "not matched type" do
-        expect_raises(MessagePack::Error, "Couldn't parse data as") do
+        expect_raises(MessagePack::TypeCastError, "Couldn't parse data as") do
           type.from_msgpack({"1" => "2", "3" => 4}.to_msgpack)
         end
       end
 
       it "not matched type" do
-        expect_raises(MessagePack::Error, "Couldn't parse data as") do
+        expect_raises(MessagePack::TypeCastError, "Couldn't parse data as") do
           type.from_msgpack({1, 2, "3"}.to_msgpack)
         end
       end
-    end
-  end
-
-  describe "base64" do
-    data = {"⬠ ⬡ ⬢ ⬣ ⬤ ⬥ ⬦" => {"bar" => true}, "zoo" => {"⬤" => false}}
-    str = "grvirKAg4qyhIOKsoiDirKMg4qykIOKspSDirKaBo2JhcsOjem9vgaPirKTC\n"
-    it "pack" do
-      data.to_msgpack64.should eq str
-    end
-
-    it "unpack" do
-      typeof(data).from_msgpack64(str).should eq data
     end
   end
 end

@@ -390,7 +390,7 @@ describe "MessagePack mapping" do
   end
 
   it "parses strict person with unknown attributes" do
-    expect_raises MessagePack::Error, "Unknown msgpack attribute: foo" do
+    expect_raises MessagePack::TypeCastError, "Unknown msgpack attribute: foo" do
       MessagePackAttrPersonStrict.from_msgpack({"name" => "John", "age" => 30, "foo" => "bar"}.to_msgpack)
     end
   end
@@ -412,19 +412,19 @@ describe "MessagePack mapping" do
   end
 
   it "raises if non-nilable attribute is nil" do
-    expect_raises MessagePack::Error, "Missing msgpack attribute: name" do
+    expect_raises MessagePack::TypeCastError, "Missing msgpack attribute: name" do
       MessagePackAttrPerson.from_msgpack({"age" => 30}.to_msgpack)
     end
   end
 
   it "raises if not an object" do
-    expect_raises MessagePack::Error, "unexpected token '\"bla\"' expected HASH at 1" do
+    expect_raises MessagePack::TypeCastError, "Unexpected token '\"bla\"' expected Token::HashT at 0" do
       MessagePackAttrPerson.from_msgpack("bla".to_msgpack)
     end
   end
 
   it "raises if data type does not match" do
-    expect_raises MessagePack::Error, "Couldn't parse data as {Int32, Nil} at 0" do
+    expect_raises MessagePack::TypeCastError, "Couldn't parse data as {Int32, Nil} at 0" do
       MessagePackAttrPerson.from_msgpack({"name" => "John", "age" => "30"}.to_msgpack)
     end
   end
@@ -551,7 +551,7 @@ describe "MessagePack mapping" do
       msgpack = MessagePackAttrWithUnions.from_msgpack({"a" => "bla"}.to_msgpack)
       msgpack.a.should eq "bla"
 
-      expect_raises(MessagePack::Error) do
+      expect_raises(MessagePack::TypeCastError) do
         MessagePackAttrWithUnions.from_msgpack({"a" => [1, 2, 3]}.to_msgpack)
       end
     end
@@ -563,7 +563,7 @@ describe "MessagePack mapping" do
       msgpack = MessagePackAttrWithUnions.from_msgpack({"b" => ["1", "2", "3"]}.to_msgpack)
       msgpack.b.should eq ["1", "2", "3"]
 
-      expect_raises(MessagePack::Error) do
+      expect_raises(MessagePack::TypeCastError) do
         MessagePackAttrWithUnions.from_msgpack({"b" => 1}.to_msgpack)
       end
     end
@@ -576,7 +576,7 @@ describe "MessagePack mapping" do
       msgpack = MessagePackAttrWithUnions.from_msgpack({"c" => h}.to_msgpack)
       msgpack.c.should eq h
 
-      expect_raises(MessagePack::Error) do
+      expect_raises(MessagePack::TypeCastError) do
         MessagePackAttrWithUnions.from_msgpack({"c" => 1}.to_msgpack)
       end
     end
@@ -594,7 +594,7 @@ describe "MessagePack mapping" do
     end
 
     it "parse d unknown struct" do
-      expect_raises(MessagePack::Error) do
+      expect_raises(MessagePack::TypeCastError) do
         MessagePackAttrWithUnions.from_msgpack({"d" => {"bla" => [1, 2, 3]}}.to_msgpack)
       end
     end
@@ -655,7 +655,7 @@ describe "MessagePack mapping" do
     end
 
     it "parses strict binary data with unknown attributes" do
-      expect_raises MessagePack::Error, "Unknown msgpack attribute: foo" do
+      expect_raises MessagePack::TypeCastError, "Unknown msgpack attribute: foo" do
         StrictMessagePackAttrKVS.from_msgpack({"key" => "a", "val" => binary_data, "foo" => "bar"}.to_msgpack)
       end
     end
@@ -871,7 +871,7 @@ describe "MessagePack mapping" do
 
     it "raises if non-nilable attribute is nil" do
       error_message = "msg"
-      ex = expect_raises MessagePack::Error, error_message do
+      ex = expect_raises MessagePack::TypeCastError, error_message do
         MessagePackAttrWithQueryAttributes.from_msgpack({is_bar: true}.to_msgpack)
       end
     end
