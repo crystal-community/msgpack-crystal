@@ -7,7 +7,7 @@
 * **(breaking change)** Rename UnpackException to UnpackError
 * Add more exception types for every case
 
-## 0.12.0 (2018-12-14)
+## 0.12.1 (2018-12-14)
 * **(breaking change)** Rename MessagePack::Unpacker to MessagePack::IOUnpacker
 * Add MessagePack::TokensUnpacker
 * Add unpacker method read_value_tokens, to read value as tokens array
