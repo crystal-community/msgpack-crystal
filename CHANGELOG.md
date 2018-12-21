@@ -1,4 +1,4 @@
-## 0.13.0 (2018-12-21)
+## 0.13.1 (2018-12-21)
 * **(breaking change)** Rewrite Unpacker logic, changed Token, Lexer and Unpacker
 * **(breaking change)** Remove unpacker methods: from_msgpack64, to_msgpack64
 * **(breaking change)** Remove Eof token (raises EofError instead)
