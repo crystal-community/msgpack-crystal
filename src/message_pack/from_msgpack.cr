@@ -79,10 +79,10 @@ end
 
 def Enum.new(pull : MessagePack::Unpacker)
   case token = pull.current_token
-  when Token::IntT
+  when MessagePack::Token::IntT
     pull.finish_token!
     from_value(token.value)
-  when Token::StringT
+  when MessagePack::Token::StringT
     pull.finish_token!
     parse(token.value)
   else
