@@ -5,6 +5,7 @@
 * **(breaking change)** Rename unpacker method read_value_tokens to read_node
 * **(breaking change)** Rename TokensUnpacker to NodeUnpacker
 * **(breaking change)** Rename UnpackException to UnpackError
+* **(breaking change)** MessagePack::Type have only one type Int64 for ints, and Float64 for floats
 * Add more exception types for every case
 
 ## 0.12.1 (2018-12-14)
