@@ -1,3 +1,6 @@
+## 0.14.0 (2018-12-25)
+* Add support for type extension, fixed #44
+
 ## 0.13.1 (2018-12-21)
 * **(breaking change)** Rewrite Unpacker logic, changed Token, Lexer and Unpacker
 * **(breaking change)** Remove unpacker methods: from_msgpack64, to_msgpack64
