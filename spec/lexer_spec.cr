@@ -4,7 +4,7 @@ private def it_lexes(description, expected_type, bytes, file = __FILE__, line = 
   string = Bytes.new(bytes.to_unsafe, bytes.size)
 
   it "lexes #{description} from IO", file, line do
-    lexer = Lexer.new string
+    lexer = MessagePack::Lexer.new string
     token = lexer.read_token
     token.class.should eq(expected_type)
   end
@@ -14,10 +14,10 @@ private def it_lexes_int(description, int_value, bytes, file = __FILE__, line = 
   string = Bytes.new(bytes.to_unsafe, bytes.size)
 
   it "lexes #{description} from IO", file, line do
-    lexer = Lexer.new string
+    lexer = MessagePack::Lexer.new string
     token = lexer.read_token
     case token
-    when Token::IntT
+    when MessagePack::Token::IntT
       token.value.should eq int_value
     else
       raise "unexpected token type #{token.inspect}"
@@ -29,10 +29,10 @@ private def it_lexes_float(description, float_value, bytes, file = __FILE__, lin
   string = Bytes.new(bytes.to_unsafe, bytes.size)
 
   it "lexes #{description}", file, line do
-    lexer = Lexer.new string
+    lexer = MessagePack::Lexer.new string
     token = lexer.read_token
     case token
-    when Token::FloatT
+    when MessagePack::Token::FloatT
       token.value.should eq float_value
     else
       raise "unexpected token type #{token.inspect}"
@@ -44,10 +44,10 @@ private def it_lexes_string(description, string_value, bytes, file = __FILE__, l
   string = Bytes.new(bytes.to_unsafe, bytes.size)
 
   it "lexes #{description}", file, line do
-    lexer = Lexer.new string
+    lexer = MessagePack::Lexer.new string
     token = lexer.read_token
     case token
-    when Token::StringT
+    when MessagePack::Token::StringT
       token.value.should eq string_value
     else
       raise "unexpected token type #{token.inspect}"
@@ -59,10 +59,10 @@ private def it_lexes_arrays(description, size, bytes, file = __FILE__, line = __
   string = Bytes.new(bytes.to_unsafe, bytes.size)
 
   it "lexes #{description}", file, line do
-    lexer = Lexer.new string
+    lexer = MessagePack::Lexer.new string
     token = lexer.read_token
     case token
-    when Token::ArrayT
+    when MessagePack::Token::ArrayT
       token.size.should eq size
     else
       raise "unexpected token type #{token.inspect}"
@@ -74,10 +74,10 @@ private def it_lexes_hashes(description, size, bytes, file = __FILE__, line = __
   string = Bytes.new(bytes.to_unsafe, bytes.size)
 
   it "lexes #{description}", file, line do
-    lexer = Lexer.new string
+    lexer = MessagePack::Lexer.new string
     token = lexer.read_token
     case token
-    when Token::HashT
+    when MessagePack::Token::HashT
       token.size.should eq size
     else
       raise "unexpected token type #{token.inspect}"
@@ -85,10 +85,10 @@ private def it_lexes_hashes(description, size, bytes, file = __FILE__, line = __
   end
 end
 
-describe Lexer do
-  it_lexes("nil", Token::NullT, UInt8[0xC0u8])
-  it_lexes("false", Token::BoolT, UInt8[0xC2u8])
-  it_lexes("true", Token::BoolT, UInt8[0xC3u8])
+describe MessagePack::Lexer do
+  it_lexes("nil", MessagePack::Token::NullT, UInt8[0xC0u8])
+  it_lexes("false", MessagePack::Token::BoolT, UInt8[0xC2u8])
+  it_lexes("true", MessagePack::Token::BoolT, UInt8[0xC3u8])
 
   it_lexes_int("zero", 0, UInt8[0x00])
   it_lexes_int("fix num", 127, UInt8[0x7f])
@@ -133,9 +133,9 @@ describe Lexer do
     it "only calls next byte before reading not after reading" do
       bytes = UInt8[0xff, 0xff]
       string = String.new(bytes.to_unsafe, bytes.size)
-      lexer = Lexer.new(string)
-      lexer.read_token.should eq Token::IntT.new(0, -1, 1, true)
-      lexer.read_token.should eq Token::IntT.new(1, -1, 1, true)
+      lexer = MessagePack::Lexer.new(string)
+      lexer.read_token.should eq MessagePack::Token::IntT.new(0, -1, 1, true)
+      lexer.read_token.should eq MessagePack::Token::IntT.new(1, -1, 1, true)
       expect_raises(MessagePack::EofError) do
         lexer.read_token
       end

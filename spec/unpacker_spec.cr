@@ -83,7 +83,7 @@ describe "MessagePack::Unpacker" do
   it_parses("huge binary", ("\a" * 0x10000), UInt8[0xc6, 0x00, 0x01, 0x00, 0x00] + ("\a" * 0x10000).bytes)
 
   it_parses("invalid byte sequence", String.new(Bytes[0x08, 0xe7]), UInt8[0xc4, 0x02] + UInt8[0x08, 0xe7])
-  it_parses("empty arrays", ([] of Type), UInt8[0x90])
+  it_parses("empty arrays", ([] of MessagePack::Type), UInt8[0x90])
   it_parses("small arrays", [1, 2], UInt8[0x92, 0x01, 0x02])
   it_parses("medium arrays", Array.new(0x111, false), UInt8[0xdc, 0x01, 0x11] + Array.new(0x111, 0xc2u8))
   it_parses("big arrays", Array.new(0x11111, false), UInt8[0xdd, 0x00, 0x01, 0x11, 0x11] + Array.new(0x11111, 0xc2_u8))
@@ -91,7 +91,7 @@ describe "MessagePack::Unpacker" do
   it_parses("arrays with mixed values", ["hello", "world", 42], UInt8[0x93, 0xa5] + "hello".bytes + UInt8[0xa5] + "world*".bytes)
   it_parses("arrays of arrays", [[[[1, 2], 3], 4]], UInt8[0x91, 0x92, 0x92, 0x92, 0x01, 0x02, 0x03, 0x04])
 
-  it_parses("empty hashes", ({} of Type => Type), UInt8[0x80])
+  it_parses("empty hashes", ({} of MessagePack::Type => MessagePack::Type), UInt8[0x80])
   it_parses("small hashes", {"foo" => "bar"}, UInt8[0x81, 0xa3] + "foo".bytes + UInt8[0xa3] + "bar".bytes)
   it_parses("medium hashes", {"foo" => "bar"}, UInt8[0xde, 0x00, 0x01, 0xa3] + "foo".bytes + UInt8[0xa3] + "bar".bytes)
   it_parses("big hashes", {"foo" => "bar"}, UInt8[0xdf, 0x00, 0x00, 0x00, 0x01, 0xa3] + "foo".bytes + UInt8[0xa3] + "bar".bytes)

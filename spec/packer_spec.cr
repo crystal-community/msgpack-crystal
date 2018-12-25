@@ -35,12 +35,12 @@ describe "MessagePack::Packer" do
     # valid byte sequence for UTF-8 ("好".bytes # => [0xE5, 0xA5, 0xBD])
     it_packs(as_slice(UInt8[0xE5, 0xA5, 0xBD] * 0x10000), UInt8[0xC6, 0x00, 0x03, 0x00, 0x00] + UInt8[0xE5, 0xA5, 0xBD] * 0x10000, String.new(as_slice(UInt8[0xE5, 0xA5, 0xBD] * 0x10000)))
   end
-  it_packs(([] of Type), UInt8[0x90])
+  it_packs(([] of MessagePack::Type), UInt8[0x90])
   it_packs(Int8[1, 2], UInt8[0x92, 0x01, 0x02])
   it_packs(Array.new(0x111, false), UInt8[0xDC, 0x01, 0x11] + Array.new(0x111, 0xc2u8))
   it_packs(Array.new(0x11111, false), UInt8[0xDD, 0x00, 0x01, 0x11, 0x11] + Array.new(0x11111, 0xc2_u8))
 
-  it_packs(({} of Type => Type), UInt8[0x80])
+  it_packs(({} of MessagePack::Type => MessagePack::Type), UInt8[0x80])
   it_packs({"foo" => "bar"}, UInt8[0x81, 0xA3] + "foo".bytes + UInt8[0xA3] + "bar".bytes)
 
   it "packs to the IO" do
