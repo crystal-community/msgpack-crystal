@@ -141,11 +141,13 @@ class MessagePack::Lexer
   end
 
   private def consume_ext(size)
+    _byte_number = @byte_number
     type_id = read(Int8)
     size = size.to_u32
     bytes = Bytes.new(size)
     @io.read_fully(bytes.to_slice)
-    Token::ExtT.new(@byte_number, type_id, size, bytes)
+    @byte_number += size
+    Token::ExtT.new(_byte_number, type_id, size, bytes)
   end
 
   private def consume_string(size, binary = false)
