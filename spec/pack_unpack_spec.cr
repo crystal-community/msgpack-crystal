@@ -85,4 +85,29 @@ describe "pack and unpack integration specs" do
     unpack = MessagePack::IOUnpacker.new(packer.to_slice)
     unpack.read_string.should eq "bla"
   end
+
+  context "ext" do
+    [1, 2, 4, 8, 16, 25, 259, UInt16::MAX.to_i32 + 5].each do |length|
+      it "work with #{length}" do
+        packer = MessagePack::Packer.new
+        b = Bytes.new(length) { |i| (i % 256).to_u8 }
+        packer.write_ext(1_i8, b)
+        msgpack = packer.to_slice
+
+        unpacker = MessagePack::IOUnpacker.new(msgpack)
+        token = unpacker.current_token
+
+        case token
+        when MessagePack::Token::ExtT
+          token.type_id.should eq 1_i8
+          token.size.should eq length.to_u32
+          token.bytes.each_with_index do |v, i|
+            v.should eq (i % 256).to_u8
+          end
+        else
+          raise "unknown token #{token.inspect}"
+        end
+      end
+    end
+  end
 end

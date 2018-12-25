@@ -245,6 +245,36 @@ describe "MessagePack serialization" do
     end
   end
 
+  describe "Ext" do
+    it "to_msgpack" do
+      ext = ExtClass.new(1, "bla")
+      ext.to_msgpack.should eq Bytes[199, 7, 25, 0, 0, 0, 1, 98, 108, 97]
+    end
+
+    it "to_msgpack 8 bytes" do
+      ext = ExtClass.new(1, "blah")
+      ext.to_msgpack.should eq Bytes[215, 25, 0, 0, 0, 1, 98, 108, 97, 104]
+    end
+
+    it "from_msgpack" do
+      ext = ExtClass.from_msgpack(Bytes[199, 7, 25, 0, 0, 0, 1, 98, 108, 97])
+      ext.a.should eq 1
+      ext.b.should eq "bla"
+    end
+
+    it "from_msgpack from wrong data" do
+      expect_raises(MessagePack::TypeCastError, "Unexpected token '1_i64' expected Ext at 0") do
+        ExtClass.from_msgpack(1.to_msgpack)
+      end
+    end
+
+    it "from_msgpack from wrong type_id" do
+      expect_raises(MessagePack::TypeCastError, "Unknown type_id 26, expected 25 at 0") do
+        ExtClass.from_msgpack(Bytes[199, 7, 26, 0, 0, 0, 1, 98, 108, 97])
+      end
+    end
+  end
+
   describe "unpack unions" do
     context "work" do
       type = Union(Array(Int32), Hash(String, String), String, Float64)

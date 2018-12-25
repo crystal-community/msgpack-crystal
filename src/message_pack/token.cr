@@ -7,8 +7,9 @@ module MessagePack::Token
   record IntT, byte_number : Int32, value : Int64, bytesize : UInt8, signed : Bool
   record FloatT, byte_number : Int32, value : Float64
   record StringT, byte_number : Int32, value : String, binary : Bool
+  record ExtT, byte_number : Int32, type_id : Int8, size : UInt32, bytes : Bytes
 
-  alias T = NullT | BoolT | ArrayT | HashT | IntT | FloatT | StringT
+  alias T = NullT | BoolT | ArrayT | HashT | IntT | FloatT | StringT | ExtT
 
   def self.to_s(token)
     case token
@@ -31,6 +32,8 @@ module MessagePack::Token
       "Array[#{token.size}]"
     when HashT
       "Hash[#{token.size}]"
+    when ExtT
+      "Ext[#{token.type_id}, #{token.size}]"
     else
       token.inspect
     end

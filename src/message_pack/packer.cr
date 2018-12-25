@@ -180,6 +180,39 @@ struct MessagePack::Packer
     self
   end
 
+  def write_ext_start(bytesize)
+    case bytesize
+    when 1
+      write_byte(0xD4)
+    when 2
+      write_byte(0xD5)
+    when 4
+      write_byte(0xD6)
+    when 8
+      write_byte(0xD7)
+    when 16
+      write_byte(0xD8)
+    when 0x00..0xFF
+      write_byte(0xC7)
+      write_byte(bytesize.to_u8)
+    when 0x0000..0xFFFF
+      write_byte(0xC8)
+      write_value(bytesize.to_u16)
+    when 0x00000000..0xFFFFFFFF
+      write_byte(0xC9)
+      write_value(bytesize.to_u32)
+    else
+      raise PackError.new("invalid length")
+    end
+    self
+  end
+
+  def write_ext(type_id : Int8, bytes : Bytes)
+    write_ext_start(bytes.size)
+    write_byte(type_id)
+    write_slice(bytes.to_slice)
+  end
+
   private def write_byte(byte)
     @io.write_byte(byte.to_u8)
   end

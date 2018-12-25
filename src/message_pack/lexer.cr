@@ -53,11 +53,11 @@ class MessagePack::Lexer
       consume_string(current_byte - 0xA0)
     when 0xE0..0xFF
       consume_int(current_byte.to_i8, 1_u8)
-    when 0x00..0x7f
+    when 0x00..0x7F
       consume_uint(current_byte, 1_u8)
-    when 0x80..0x8f
+    when 0x80..0x8F
       set_hash(current_byte - 0x80)
-    when 0x90..0x9f
+    when 0x90..0x9F
       set_array(current_byte - 0x90)
     when 0xC4
       consume_string(read(UInt8), true)
@@ -65,6 +65,12 @@ class MessagePack::Lexer
       consume_string(read(UInt16), true)
     when 0xC6
       consume_string(read(UInt32), true)
+    when 0xC7
+      consume_ext(read(UInt8))
+    when 0xC8
+      consume_ext(read(UInt16))
+    when 0xC9
+      consume_ext(read(UInt32))
     when 0xCA
       consume_float(read Float32)
     when 0xCB
@@ -85,6 +91,9 @@ class MessagePack::Lexer
       consume_int(read(Int32), 4_u8)
     when 0xD3
       consume_int(read(Int64), 8_u8)
+    when 0xD4..0xD8
+      size = 1 << (current_byte - 0xD4) # 1, 2, 4, 8, 16
+      consume_ext(size)
     when 0xD9
       consume_string(read UInt8)
     when 0xDA
@@ -129,6 +138,14 @@ class MessagePack::Lexer
 
   private def consume_float(value)
     Token::FloatT.new(@byte_number, value.to_f64)
+  end
+
+  private def consume_ext(size)
+    type_id = read(Int8)
+    size = size.to_u32
+    bytes = Bytes.new(size)
+    @io.read_fully(bytes.to_slice)
+    Token::ExtT.new(@byte_number, type_id, size, bytes)
   end
 
   private def consume_string(size, binary = false)

@@ -32,6 +32,8 @@ abstract class MessagePack::Unpacker
       read_array_body
     when Token::HashT
       read_hash_body
+    when Token::ExtT
+      unexpected_token(token)
     else
       raise EofError.new(token.byte_number)
     end

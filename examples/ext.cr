@@ -1,32 +1,8 @@
-require "spec"
 require "../src/message_pack"
 
-include MessagePack
+# Example how to use msgpack ext types specification
 
-def as_slice(arr : Array(UInt8))
-  Bytes.new(arr.to_unsafe, arr.size)
-end
-
-def it_packs_method(value, bytes)
-  packer = MessagePack::Packer.new
-  result = packer.write(value)
-  result.bytes.should eq(bytes)
-end
-
-def it_unpacks_method(value, bytes)
-  packer = MessagePack::IOUnpacker.new(bytes)
-  result = packer.read
-  result.should eq(value)
-end
-
-macro it_packs(value, bytes, unpack_value = nil, file = __FILE__, line = __LINE__)
-  it "serializes #{{{value.stringify}}} to #{{{bytes}}}", {{file}}, {{line}} do
-    it_packs_method(({{value}}), {{bytes}})
-    it_unpacks_method(({{unpack_value}} || {{value}}), {{bytes}})
-  end
-end
-
-class ExtClass
+class MyExtClass
   getter a, b
 
   TYPE_ID = 25_i8
@@ -64,3 +40,9 @@ class ExtClass
     packer.write_ext(TYPE_ID, io.to_slice)
   end
 end
+
+ext = MyExtClass.new(1, "bla")
+p ext.to_msgpack # => Bytes[199, 7, 25, 0, 0, 0, 1, 98, 108, 97]
+
+ext = MyExtClass.from_msgpack(Bytes[199, 7, 25, 0, 0, 0, 1, 98, 108, 97])
+p ext # => #<MyExtClass:0x1049b1ea0 @a=1, @b="bla">
