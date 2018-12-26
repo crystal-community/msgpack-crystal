@@ -213,6 +213,12 @@ struct MessagePack::Packer
     write_slice(bytes.to_slice)
   end
 
+  def write_ext(type_id : Int8)
+    io = IO::Memory.new
+    yield(io)
+    write_ext(type_id, io.to_slice)
+  end
+
   private def write_byte(byte)
     @io.write_byte(byte.to_u8)
   end

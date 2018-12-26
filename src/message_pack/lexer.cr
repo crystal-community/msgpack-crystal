@@ -109,6 +109,7 @@ class MessagePack::Lexer
     when 0xDF
       set_hash(read UInt32)
     else
+      # 0xC1 only
       raise UnexpectedByteError.new("Unexpected byte '#{current_byte}'", @byte_number)
     end
   end

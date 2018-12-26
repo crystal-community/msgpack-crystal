@@ -137,6 +137,21 @@ abstract class MessagePack::Unpacker
     end
   end
 
+  def read_ext(type_id : Int8)
+    case token = current_token
+    when MessagePack::Token::ExtT
+      if token.type_id == type_id
+        finish_token!
+        io = IO::Memory.new(token.bytes)
+        yield(token.size, io)
+      else
+        raise MessagePack::TypeCastError.new("Unknown type_id #{token.type_id}, expected #{type_id}")
+      end
+    else
+      unexpected_token(token, "Ext")
+    end
+  end
+
   # ======================= Read Node ==================
 
   def read_node
