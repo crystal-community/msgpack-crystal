@@ -145,7 +145,7 @@ abstract class MessagePack::Unpacker
         io = IO::Memory.new(token.bytes)
         yield(token.size, io)
       else
-        raise MessagePack::TypeCastError.new("Unknown type_id #{token.type_id}, expected #{type_id}")
+        raise MessagePack::TypeCastError.new("Unknown type_id #{token.type_id}, expected #{type_id}", token.byte_number)
       end
     else
       unexpected_token(token, "Ext")

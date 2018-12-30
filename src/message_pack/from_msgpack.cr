@@ -132,15 +132,16 @@ def Union.new(pull : MessagePack::Unpacker)
     end
   {% end %}
 
-  raise MessagePack::TypeCastError.new("Couldn't parse data as " + {{T.stringify}})
+  raise MessagePack::TypeCastError.new("Couldn't parse data as " + {{T.stringify}}, token.byte_number)
 end
 
 def Tuple.new(pull : MessagePack::Unpacker)
   {% begin %}
     size = pull.read_array_size
+    token = pull.current_token
 
     unless {{ @type.size }} <= size
-      raise MessagePack::TypeCastError.new("Expected array with size #{ {{ @type.size }} }, but got #{size}")
+      raise MessagePack::TypeCastError.new("Expected array with size #{ {{ @type.size }} }, but got #{size}", token.byte_number)
     end
     pull.finish_token!
 
@@ -162,6 +163,7 @@ def NamedTuple.new(pull : MessagePack::Unpacker)
       %var{key.id} = nil
     {% end %}
 
+    token = pull.current_token
     pull.consume_table do |key|
       case key
         {% for key, type in T %}
@@ -175,7 +177,7 @@ def NamedTuple.new(pull : MessagePack::Unpacker)
 
     {% for key, type in T %}
       if %var{key.id}.nil? && !::Union({{type}}).nilable?
-        raise MessagePack::TypeCastError.new("Missing msgpack attribute: {{key}}")
+        raise MessagePack::TypeCastError.new("Missing msgpack attribute: {{key}}", token.byte_number)
       end
     {% end %}
 

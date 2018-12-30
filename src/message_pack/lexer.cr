@@ -66,11 +66,11 @@ class MessagePack::Lexer
     when 0xC6
       consume_string(read(UInt32), true)
     when 0xC7
-      consume_ext(read(UInt8))
+      consume_ext(@byte_number, read(UInt8))
     when 0xC8
-      consume_ext(read(UInt16))
+      consume_ext(@byte_number, read(UInt16))
     when 0xC9
-      consume_ext(read(UInt32))
+      consume_ext(@byte_number, read(UInt32))
     when 0xCA
       consume_float(read Float32)
     when 0xCB
@@ -93,7 +93,7 @@ class MessagePack::Lexer
       consume_int(read(Int64), 8_u8)
     when 0xD4..0xD8
       size = 1 << (current_byte - 0xD4) # 1, 2, 4, 8, 16
-      consume_ext(size)
+      consume_ext(@byte_number, size)
     when 0xD9
       consume_string(read UInt8)
     when 0xDA
@@ -141,14 +141,13 @@ class MessagePack::Lexer
     Token::FloatT.new(@byte_number, value.to_f64)
   end
 
-  private def consume_ext(size)
-    _byte_number = @byte_number
+  private def consume_ext(byte_number, size)
     type_id = read(Int8)
     size = size.to_u32
     bytes = Bytes.new(size)
     @io.read_fully(bytes.to_slice)
     @byte_number += size
-    Token::ExtT.new(_byte_number, type_id, size, bytes)
+    Token::ExtT.new(byte_number, type_id, size, bytes)
   end
 
   private def consume_string(size, binary = false)

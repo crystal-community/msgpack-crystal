@@ -424,7 +424,7 @@ describe "MessagePack mapping" do
   end
 
   it "raises if data type does not match" do
-    expect_raises MessagePack::TypeCastError, "Couldn't parse data as {Int32, Nil} at 0" do
+    expect_raises MessagePack::TypeCastError, "Couldn't parse data as {Int32, Nil} at 15" do
       MessagePackAttrPerson.from_msgpack({"name" => "John", "age" => "30"}.to_msgpack)
     end
   end

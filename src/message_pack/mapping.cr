@@ -82,6 +82,7 @@ module MessagePack
         %found{key.id} = false
       {% end %}
 
+      token = %pull.current_token
       %pull.consume_table do |%key|
         case %key
         {% for key, value in properties %}
@@ -100,7 +101,7 @@ module MessagePack
         {% end %}
         else
           {% if strict %}
-            raise MessagePack::TypeCastError.new("Unknown msgpack attribute: #{%key}")
+            raise MessagePack::TypeCastError.new("Unknown msgpack attribute: #{%key}", token.byte_number)
           {% else %}
             %pull.skip_value
           {% end %}

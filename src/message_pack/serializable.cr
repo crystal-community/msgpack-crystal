@@ -151,6 +151,7 @@ module MessagePack
           %found{name} = false
         {% end %}
 
+        token = pull.current_token
         pull.consume_table do |%key|
           {% if properties.size > 0 %}
             case %key
@@ -179,7 +180,7 @@ module MessagePack
         {% for name, value in properties %}
           {% unless value[:nilable] || value[:has_default] %}
             if %var{name}.nil? && !%found{name} && !::Union({{value[:type]}}).nilable?
-              raise ::MessagePack::TypeCastError.new("Missing msgpack attribute: {{value[:key].id}}")
+              raise ::MessagePack::TypeCastError.new("Missing msgpack attribute: {{value[:key].id}}", token.byte_number)
             end
           {% end %}
 
