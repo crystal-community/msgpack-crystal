@@ -9,9 +9,9 @@ class MessagePack::Lexer
 
   @token : Token::T
 
-  def initialize(io : IO)
-    @io = io
+  def initialize(@io : IO)
     @byte_number = -1
+    @current_byte_number = 0
     @token = Token::NullT.new(0)
     @token_finished = true
   end
@@ -42,13 +42,16 @@ class MessagePack::Lexer
   end
 
   private def next_token
-    case current_byte = next_byte
+    current_byte = next_byte
+    @current_byte_number = @byte_number
+
+    case current_byte
     when 0xC0
-      Token::NullT.new(@byte_number)
+      Token::NullT.new(@current_byte_number)
     when 0xC2
-      Token::BoolT.new(@byte_number, false)
+      Token::BoolT.new(@current_byte_number, false)
     when 0xC3
-      Token::BoolT.new(@byte_number, true)
+      Token::BoolT.new(@current_byte_number, true)
     when 0xA0..0xBF
       consume_string(current_byte - 0xA0)
     when 0xE0..0xFF
@@ -66,11 +69,11 @@ class MessagePack::Lexer
     when 0xC6
       consume_string(read(UInt32), true)
     when 0xC7
-      consume_ext(@byte_number, read(UInt8))
+      consume_ext(read(UInt8))
     when 0xC8
-      consume_ext(@byte_number, read(UInt16))
+      consume_ext(read(UInt16))
     when 0xC9
-      consume_ext(@byte_number, read(UInt32))
+      consume_ext(read(UInt32))
     when 0xCA
       consume_float(read Float32)
     when 0xCB
@@ -93,7 +96,7 @@ class MessagePack::Lexer
       consume_int(read(Int64), 8_u8)
     when 0xD4..0xD8
       size = 1 << (current_byte - 0xD4) # 1, 2, 4, 8, 16
-      consume_ext(@byte_number, size)
+      consume_ext(size)
     when 0xD9
       consume_string(read UInt8)
     when 0xDA
@@ -110,7 +113,7 @@ class MessagePack::Lexer
       set_hash(read UInt32)
     else
       # 0xC1 only
-      raise UnexpectedByteError.new("Unexpected byte '#{current_byte}'", @byte_number)
+      raise UnexpectedByteError.new("Unexpected byte '#{current_byte}'", @current_byte_number)
     end
   end
 
@@ -122,43 +125,42 @@ class MessagePack::Lexer
   end
 
   private def set_array(size)
-    Token::ArrayT.new(@byte_number, size.to_u32)
+    Token::ArrayT.new(@current_byte_number, size.to_u32)
   end
 
   private def set_hash(size)
-    Token::HashT.new(@byte_number, size.to_u32)
+    Token::HashT.new(@current_byte_number, size.to_u32)
   end
 
   private def consume_uint(value, bytesize)
-    Token::IntT.new(@byte_number, value.to_i64, bytesize, false)
+    Token::IntT.new(@current_byte_number, value.to_i64, bytesize, false)
   end
 
   private def consume_int(value, bytesize)
-    Token::IntT.new(@byte_number, value.to_i64, bytesize, true)
+    Token::IntT.new(@current_byte_number, value.to_i64, bytesize, true)
   end
 
   private def consume_float(value)
-    Token::FloatT.new(@byte_number, value.to_f64)
+    Token::FloatT.new(@current_byte_number, value.to_f64)
   end
 
-  private def consume_ext(byte_number, size)
+  private def consume_ext(size)
     type_id = read(Int8)
     size = size.to_u32
     bytes = Bytes.new(size)
     @io.read_fully(bytes.to_slice)
     @byte_number += size
-    Token::ExtT.new(byte_number, type_id, size, bytes)
+    Token::ExtT.new(@current_byte_number, type_id, size, bytes)
   end
 
   private def consume_string(size, binary = false)
     size = size.to_u32
-    _byte_number = @byte_number
     string_value = String.new(size) do |buffer|
       @io.read_fully(Slice.new(buffer, size))
       {size, 0}
     end
     @byte_number += size
-    Token::StringT.new(_byte_number, string_value, binary)
+    Token::StringT.new(@current_byte_number, string_value, binary)
   end
 
   private def read(type : T.class) forall T
