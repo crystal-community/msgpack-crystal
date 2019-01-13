@@ -86,7 +86,7 @@ def Enum.new(pull : MessagePack::Unpacker)
     pull.finish_token!
     parse(token.value)
   else
-    pull.unexpected_token(token, "Int or String")
+    pull.unexpected_token(token, "IntT or StringT")
   end
 end
 
@@ -119,17 +119,17 @@ def Union.new(pull : MessagePack::Unpacker)
     # non-primitive type, we can parse it directly (no need to use `read_raw`)
     {% if non_primitives.size == 1 %}
       return {{non_primitives[0]}}.new(pull)
+    {% else %}
+      node = pull.read_node
+      {% for type in non_primitives %}
+        unpacker = MessagePack::NodeUnpacker.new(node)
+        begin
+          return {{type}}.new(unpacker)
+        rescue e : MessagePack::TypeCastError
+          # ignore
+        end
+      {% end %}
     {% end %}
-  {% end %}
-
-  node = pull.read_node
-  {% for type in T %}
-    unpacker = MessagePack::NodeUnpacker.new(node)
-    begin
-      return {{type}}.new(unpacker)
-    rescue e : MessagePack::TypeCastError
-      # ignore
-    end
   {% end %}
 
   raise MessagePack::TypeCastError.new("Couldn't parse data as " + {{T.stringify}}, token.byte_number)

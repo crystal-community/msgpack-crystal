@@ -10,7 +10,7 @@ class MessagePack::Lexer
   @token : Token::T
 
   def initialize(@io : IO)
-    @byte_number = -1
+    @byte_number = 0
     @current_byte_number = 0
     @token = Token::NullT.new(0)
     @token_finished = true
@@ -42,8 +42,8 @@ class MessagePack::Lexer
   end
 
   private def next_token
-    current_byte = next_byte
     @current_byte_number = @byte_number
+    current_byte = next_byte
 
     case current_byte
     when 0xC0

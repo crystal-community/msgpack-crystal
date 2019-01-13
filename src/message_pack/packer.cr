@@ -21,18 +21,14 @@ struct MessagePack::Packer
   def write_string_start(bytesize)
     case bytesize
     when (0x00..0x1F)
-      # fixraw
       write_byte(0xA0 + bytesize)
     when (0x0000..0xFF)
-      # str8
       write_byte(0xD9)
       write_value(bytesize.to_u8)
     when (0x0000..0xFFFF)
-      # str16
       write_byte(0xDA)
       write_value(bytesize.to_u16)
     when (0x00000000..0xFFFFFFFF)
-      # str32
       write_byte(0xDB)
       write_value(bytesize.to_u32)
     else

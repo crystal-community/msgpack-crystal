@@ -40,13 +40,13 @@ abstract class MessagePack::Unpacker
   end
 
   private def read_array_body
-    read(Token::ArrayT) do |token|
+    read_type(Token::ArrayT) do |token|
       Array(Type).new(token.size) { read_value }
     end
   end
 
   private def read_hash_body
-    read(Token::HashT) do |token|
+    read_type(Token::HashT) do |token|
       hash = Hash(Type, Type).new(initial_capacity: token.size)
       token.size.times { hash[read_value] = read_value }
       hash
@@ -56,63 +56,67 @@ abstract class MessagePack::Unpacker
   # ======================= Read typed values ==================
 
   def read_nil
-    read(Token::NullT) { nil }
+    read_type(Token::NullT) { nil }
   end
 
   def read_bool
-    read(Token::BoolT) { |token| token.value }
+    read_type(Token::BoolT) { |token| token.value }
   end
 
   def read_numeric : Int64 | Float64
-    read(Token::IntT, Token::FloatT) { |token| token.value }
+    case token = current_token
+    when Token::IntT, Token::FloatT
+      finish_token!
+      token.value
+    else
+      unexpected_token(token, "IntT or FloatT")
+    end
   end
 
   def read_int
-    read(Token::IntT) { |token| token.value }
+    read_type(Token::IntT) { |token| token.value }
   end
 
   def read_float
-    read(Token::FloatT) { |token| token.value }
+    read_type(Token::FloatT) { |token| token.value }
   end
 
   def read_string
-    read(Token::StringT) { |token| token.value }
+    read_type(Token::StringT) { |token| token.value }
   end
 
   def read_array_size
-    read(Token::ArrayT, finish_token: false) { |token| token.size }
+    read_type(Token::ArrayT, finish_token: false) { |token| token.size }
   end
 
   def read_array
-    read_array_size
     read_array_body
   end
 
   def read_hash_size
-    read(Token::HashT, finish_token: false) { |token| token.size }
+    read_type(Token::HashT, finish_token: false) { |token| token.size }
   end
 
   def read_hash
-    read_hash_size
     read_hash_body
   end
 
   # =============== Consuming array and hash ==================
 
   def consume_array
-    read(Token::ArrayT) do |token|
+    read_type(Token::ArrayT) do |token|
       token.size.times { yield }
     end
   end
 
   def consume_hash
-    read(Token::HashT) do |token|
+    read_type(Token::HashT) do |token|
       token.size.times { yield }
     end
   end
 
   def consume_table
-    read(Token::HashT) do |token|
+    read_type(Token::HashT) do |token|
       token.size.times { yield(read_string) }
     end
   end
@@ -154,7 +158,7 @@ abstract class MessagePack::Unpacker
 
   # ======================= Read Node ==================
 
-  def read_node
+  def read_node : Node
     node = Node.new
     _read_node(node)
     node
@@ -176,13 +180,13 @@ abstract class MessagePack::Unpacker
 
   # ========================= Type cast ======================
 
-  private macro read(*types, finish_token = true, &block)
+  private macro read_type(type, finish_token = true, &block)
     case token = current_token
-    when {{*types}}
+    when {{type}}
       {% if finish_token %}finish_token!{% end %}
       {{ block.body }}
     else
-      unexpected_token(token, {{types.map { |t| t.stringify.split("::").last }.join(", ")}})
+      unexpected_token(token, {{type.stringify.split("::").last}})
     end
   end
 
