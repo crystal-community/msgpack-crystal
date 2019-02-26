@@ -239,7 +239,7 @@ describe "MessagePack serialization" do
     end
 
     it "NamedTuple crashed case" do
-      expect_raises(MessagePack::TypeCastError, "Unexpected token '\"2\"' expected Token::IntT at 8") do
+      expect_raises(MessagePack::TypeCastError, "Unexpected token StringT(\"2\") expected IntT at 8") do
         NamedTuple(a: Int32, bla: Int32).from_msgpack({"a" => 1, "bla" => "2"}.to_msgpack)
       end
     end
@@ -263,7 +263,7 @@ describe "MessagePack serialization" do
     end
 
     it "from_msgpack from wrong data" do
-      expect_raises(MessagePack::TypeCastError, "Unexpected token '1_i64' expected Ext at 0") do
+      expect_raises(MessagePack::TypeCastError, "Unexpected token IntT(1) expected ExtT at 0") do
         ExtClass.from_msgpack(1.to_msgpack)
       end
     end

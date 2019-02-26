@@ -148,7 +148,7 @@ abstract class MessagePack::Unpacker
         raise MessagePack::TypeCastError.new("Unknown type_id #{token.type_id}, expected #{type_id}", token.byte_number)
       end
     else
-      unexpected_token(token, "Ext")
+      unexpected_token(token, "ExtT")
     end
   end
 
@@ -182,12 +182,12 @@ abstract class MessagePack::Unpacker
       {% if finish_token %}finish_token!{% end %}
       {{ block.body }}
     else
-      unexpected_token(token, {{types.map(&.stringify).join(", ")}})
+      unexpected_token(token, {{types.map { |t| t.stringify.split("::").last }.join(", ")}})
     end
   end
 
   def unexpected_token(token, expected = nil)
-    message = "Unexpected token '#{Token.to_s(token)}'"
+    message = "Unexpected token #{Token.to_s(token)}"
     message += " expected #{expected}" if expected
     raise TypeCastError.new(message, token.byte_number)
   end

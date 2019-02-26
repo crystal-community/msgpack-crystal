@@ -15,25 +15,30 @@ module MessagePack::Token
     case token
     when StringT
       s = token.value
-      if s.bytesize > 10
-        "\"#{s[0..10]}...\""
-      else
-        s.inspect
+      String.build do |io|
+        io << "StringT(\""
+        if s.bytesize > 10
+          io.write Bytes.new(s.to_unsafe, 10)
+          io << "..."
+        else
+          io << s
+        end
+        io << "\")"
       end
     when IntT
-      token.value.inspect
+      "IntT(#{token.value})"
     when FloatT
-      token.value.inspect
+      "FloatT(#{token.value})"
     when BoolT
-      token.value.inspect
+      "BoolT[#{token.value}]"
     when NullT
-      "nil"
+      "NullT"
     when ArrayT
-      "Array[#{token.size}]"
+      "ArrayT[#{token.size}]"
     when HashT
-      "Hash[#{token.size}]"
+      "HashT[#{token.size}]"
     when ExtT
-      "Ext[#{token.type_id}, #{token.size}]"
+      "ExtT[#{token.type_id}, #{token.size}]"
     else
       token.inspect
     end

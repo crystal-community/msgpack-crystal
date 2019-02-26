@@ -418,8 +418,8 @@ describe "MessagePack mapping" do
   end
 
   it "raises if not an object" do
-    expect_raises MessagePack::TypeCastError, "Unexpected token '\"bla\"' expected Token::HashT at 0" do
-      MessagePackAttrPerson.from_msgpack("bla".to_msgpack)
+    expect_raises MessagePack::TypeCastError, "Unexpected token StringT(\"1234566789...\") expected HashT at 0" do
+      MessagePackAttrPerson.from_msgpack("1234566789abcd".to_msgpack)
     end
   end
 
