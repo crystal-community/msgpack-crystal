@@ -240,30 +240,20 @@ end
 
 class MessagePackAttrWithPresence
   include MessagePack::Serializable
+  include MessagePack::Serializable::Presence
 
-  @[MessagePack::Field(presence: true)]
   property first_name : String?
-
-  @[MessagePack::Field(presence: true)]
   property last_name : String?
-
-  @[MessagePack::Field(ignore: true)]
-  getter? first_name_present : Bool
-
-  @[MessagePack::Field(ignore: true)]
-  getter? last_name_present : Bool
 end
 
 class MessagePackAttrWithQueryAttributes
   include MessagePack::Serializable
+  include MessagePack::Serializable::Presence
 
   property? foo : Bool
 
-  @[MessagePack::Field(key: "is_bar", presence: true)]
+  @[MessagePack::Field(key: "is_bar")]
   property? bar : Bool = false
-
-  @[MessagePack::Field(ignore: true)]
-  getter? bar_present : Bool
 end
 
 module MessagePackAttrModule
@@ -833,9 +823,9 @@ describe "MessagePack mapping" do
     it "parses person with absent attributes" do
       msgpack = MessagePackAttrWithPresence.from_msgpack({first_name: nil}.to_msgpack)
       msgpack.first_name.should be_nil
-      msgpack.first_name_present?.should be_true
+      msgpack.key_present?(:"first_name").should be_true
       msgpack.last_name.should be_nil
-      msgpack.last_name_present?.should be_false
+      msgpack.key_present?(:"last_name").should be_false
     end
   end
 
@@ -856,14 +846,14 @@ describe "MessagePack mapping" do
 
     it "defines non-query setter and presence methods" do
       msgpack = MessagePackAttrWithQueryAttributes.from_msgpack({foo: false}.to_msgpack)
-      msgpack.bar_present?.should be_false
+      msgpack.key_present?(:"bar").should be_false
       msgpack.bar = true
       msgpack.bar?.should be_true
     end
 
     it "maps non-query attributes" do
       msgpack = MessagePackAttrWithQueryAttributes.from_msgpack({foo: false, is_bar: false}.to_msgpack)
-      msgpack.bar_present?.should be_true
+      msgpack.key_present?(:"bar").should be_true
       msgpack.bar?.should be_false
       msgpack.bar = true
       msgpack.to_msgpack.should eq({foo: false, is_bar: true}.to_msgpack)

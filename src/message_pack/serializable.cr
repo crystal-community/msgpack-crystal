@@ -61,7 +61,6 @@ module MessagePack
   # * **key**: the value of the key in the msgpack object (by default the name of the instance variable)
   # * **root**: assume the value is inside a MessagePack object with a given key (see `Object.from_msgpack(string_or_io, root)`)
   # * **converter**: specify an alternate type for parsing and generation. The converter must define `from_msgpack(MessagePack::PullParser)` and `to_msgpack(value, MessagePack::Builder)` as class methods. Examples of converters are `Time::Format` and `Time::EpochConverter` for `Time`.
-  # * **presense**: if `true`, a `@{{key}}_present` instance variable will be generated when the key was present (even if it has a `null` value), `false` by default
   # * **emit_null**: if `true`, emits a `null` value for nilable property (by default nulls are not emitted)
   #
   # Deserialization also respects default values of variables:
@@ -75,11 +74,12 @@ module MessagePack
   # A.from_msgpack({a: 1}.to_msgpack) # => A(@a=1, @b=1.0)
   # ```
   #
-  # ### Extensions: `MessagePack::Serializable::Strict` and `MessagePack::Serializable::Unmapped`.
+  # ### Extensions: `MessagePack::Serializable::Strict`, `MessagePack::Serializable::Unmapped` and `MessagePack::Serializable::Presence`.
   #
   # If the `MessagePack::Serializable::Strict` module is included, unknown properties in the MessagePack
   # document will raise a parse exception. By default the unknown properties
   # are silently ignored.
+  #
   # If the `MessagePack::Serializable::Unmapped` module is included, unknown properties in the MessagePack
   # document will be stored in a `Hash(String, MessagePack::Any)`. On serialization, any keys inside msgpack_unmapped
   # will be serialized appended to the current msgpack object.
@@ -92,6 +92,19 @@ module MessagePack
   #
   # a = A.from_msgpack({a: 1, b: 2}.to_msgpack)                # => A(@msgpack_unmapped={"b" => 2_i64}, @a=1)
   # Hash(String, MessagePack::Type).from_msgpack(a.to_msgpack) # => {"a" => 1_u8, "b" => 2_u8}
+  # ```
+  #
+  # If the `MessagePack::Serializable::Presence` module is included, method key_present? added,
+  # to check which key was present in original msgpack.
+  # ```
+  # struct A
+  #   include MessagePack::Serializable
+  #   include MessagePack::Serializable::Presence
+  #   @a : Int32?
+  # end
+  #
+  # A.from_msgpack({a: 1}.to_msgpack).key_present?(:a) # => true
+  # A.from_msgpack({b: 1}.to_msgpack).key_present?(:a) # => false
   # ```
   #
   #
@@ -140,7 +153,6 @@ module MessagePack
                 default:     ivar.default_value,
                 nilable:     ivar.type.nilable?,
                 converter:   ann && ann[:converter],
-                presence:    ann && ann[:presence],
               }
             %}
           {% end %}
@@ -148,7 +160,7 @@ module MessagePack
 
         {% for name, value in properties %}
           %var{name} = nil
-          %found{name} = false
+          %found{name} = nil
         {% end %}
 
         token = pull.current_token
@@ -157,6 +169,7 @@ module MessagePack
             case %key
             {% for name, value in properties %}
               when {{value[:key]}}
+                on_key_presence(:{{name.stringify}})
                 %found{name} = true
                 %var{name} =
                   {% if value[:nilable] || value[:has_default] %} pull.read_nil_or do {% end %}
@@ -195,10 +208,6 @@ module MessagePack
           {% else %}
             @{{name}} = (%var{name}).as({{value[:type]}})
           {% end %}
-
-          {% if value[:presence] %}
-            @{{name}}_present = %found{name}
-          {% end %}
         {% end %}
       {% end %}
       after_initialize
@@ -216,6 +225,9 @@ module MessagePack
     end
 
     protected def on_to_msgpack(packer : ::MessagePack::Packer)
+    end
+
+    protected def on_key_presence(key)
     end
 
     def to_msgpack(packer : ::MessagePack::Packer)
@@ -296,6 +308,19 @@ module MessagePack
           key.to_msgpack(packer)
           value.to_msgpack(packer)
         end
+      end
+    end
+
+    module Presence
+      @[MessagePack::Field(ignore: true)]
+      property _msgpack_keys_presence = Set(Symbol).new
+
+      protected def on_key_presence(key)
+        _msgpack_keys_presence << key
+      end
+
+      def key_present?(key)
+        _msgpack_keys_presence.includes?(key)
       end
     end
   end
