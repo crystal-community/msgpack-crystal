@@ -37,16 +37,17 @@ module MessagePack
   #
   # ### Usage
   #
-  # Including `MessagePack::Serializable` will create `#to_msgpack` and `self.from_msgpack` methods on the current class,
-  # and a constructor which takes a `MessagePack::PullParser`. By default, these methods serialize into a msgpack
-  # object containing the value of every instance variable, the keys being the instance variable name.
-  # Most primitives and collections supported as instance variable values (string, integer, array, hash, etc.),
-  # along with objects which define to_msgpack and a constructor taking a `MessagePack::PullParser`.
-  # Union types are also supported, including unions with nil. If multiple types in a union parse correctly,
+  # Including `MessagePack::Serializable` will create `#to_msgpack` and `self.from_msgpack` methods on the current object,
+  # and a constructor which accepts a `MessagePack::PullParser`. By default, the object serializes into a msgpack
+  # object containing values of every instance variable, with keys equal to the variable name.
+  # Most primitives and collections supported as instance variable values (`String`, `Number`, `Array`, `Hash` etc.),
+  # along with objects which define `#to_msgpack` and a constructor accepting a `MessagePack::PullParser`.
+  # Union types are also supported, including unions with `nil`. If multiple types in a union parse correctly,
   # it is undefined which one will be chosen.
   #
   # To change how individual instance variables are parsed and serialized, the annotation `MessagePack::Field`
-  # can be placed on the instance variable. Annotating property, getter and setter macros is also allowed.
+  # can be applied to an instance variable. Annotating property, getter and setter macros is also allowed.
+  #
   # ```
   # class A
   #   include MessagePack::Serializable
@@ -57,16 +58,19 @@ module MessagePack
   # ```
   #
   # `MessagePack::Field` properties:
-  # * **ignore**: if `true` skip this field in seriazation and deserialization (by default false)
-  # * **key**: the value of the key in the msgpack object (by default the name of the instance variable)
-  # * **root**: assume the value is inside a MessagePack object with a given key (see `Object.from_msgpack(string_or_io, root)`)
-  # * **converter**: specify an alternate type for parsing and generation. The converter must define `from_msgpack(MessagePack::PullParser)` and `to_msgpack(value, MessagePack::Builder)` as class methods. Examples of converters are `Time::Format` and `Time::EpochConverter` for `Time`.
-  # * **emit_null**: if `true`, emits a `null` value for nilable property (by default nulls are not emitted)
+  #
+  # * **ignore**: skip this field on seriazation and deserialization if **ignore** is `true`
+  # * **key**: value of the key in the msgpack object (the name of the instance variable by default)
+  # * **root**: assume that the value is inside a MessagePack object with a given key (see `Object.from_msgpack(string_or_io, root)`)
+  # * **converter**: specify an alternate type for parsing and generation. The converter must define `.from_msgpack(MessagePack::PullParser)` and `.to_msgpack(value, MessagePack::Packer)` as class methods. Example converters are `Time::Format` and `Time::EpochConverter`
+  # * **emit_null**: emit Null value for this field if it is `nil` and *emit_null* is `true`. Nulls are not emitted by default
   #
   # Deserialization also respects default values of variables:
+  #
   # ```
   # struct A
   #   include MessagePack::Serializable
+  #
   #   @a : Int32
   #   @b : Float64 = 1.0
   # end
@@ -76,17 +80,18 @@ module MessagePack
   #
   # ### Extensions: `MessagePack::Serializable::Strict`, `MessagePack::Serializable::Unmapped` and `MessagePack::Serializable::Presence`.
   #
-  # If the `MessagePack::Serializable::Strict` module is included, unknown properties in the MessagePack
-  # document will raise a parse exception. By default the unknown properties
-  # are silently ignored.
+  # If the `MessagePack::Serializable::Strict` module is included, then unknown properties in a msgpack
+  # object would raise a parse exception on deserialization. Unknown properties are silently ignored by default.
   #
-  # If the `MessagePack::Serializable::Unmapped` module is included, unknown properties in the MessagePack
-  # document will be stored in a `Hash(String, MessagePack::Any)`. On serialization, any keys inside msgpack_unmapped
-  # will be serialized appended to the current msgpack object.
+  # If the `MessagePack::Serializable::Unmapped` module is included, then all unknown properties in a msgpack
+  # object would be put into the `@msgpack_unmapped : Hash(String, MessagePack::Any)` variable. 
+  # Upon serialization, all keys inside `@msgpack_unmapped` would be serialized and appended to the current msgpack object.
+  #
   # ```
   # struct A
   #   include MessagePack::Serializable
   #   include MessagePack::Serializable::Unmapped
+  #
   #   @a : Int32
   # end
   #
@@ -94,12 +99,14 @@ module MessagePack
   # Hash(String, MessagePack::Type).from_msgpack(a.to_msgpack) # => {"a" => 1_u8, "b" => 2_u8}
   # ```
   #
-  # If the `MessagePack::Serializable::Presence` module is included, method key_present? added,
-  # to check which key was present in original msgpack.
+  # If the `MessagePack::Serializable::Presence` module is included, then the method `#key_present?` is defined,
+  # which allows to check if a key is present in the original msgpack object.
+  #
   # ```
   # struct A
   #   include MessagePack::Serializable
   #   include MessagePack::Serializable::Presence
+  #
   #   @a : Int32?
   # end
   #
@@ -107,16 +114,16 @@ module MessagePack
   # A.from_msgpack({b: 1}.to_msgpack).key_present?(:a) # => false
   # ```
   #
-  #
   # ### Class annotation `MessagePack::Serializable::Options`
   #
   # supported properties:
-  # * **emit_nulls**: if `true`, emits a `null` value for all nilable properties (by default nulls are not emitted)
+  # * **emit_nulls**: emit Null value for nilable instance variables if *emit_null* is `true`. Nulls are not emitted by default
   #
   # ```
   # @[MessagePack::Serializable::Options(emit_nulls: true)]
   # class A
   #   include MessagePack::Serializable
+  #
   #   @a : Int32?
   # end
   # ```
