@@ -7,6 +7,9 @@ end
 
 class MessagePackAttrEmptyClass
   include MessagePack::Serializable
+
+  def initialize
+  end
 end
 
 class MessagePackAttrEmptyClassUnmapped
