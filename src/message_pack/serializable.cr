@@ -84,7 +84,7 @@ module MessagePack
   # object would raise a parse exception on deserialization. Unknown properties are silently ignored by default.
   #
   # If the `MessagePack::Serializable::Unmapped` module is included, then all unknown properties in a msgpack
-  # object would be put into the `@msgpack_unmapped : Hash(String, MessagePack::Any)` variable. 
+  # object would be put into the `@msgpack_unmapped : Hash(String, MessagePack::Any)` variable.
   # Upon serialization, all keys inside `@msgpack_unmapped` would be serialized and appended to the current msgpack object.
   #
   # ```
