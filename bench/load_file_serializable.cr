@@ -14,7 +14,7 @@ end
 
 text = File.read("1.msg")
 
-t = Time.now
+t = Time.local
 
 coordinates = Coordinates.from_msgpack(text).coordinates
 len = coordinates.size
@@ -30,4 +30,4 @@ p x / len
 p y / len
 p z / len
 
-p Time.now - t
+p Time.local - t

@@ -20,9 +20,9 @@ chars = ('a'..'z').to_a
   coords << coord
 end
 
-t = Time.now
+t = Time.local
 msg = {"coordinates" => coords, "info" => "some info"}.to_msgpack
 p "#{msg.size} bytes"
-p Time.now - t
+p Time.local - t
 
 File.open("1.msg", "w") { |f| f.write(msg) }

@@ -14,7 +14,7 @@ end
 
 def test_unpack(name, count, klass, data)
   slice = data.to_msgpack
-  t = Time.now
+  t = Time.local
   print name
   res = 0
   count.times do |i|
@@ -22,20 +22,20 @@ def test_unpack(name, count, klass, data)
     res += obj.is_a?(String) ? obj.bytesize : obj.size
   end
   Global.summary_unpacked += res
-  puts " = #{res}, #{Time.now - t}"
+  puts " = #{res}, #{Time.local - t}"
 end
 
 def bytes(size : Int32) : Bytes
-  Bytes.new(size) { |i| i.to_u8 }
+  Bytes.new(size) { |i| (i % 256).to_u8 }
 end
 
 def byte(value : Int32) : Bytes
-  Bytes.new(1) { value.to_u8 }
+  Bytes.new(1) { (value % 256).to_u8 }
 end
 
 alias Binary = Bytes
 
-t = Time.now
+t = Time.local
 
 test_unpack("small string", 1000000, String, "a" * 200)
 test_unpack("small binary", 1000000, Binary, bytes(200))
@@ -55,4 +55,4 @@ data = [Array.new(30) { |i| i }, Array.new(30) { |i| i.to_s }, (0..30).reduce({}
 test_unpack("array of mix of data", 200, Array(Array(Int32) | Array(String) | Hash(Int32, String) | Int32 | String), Array.new(10000) { |i| data[i % data.size] })
 
 puts "Summary unpacked size: #{Global.summary_unpacked}"
-puts "Summary time: #{Time.now - t}"
+puts "Summary time: #{Time.local - t}"

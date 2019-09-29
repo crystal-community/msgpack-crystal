@@ -17,7 +17,7 @@ class MessagePack::Lexer
   end
 
   @[AlwaysInline]
-  def current_token
+  def current_token : Token::T
     if @token_finished
       @token_finished = false
       @token = next_token
@@ -32,7 +32,7 @@ class MessagePack::Lexer
   end
 
   @[AlwaysInline]
-  def read_token
+  def read_token : Token::T
     if @token_finished
       @token = next_token
     else
@@ -55,7 +55,7 @@ class MessagePack::Lexer
     when 0xA0..0xBF
       consume_string(current_byte - 0xA0)
     when 0xE0..0xFF
-      consume_int(current_byte.to_i8, 1_u8)
+      consume_int(pointerof(current_byte).as(Int8*).value, 1_u8)
     when 0x00..0x7F
       consume_uint(current_byte, 1_u8)
     when 0x80..0x8F
@@ -85,7 +85,8 @@ class MessagePack::Lexer
     when 0xCE
       consume_uint(read(UInt32), 4_u8)
     when 0xCF
-      consume_uint(read(UInt64), 8_u8)
+      v = read(UInt64)
+      consume_uint(pointerof(v).as(Int64*).value, 8_u8)
     when 0xD0
       consume_int(read(Int8), 1_u8)
     when 0xD1
@@ -117,7 +118,7 @@ class MessagePack::Lexer
     end
   end
 
-  private def next_byte
+  private def next_byte : UInt8
     byte = @io.read_byte
     @byte_number += 1
     raise EofError.new(@byte_number) unless byte

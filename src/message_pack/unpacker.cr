@@ -1,9 +1,9 @@
 require "./lexer"
 
 abstract class MessagePack::Unpacker
-  abstract def current_token : Token
-  abstract def read_token : Token
-  abstract def finish_token! : Token
+  abstract def current_token : Token::T
+  abstract def read_token : Token::T
+  abstract def finish_token!
 
   # ================== read untyped values =======================
 

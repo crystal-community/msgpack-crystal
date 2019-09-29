@@ -13,27 +13,27 @@ module Global
 end
 
 def test_pack(name, count, data)
-  t = Time.now
+  t = Time.local
   print name
   res = 0
   count.times do |i|
     res += data.to_msgpack.size
   end
-  puts " = #{res}, #{Time.now - t}"
+  puts " = #{res}, #{Time.local - t}"
   Global.summary_packed += res
 end
 
 def bytes(size : Int32) : Bytes
-  Bytes.new(size) { |i| i.to_u8 }
+  Bytes.new(size) { |i| (i % 256).to_u8 }
 end
 
 def byte(value : Int32) : Bytes
-  Bytes.new(1) { value.to_u8 }
+  Bytes.new(1) { (value % 256).to_u8 }
 end
 
 alias Binary = Bytes
 
-t = Time.now
+t = Time.local
 
 test_pack("small string", 1000000, "a" * 200)
 test_pack("small binary", 1000000, bytes(200))
@@ -53,4 +53,4 @@ data = [Array.new(30) { |i| i }, Array.new(30) { |i| i.to_s }, (0..30).reduce({}
 test_pack("array of mix of data", 200, Array.new(10000) { |i| data[i % data.size] })
 
 puts "Summary packed size: #{Global.summary_packed} bytes"
-puts "Summary time: #{Time.now - t}"
+puts "Summary time: #{Time.local - t}"

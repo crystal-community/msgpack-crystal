@@ -8,7 +8,18 @@ class MessagePack::IOUnpacker < MessagePack::Unpacker
     new(slice)
   end
 
-  delegate current_token, to: @lexer
-  delegate finish_token!, to: @lexer
-  delegate read_token, to: @lexer
+  @[AlwaysInline]
+  def current_token : Token::T
+    @lexer.current_token
+  end
+
+  @[AlwaysInline]
+  def read_token : Token::T
+    @lexer.read_token
+  end
+
+  @[AlwaysInline]
+  def finish_token!
+    @lexer.finish_token!
+  end
 end

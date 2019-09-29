@@ -14,14 +14,14 @@ struct MessagePack::Packer
   end
 
   def write(value : Bool)
-    write_byte(value ? 0xC3 : 0xC2)
+    write_byte(value ? 0xC3_u8 : 0xC2_u8)
     self
   end
 
   def write_string_start(bytesize)
     case bytesize
     when (0x00..0x1F)
-      write_byte(0xA0 + bytesize)
+      write_byte(0xA0_u8 + bytesize.to_u8)
     when (0x0000..0xFF)
       write_byte(0xD9)
       write_value(bytesize.to_u8)
@@ -103,10 +103,12 @@ struct MessagePack::Packer
       end
     else
       if -0x20.to_i8 <= value
-        write_byte(value.to_i8)
+        v = value.to_i8
+        write_byte(pointerof(v).as(UInt8*).value)
       elsif Int8::MIN <= value
         write_byte(0xD0)
-        write_byte(value.to_i8)
+        v = value.to_i8
+        write_byte(pointerof(v).as(UInt8*).value)
       elsif Int16::MIN <= value
         write_byte(0xD1)
         write_value(value.to_i16)
@@ -135,7 +137,7 @@ struct MessagePack::Packer
   def write_hash_start(length)
     case length
     when (0x00..0x0F)
-      write_byte(0x80 + length)
+      write_byte(0x80_u8 + length.to_u8)
     when (0x0000..0xFFFF)
       write_byte(0xDE)
       write_value(length.to_u16)
@@ -157,7 +159,7 @@ struct MessagePack::Packer
   def write_array_start(length)
     case length
     when (0x00..0x0F)
-      write_byte(0x90 + length)
+      write_byte(0x90_u8 + length.to_u8)
     when (0x0000..0xFFFF)
       write_byte(0xDC)
       write_value(length.to_u16)
@@ -205,7 +207,7 @@ struct MessagePack::Packer
 
   def write_ext(type_id : Int8, bytes : Bytes)
     write_ext_start(bytes.size)
-    write_byte(type_id)
+    write_byte(pointerof(type_id).as(UInt8*).value)
     write_slice(bytes.to_slice)
   end
 
@@ -215,8 +217,8 @@ struct MessagePack::Packer
     write_ext(type_id, io.to_slice)
   end
 
-  private def write_byte(byte)
-    @io.write_byte(byte.to_u8)
+  private def write_byte(byte : UInt8)
+    @io.write_byte(byte)
   end
 
   private def write_value(value)

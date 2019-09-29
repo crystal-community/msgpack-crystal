@@ -177,9 +177,9 @@ describe "MessagePack serialization" do
     end
 
     it "Time default format" do
-      msg = Time.new(1997, 11, 10, 0, 0, 0).to_msgpack
+      msg = Time.local(1997, 11, 10, 0, 0, 0).to_msgpack
       time = Time.from_msgpack(msg)
-      time.should eq Time.new(1997, 11, 10, 0, 0, 0)
+      time.should eq Time.local(1997, 11, 10, 0, 0, 0)
     end
   end
 

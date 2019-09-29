@@ -3,8 +3,8 @@ require "../src/msgpack"
 r = Random.new(1234_u64, 1234_u64)
 
 class Stat
-  @@d1 : Time::Span = Time.now - Time.now
-  @@d2 : Time::Span = Time.now - Time.now
+  @@d1 : Time::Span = Time.local - Time.local
+  @@d2 : Time::Span = Time.local - Time.local
 
   def self.d1
     @@d1
@@ -26,7 +26,7 @@ end
 def check(elements_count, unpack_count, pack_count, klass : T.class) forall T
   GC.collect
 
-  t = Time.now
+  t = Time.local
   io = IO::Memory.new
   unpack_count.times do
     io = IO::Memory.new
@@ -34,9 +34,9 @@ def check(elements_count, unpack_count, pack_count, klass : T.class) forall T
       yield(i).to_msgpack(io)
     end
   end
-  dt = Time.now - t
+  dt = Time.local - t
 
-  t = Time.now
+  t = Time.local
   unpack_count.times do
     io.rewind
     unpacker = MessagePack::IOUnpacker.new(io)
@@ -45,7 +45,7 @@ def check(elements_count, unpack_count, pack_count, klass : T.class) forall T
     end
   end
 
-  dt2 = Time.now - t
+  dt2 = Time.local - t
   puts "check #{klass.to_s.rjust(50)}: pack: #{dt}, unpack: #{dt2}"
 
   GC.collect
@@ -54,7 +54,7 @@ def check(elements_count, unpack_count, pack_count, klass : T.class) forall T
   Stat.incd2(dt2)
 end
 
-t1 = Time.now
+t1 = Time.local
 
 elements_count = (ARGV[0]? || 1000000).to_i
 unpack_count = (ARGV[1]? || 1).to_i
@@ -82,7 +82,7 @@ check(elements_count, unpack_count, pack_count, Int32 | String | Nil) do |i|
   end
 end
 
-check(elements_count / 40, unpack_count, pack_count, Array(Int32) | Hash(Bool, Int32)) do |i|
+check(elements_count // 40, unpack_count, pack_count, Array(Int32) | Hash(Bool, Int32)) do |i|
   case i % 2
   when 0
     [i, i + 1, i - 1]
@@ -91,12 +91,12 @@ check(elements_count / 40, unpack_count, pack_count, Array(Int32) | Hash(Bool, I
   end
 end
 
-check(elements_count / 3, unpack_count, pack_count, Array(Int32)) { |i| Array.new(i % 3 + 1) { |j| j } }
-check(elements_count / 5, unpack_count, pack_count, Hash(Int32, Float64)) do |i|
+check(elements_count // 3, unpack_count, pack_count, Array(Int32)) { |i| Array.new(i % 3 + 1) { |j| j } }
+check(elements_count // 5, unpack_count, pack_count, Hash(Int32, Float64)) do |i|
   h = {} of Int32 => Float64; 3.times { |j| h[i] = j / i.to_f }; h
 end
 
-check(elements_count / 5, unpack_count, pack_count, Hash(String, Float64 | String | Array(Int32))) do |i|
+check(elements_count // 5, unpack_count, pack_count, Hash(String, Float64 | String | Array(Int32))) do |i|
   h = Hash(String, Float64 | String | Array(Int32)).new
 
   case i % 3
@@ -112,5 +112,5 @@ check(elements_count / 5, unpack_count, pack_count, Hash(String, Float64 | Strin
 end
 
 puts "-" * 50
-puts "summa #{(Time.now - t1).to_s.rjust(50)}: pack: #{Stat.d1}, unpack: #{Stat.d2}"
+puts "summa #{(Time.local - t1).to_s.rjust(50)}: pack: #{Stat.d1}, unpack: #{Stat.d2}"
 puts "-" * 50
