@@ -43,7 +43,7 @@ module MessagePack
     macro included
       def self.new(pull : ::MessagePack::Unpacker)
         instance = allocate
-        instance.initialize(pull, nil)
+        instance.initialize(__pull_for_msgpack_serializable: pull)
         GC.add_finalizer(instance) if instance.responds_to?(:finalize)
         instance
       end
@@ -55,7 +55,7 @@ module MessagePack
       end
     end
 
-    def initialize(pull : ::MessagePack::Unpacker, dummy : Nil)
+    def initialize(*, __pull_for_msgpack_serializable pull : ::MessagePack::Unpacker)
       {% begin %}
         {% options = @type.annotation(::MessagePack::ArraySerializable::Options) %}
         {% vars_count = (options && options[:variables]) %}
