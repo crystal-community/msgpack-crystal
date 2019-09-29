@@ -1,3 +1,8 @@
+## 0.15.0 (2019-09-29)
+* Added ArraySerializable module
+* Added Serializable::Presence module
+* fix byte_number in errors in some cases
+
 ## 0.14.2 (2018-12-25)
 * Add support for type extension, fixed #44
 
