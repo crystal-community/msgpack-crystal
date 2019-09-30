@@ -1,3 +1,6 @@
+## 0.16.0 (2019-09-30)
+* Update to Crystal 0.31, fixed Arithmetic overflows
+
 ## 0.15.0 (2019-09-29)
 * Added ArraySerializable module
 * Added Serializable::Presence module

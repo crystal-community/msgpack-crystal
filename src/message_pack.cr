@@ -1,5 +1,5 @@
 module MessagePack
-  VERSION = "0.15.0"
+  VERSION = "0.16.0"
 
   # Represents MessagePack Type
   alias Type = Nil | Bool | Int64 | Float64 | String | Array(Type) | Hash(Type, Type)
