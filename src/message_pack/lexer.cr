@@ -55,9 +55,9 @@ class MessagePack::Lexer
     when 0xA0..0xBF
       consume_string(current_byte - 0xA0)
     when 0xE0..0xFF
-      consume_int(pointerof(current_byte).as(Int8*).value, 1_u8)
+      consume_int(pointerof(current_byte).as(Int8*).value)
     when 0x00..0x7F
-      consume_uint(current_byte, 1_u8)
+      consume_int(current_byte)
     when 0x80..0x8F
       set_hash(current_byte - 0x80)
     when 0x90..0x9F
@@ -79,22 +79,21 @@ class MessagePack::Lexer
     when 0xCB
       consume_float(read Float64)
     when 0xCC
-      consume_uint(read(UInt8), 1_u8)
+      consume_int(read(UInt8))
     when 0xCD
-      consume_uint(read(UInt16), 2_u8)
+      consume_int(read(UInt16))
     when 0xCE
-      consume_uint(read(UInt32), 4_u8)
+      consume_int(read(UInt32))
     when 0xCF
-      v = read(UInt64)
-      consume_uint(pointerof(v).as(Int64*).value, 8_u8)
+      consume_int(read(UInt64))
     when 0xD0
-      consume_int(read(Int8), 1_u8)
+      consume_int(read(Int8))
     when 0xD1
-      consume_int(read(Int16), 2_u8)
+      consume_int(read(Int16))
     when 0xD2
-      consume_int(read(Int32), 4_u8)
+      consume_int(read(Int32))
     when 0xD3
-      consume_int(read(Int64), 8_u8)
+      consume_int(read(Int64))
     when 0xD4..0xD8
       size = 1 << (current_byte - 0xD4) # 1, 2, 4, 8, 16
       consume_ext(size)
@@ -133,12 +132,8 @@ class MessagePack::Lexer
     Token::HashT.new(@current_byte_number, size.to_u32)
   end
 
-  private def consume_uint(value, bytesize)
-    Token::IntT.new(@current_byte_number, value.to_i64, bytesize, false)
-  end
-
-  private def consume_int(value, bytesize)
-    Token::IntT.new(@current_byte_number, value.to_i64, bytesize, true)
+  private def consume_int(value)
+    Token::IntT.new(@current_byte_number, value)
   end
 
   private def consume_float(value)

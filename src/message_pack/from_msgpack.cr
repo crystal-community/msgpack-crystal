@@ -21,7 +21,7 @@ def Bool.new(pull : MessagePack::Unpacker)
   pull.read_bool
 end
 
-{% for size in [8, 16, 32] %}
+{% for size in [8, 16, 32, 64] %}
   def Int{{size.id}}.new(pull : MessagePack::Unpacker)
     pull.read_int.to_i{{size.id}}
   end
@@ -30,15 +30,6 @@ end
     pull.read_int.to_u{{size.id}}
   end
 {% end %}
-
-def Int64.new(pull : MessagePack::Unpacker)
-  pull.read_int
-end
-
-def UInt64.new(pull : MessagePack::Unpacker)
-  v = pull.read_int
-  pointerof(v).as(UInt64*).value
-end
 
 def Float32.new(pull : MessagePack::Unpacker)
   pull.read_numeric.to_f32

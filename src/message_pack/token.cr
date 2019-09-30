@@ -4,7 +4,7 @@ module MessagePack::Token
   record BoolT, byte_number : Int32, value : Bool
   record ArrayT, byte_number : Int32, size : UInt32
   record HashT, byte_number : Int32, size : UInt32
-  record IntT, byte_number : Int32, value : Int64, bytesize : UInt8, signed : Bool
+  record IntT, byte_number : Int32, value : Int8 | UInt8 | Int16 | UInt16 | Int32 | UInt32 | Int64 | UInt64
   record FloatT, byte_number : Int32, value : Float64
   record StringT, byte_number : Int32, value : String, binary : Bool
   record ExtT, byte_number : Int32, type_id : Int8, size : UInt32, bytes : Bytes

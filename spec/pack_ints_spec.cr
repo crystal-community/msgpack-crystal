@@ -40,9 +40,9 @@ describe "MessagePack::Packer" do
   {% end %}
 
   {% for method in %w(to_u64) %}
-    it_packs(UInt32::MAX.{{method.id}} + 1, UInt8[0xCF, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00])
+    it_packs(UInt32::MAX.{{method.id}}.to_u64 + 1, UInt8[0xCF, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00])
     it_packs(Int64::MAX.{{method.id}}, UInt8[0xCF, 0x7F, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
-    it_packs(UInt64::MAX.{{method.id}}, UInt8[0xCF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF], -1_i64)
+    it_packs(UInt64::MAX.{{method.id}}, UInt8[0xCF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF])
   {% end %}
 
   {% for method in %w(to_i8 to_i16 to_i32 to_i64) %}
@@ -103,7 +103,7 @@ describe "MessagePack::Packer" do
       it { UInt16.from_msgpack(129.to_msgpack).should eq 129_u16 }
       it { UInt16.from_msgpack(Int16::MAX.to_msgpack).should eq Int16::MAX }
       it { UInt16.from_msgpack(UInt16::MAX.to_msgpack).should eq UInt16::MAX }
-      it { expect_raises(OverflowError) { UInt16.from_msgpack(-1.to_msgpack) } }
+      it { UInt16.from_msgpack(-1.to_msgpack).should eq 65535 } # should raise?
       it { expect_raises(OverflowError) { UInt16.from_msgpack(Int16::MIN.to_msgpack) } }
       it { expect_raises(OverflowError) { UInt16.from_msgpack(Int32::MAX.to_msgpack) } }
     end
@@ -127,8 +127,8 @@ describe "MessagePack::Packer" do
       it { UInt32.from_msgpack(Int16::MAX.to_msgpack).should eq Int16::MAX }
       it { UInt32.from_msgpack(Int32::MAX.to_msgpack).should eq Int32::MAX }
       it { UInt32.from_msgpack(UInt32::MAX.to_msgpack).should eq UInt32::MAX }
-      it { expect_raises(OverflowError) { UInt32.from_msgpack(-1.to_msgpack) } }
-      it { expect_raises(OverflowError) { UInt32.from_msgpack(Int16::MIN.to_msgpack) } }
+      it { UInt32.from_msgpack(-1.to_msgpack).should eq 4294967295 }         # should raise?
+      it { UInt32.from_msgpack(Int16::MIN.to_msgpack).should eq 4294934528 } # should raise?
       it { expect_raises(OverflowError) { UInt32.from_msgpack(Int32::MIN.to_msgpack) } }
       it { expect_raises(OverflowError) { UInt32.from_msgpack(Int64::MAX.to_msgpack) } }
     end
@@ -145,8 +145,7 @@ describe "MessagePack::Packer" do
       it { Int64.from_msgpack(Int32::MIN.to_msgpack).should eq Int32::MIN }
       it { Int64.from_msgpack(Int64::MIN.to_msgpack).should eq Int64::MIN }
 
-      # TODO: actually all this cases should raise overflow?
-      it { Int64.from_msgpack(UInt64::MAX.to_msgpack).should eq -1 }
+      it { expect_raises(OverflowError) { Int64.from_msgpack(UInt64::MAX.to_msgpack) } }
     end
 
     context "uint64" do
@@ -161,7 +160,7 @@ describe "MessagePack::Packer" do
       it { UInt64.from_msgpack(-1.to_msgpack).should eq UInt64::MAX }
       it { UInt64.from_msgpack(Int16::MIN.to_msgpack).should eq 18446744073709518848 }
       it { UInt64.from_msgpack(Int32::MIN.to_msgpack).should eq 18446744071562067968 }
-      it { UInt64.from_msgpack(Int64::MIN.to_msgpack).should eq 9223372036854775808 }
+      it { expect_raises(OverflowError) { UInt64.from_msgpack(Int64::MIN.to_msgpack) } }
     end
   end
 end

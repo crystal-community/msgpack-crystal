@@ -63,7 +63,7 @@ abstract class MessagePack::Unpacker
     read_type(Token::BoolT) { |token| token.value }
   end
 
-  def read_numeric : Int64 | Float64
+  def read_numeric
     case token = current_token
     when Token::IntT, Token::FloatT
       finish_token!

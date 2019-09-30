@@ -95,7 +95,7 @@ describe MessagePack::Lexer do
   it_lexes_int("small integers", 128, UInt8[0xcc, 0x80])
   it_lexes_int("medium integers", 256, UInt8[0xcd, 0x01, 0x00])
   it_lexes_int("large integers", UInt32::MAX, UInt8[0xce, 0xff, 0xff, 0xff, 0xff])
-  it_lexes_int("huge integers", -1_i64, UInt8[0xcf, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff])
+  it_lexes_int("huge integers", UInt64::MAX, UInt8[0xcf, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff])
 
   it_lexes_int("-1", -1, UInt8[0xff])
   it_lexes_int("-33", -33, UInt8[0xd0, 0xdf])
@@ -134,8 +134,8 @@ describe MessagePack::Lexer do
       bytes = UInt8[0xff, 0xff]
       string = String.new(bytes.to_unsafe, bytes.size)
       lexer = MessagePack::Lexer.new(string)
-      lexer.read_token.should eq MessagePack::Token::IntT.new(0, -1, 1, true)
-      lexer.read_token.should eq MessagePack::Token::IntT.new(1, -1, 1, true)
+      lexer.read_token.should eq MessagePack::Token::IntT.new(0, -1)
+      lexer.read_token.should eq MessagePack::Token::IntT.new(1, -1)
       expect_raises(MessagePack::EofError) do
         lexer.read_token
       end
