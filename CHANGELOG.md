@@ -1,3 +1,6 @@
+## 0.16.1 (2019-10-06)
+* Use unions int type as token int representation instead of Int64
+
 ## 0.16.0 (2019-09-30)
 * Update to Crystal 0.31, fixed Arithmetic overflows
 
