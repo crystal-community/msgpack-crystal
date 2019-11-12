@@ -104,11 +104,11 @@ struct MessagePack::Packer
     else
       if -0x20.to_i8 <= value
         v = value.to_i8
-        write_byte(pointerof(v).as(UInt8*).value)
+        write_byte(v.to_u8!)
       elsif Int8::MIN <= value
         write_byte(0xD0)
         v = value.to_i8
-        write_byte(pointerof(v).as(UInt8*).value)
+        write_byte(v.to_u8!)
       elsif Int16::MIN <= value
         write_byte(0xD1)
         write_value(value.to_i16)
@@ -207,7 +207,7 @@ struct MessagePack::Packer
 
   def write_ext(type_id : Int8, bytes : Bytes)
     write_ext_start(bytes.size)
-    write_byte(pointerof(type_id).as(UInt8*).value)
+    write_byte(type_id.to_u8!)
     write_slice(bytes.to_slice)
   end
 

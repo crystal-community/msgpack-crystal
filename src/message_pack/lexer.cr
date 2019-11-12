@@ -55,7 +55,7 @@ class MessagePack::Lexer
     when 0xA0..0xBF
       consume_string(current_byte - 0xA0)
     when 0xE0..0xFF
-      consume_int(pointerof(current_byte).as(Int8*).value)
+      consume_int(current_byte.to_i8!)
     when 0x00..0x7F
       consume_int(current_byte)
     when 0x80..0x8F
