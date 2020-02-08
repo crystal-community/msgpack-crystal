@@ -63,11 +63,11 @@ class MessagePack::Lexer
     when 0x90..0x9F
       set_array(current_byte - 0x90)
     when 0xC4
-      consume_string(read(UInt8), true)
+      consume_binary(read(UInt8))
     when 0xC5
-      consume_string(read(UInt16), true)
+      consume_binary(read(UInt16))
     when 0xC6
-      consume_string(read(UInt32), true)
+      consume_binary(read(UInt32))
     when 0xC7
       consume_ext(read(UInt8))
     when 0xC8
@@ -149,14 +149,22 @@ class MessagePack::Lexer
     Token::ExtT.new(@current_byte_number, type_id, size, bytes)
   end
 
-  private def consume_string(size, binary = false)
+  private def consume_string(size)
     size = size.to_u32
     string_value = String.new(size) do |buffer|
       @io.read_fully(Slice.new(buffer, size))
       {size, 0}
     end
     @byte_number += size
-    Token::StringT.new(@current_byte_number, string_value, binary)
+    Token::StringT.new(@current_byte_number, string_value)
+  end
+
+  private def consume_binary(size)
+    size = size.to_u32
+    bytes = Bytes.new(size)
+    @io.read_fully(bytes)
+    @byte_number += size
+    Token::BytesT.new(@current_byte_number, bytes)
   end
 
   private def read(type : T.class) forall T
