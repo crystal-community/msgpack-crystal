@@ -171,11 +171,12 @@ module MessagePack
         {% end %}
 
         token = pull.current_token
-        pull.consume_table do |%key|
+        pull.consume_hash do
+          %key = Bytes.new(pull)
           {% if properties.size > 0 %}
             case %key
             {% for name, value in properties %}
-              when {{value[:key]}}
+              when {{value[:key]}}.to_slice
                 on_key_presence(:{{name.stringify}})
                 %found{name} = true
                 %var{name} =
@@ -223,7 +224,7 @@ module MessagePack
     protected def after_initialize
     end
 
-    protected def on_unknown_msgpack_attribute(pull, key)
+    protected def on_unknown_msgpack_attribute(pull, key : Bytes)
       pull.skip_value
     end
 
@@ -294,7 +295,7 @@ module MessagePack
 
     module Strict
       protected def on_unknown_msgpack_attribute(pull, key)
-        raise ::MessagePack::TypeCastError.new("Unknown msgpack attribute: #{key}")
+        raise ::MessagePack::TypeCastError.new("Unknown msgpack attribute: #{String.new(key)}")
       end
     end
 
@@ -303,7 +304,7 @@ module MessagePack
       property msgpack_unmapped = Hash(String, ::MessagePack::Type).new
 
       protected def on_unknown_msgpack_attribute(pull, key)
-        msgpack_unmapped[key] = pull.read
+        msgpack_unmapped[String.new(key)] = pull.read
       end
 
       protected def additional_write_fields_count

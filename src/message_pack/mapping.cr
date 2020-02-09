@@ -83,10 +83,11 @@ module MessagePack
       {% end %}
 
       token = %pull.current_token
-      %pull.consume_table do |%key|
+      %pull.consume_hash do
+        %key = Bytes.new(%pull)
         case %key
         {% for key, value in properties %}
-          when {{value[:key] || key.id.stringify}}
+          when {{value[:key] || key.id.stringify}}.to_slice
             %found{key.id} = true
             %var{key.id} =
               {% if value[:nilable] || value[:default] != nil %} %pull.read_nil_or do {% end %}
@@ -101,7 +102,7 @@ module MessagePack
         {% end %}
         else
           {% if strict %}
-            raise MessagePack::TypeCastError.new("Unknown msgpack attribute: #{%key}", token.byte_number)
+            raise MessagePack::TypeCastError.new("Unknown msgpack attribute: #{String.new(%key)}", token.byte_number)
           {% else %}
             %pull.skip_value
           {% end %}
