@@ -55,6 +55,21 @@ private def it_lexes_string(description, string_value, bytes, file = __FILE__, l
   end
 end
 
+private def it_lexes_bytes(description, decoded, bytes, file = __FILE__, line = __LINE__)
+  string = Bytes.new(bytes.to_unsafe, bytes.size)
+
+  it "lexes #{description}", file, line do
+    lexer = MessagePack::Lexer.new string
+    token = lexer.read_token
+    case token
+    when MessagePack::Token::BytesT
+      token.value.should eq decoded
+    else
+      raise "unexpected token type #{token.inspect}"
+    end
+  end
+end
+
 private def it_lexes_arrays(description, size, bytes, file = __FILE__, line = __LINE__)
   string = Bytes.new(bytes.to_unsafe, bytes.size)
 
@@ -115,9 +130,9 @@ describe MessagePack::Lexer do
   it_lexes_string("big strings", "x" * 0xdddd, UInt8[0xDA, 0xDD, 0xDD] + ("x" * 0xdddd).bytes)
   it_lexes_string("huge strings", "x" * 0x0000dddd, UInt8[0xDB, 0x00, 0x00, 0xDD, 0xDD] + ("x" * 0x0000dddd).bytes)
 
-  it_lexes_string("medium binary", "\a" * 0x5, UInt8[0xc4, 0x05] + ("\a" * 0x5).bytes)
-  it_lexes_string("big binary", "\a" * 0x100, UInt8[0xc5, 0x01, 0x00] + ("\a" * 0x100).bytes)
-  it_lexes_string("huge binary", "\a" * 0x10000, UInt8[0xc6, 0x00, 0x01, 0x00, 0x00] + ("\a" * 0x10000).bytes)
+  it_lexes_bytes("medium binary", Bytes.new(0x5, 7), UInt8[0xc4, 0x05] + ("\a" * 0x5).bytes)
+  it_lexes_bytes("big binary", Bytes.new(0x100, 7), UInt8[0xc5, 0x01, 0x00] + ("\a" * 0x100).bytes)
+  it_lexes_bytes("huge binary", Bytes.new(0x10000, 7), UInt8[0xc6, 0x00, 0x01, 0x00, 0x00] + ("\a" * 0x10000).bytes)
 
   it_lexes_arrays("empty arrays", 0, UInt8[0x90])
   it_lexes_arrays("small arrays", 2, UInt8[0x92, 0x01, 0x02])

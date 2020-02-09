@@ -44,7 +44,7 @@ def String.new(pull : MessagePack::Unpacker)
 end
 
 def Slice.new(pull : MessagePack::Unpacker)
-  pull.read_string.to_slice
+  pull.read_bytes.to_slice
 end
 
 def Array.new(pull : MessagePack::Unpacker)

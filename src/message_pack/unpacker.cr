@@ -19,6 +19,9 @@ abstract class MessagePack::Unpacker
     when Token::FloatT
       finish_token!
       token.value
+    when Token::BytesT
+      finish_token!
+      token.value
     when Token::StringT
       finish_token!
       token.value
@@ -82,7 +85,29 @@ abstract class MessagePack::Unpacker
   end
 
   def read_string
-    read_type(Token::StringT) { |token| token.value }
+    case token = current_token
+    when Token::StringT
+      finish_token!
+      token.value
+    when Token::BytesT
+      finish_token!
+      String.new token.value
+    else
+      unexpected_token(token, "StringT or BytesT")
+    end
+  end
+
+  def read_bytes
+    case token = current_token
+    when Token::StringT
+      finish_token!
+      token.value.to_slice
+    when Token::BytesT
+      finish_token!
+      token.value
+    else
+      unexpected_token(token, "BytesT or StringT")
+    end
   end
 
   def read_array_size
