@@ -26,6 +26,8 @@ module MessagePack::Token
         end
         io << "\")"
       end
+    when BytesT
+      "BytesT(#{token.value.bytesize})"
     when IntT
       "IntT(#{token.value})"
     when FloatT
