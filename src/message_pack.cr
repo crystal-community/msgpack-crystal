@@ -11,9 +11,8 @@ module MessagePack
     Packer.new.write(value).to_slice
   end
 
-  # Parses a string, returning a `MessagePack::Table`.
-  def self.unpack(string_or_io : (Bytes | String | IO))
-    IOUnpacker.new(string_or_io).read
+  def self.unpack(string_or_io : String | IO | Bytes) : Any
+    Any.from_msgpack(string_or_io)
   end
 end
 
