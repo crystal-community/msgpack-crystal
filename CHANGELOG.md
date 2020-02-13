@@ -1,3 +1,7 @@
+## 0.17.0 (2020-02-13)
+* Added Any class (thanks willhbr)
+* Internal split parsing of String and Binary tokens
+
 ## 0.16.1 (2019-10-06)
 * Use unions int type as token int representation instead of Int64
 

@@ -1,5 +1,5 @@
 name: msgpack
-version: 0.16.1
+version: 0.17.0
 
 authors:
   - Benoist Claassen <benoist.claassen@gmail.com>
