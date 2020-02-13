@@ -1,11 +1,21 @@
 require "./spec_helper"
 
 def as_any(obj)
-  MessagePack::Any.from_msgpack IO::Memory.new(obj.to_msgpack)
+  MessagePack.unpack(obj.to_msgpack)
 end
 
 describe MessagePack::Any do
+  it "parses from bytes" do
+    MessagePack::Any.from_msgpack(1.to_msgpack).as_i.should eq 1
+  end
+
   describe "casts" do
+    it "raises TypeCastError" do
+      expect_raises(MessagePack::TypeCastError, "Cannot cast String to Nil") do
+        as_any("bla").as_nil
+      end
+    end
+
     it "gets nil" do
       as_any(nil).as_nil.should be_nil
     end
@@ -20,7 +30,9 @@ describe MessagePack::Any do
 
     it "gets int32" do
       as_any(123).as_i32.should eq(123)
+      as_any(123).as_i.should eq(123)
       as_any(123).as_i32?.should eq(123)
+      as_any(123).as_i?.should eq(123)
       as_any(true).as_i32?.should be_nil
     end
 
@@ -68,6 +80,20 @@ describe MessagePack::Any do
 
     it "of hash" do
       as_any({"foo" => "bar"}).size.should eq(1)
+    end
+  end
+
+  describe "#each" do
+    it "of array" do
+      res = ""
+      as_any([1, 2, 3]).each { |v| res += "#{v}," }
+      res.should eq "1,2,3,"
+    end
+
+    it "of hash" do
+      res = ""
+      as_any({"foo" => "bar", 1 => nil}).each { |(k, v)| res += "#{k}-#{v}," }
+      res.should eq "foo-bar,1-,"
     end
   end
 

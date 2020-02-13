@@ -6,12 +6,12 @@ module MessagePack
     def initialize(@raw)
     end
 
-    def self.new(unpacker : IOUnpacker)
+    def self.new(unpacker : Unpacker)
       new(unpacker.read)
     end
 
     def self.from_msgpack(io)
-      new(MessagePack.unpack(io))
+      new(MessagePack::IOUnpacker.new(io))
     end
 
     def dup
@@ -32,7 +32,11 @@ module MessagePack
                          } %}
       # Convert to {{ type }}
       def as_{{ name }} : {{ type }}
-        @raw.as {{ type }}
+        if @raw.is_a?({{type}})
+          @raw.as {{ type }}
+        else
+          raise TypeCastError.new("Cannot cast #{@raw.class} to {{ type }}")
+        end
       end
 
       # Maybe convert to {{ type }}?
@@ -49,7 +53,7 @@ module MessagePack
         def as_{{ name }} : {{ type }}
           %raw = @raw
           return {{ type }}.new(%raw) if %raw.responds_to? :to_{{ name }}
-          raise "Cannot cast #{@raw.class} to {{ type }}"
+          raise TypeCastError.new("Cannot cast #{@raw.class} to {{ type }}")
         end
 
         # Maybe convert to {{ type }}?
@@ -61,6 +65,22 @@ module MessagePack
       {% end %}
     {% end %}
 
+    def as_i
+      as_i32
+    end
+
+    def as_i?
+      as_i32?
+    end
+
+    def as_u
+      as_u32
+    end
+
+    def as_u?
+      as_u32?
+    end
+
     def [](key : Symbol) : Any
       self[key.to_s.as(Type)]
     end
@@ -71,23 +91,21 @@ module MessagePack
       elsif hash = @raw.as? Hash(Type, Type)
         return Any.new hash[key]
       else
-        raise "Expected Array or Hash for #[], not #{@raw.class}"
+        raise TypeCastError.new("Expected Array or Hash for #[], not #{@raw.class}")
       end
     end
 
     def []?(key : Type) : Any?
       if (index = key.as?(Int)) && (arr = @raw.as? Array(Type))
         value = arr[index]?
-        unless value.nil?
-          return Any.new value
-        end
+        Any.new arr.fetch(index) { return nil }
       elsif hash = @raw.as? Hash(Type, Type)
         value = hash[key]?
         unless value.nil?
           return Any.new value
         end
       else
-        raise "Expected Array or Hash for #[]?, not #{@raw.class}"
+        raise TypeCastError.new("Expected Array or Hash for #[]?, not #{@raw.class}")
       end
     end
 
@@ -98,10 +116,10 @@ module MessagePack
         end
       elsif hash = @raw.as? Hash(Type, Type)
         hash.each do |k, v|
-          yield Any.new(k), Any.new(v)
+          yield({Any.new(k), Any.new(v)})
         end
       else
-        raise "Expected Array or Hash for #each, not #{@raw.class}"
+        raise TypeCastError.new("Expected Array or Hash for #each, not #{@raw.class}")
       end
     end
 
@@ -111,7 +129,7 @@ module MessagePack
       when Hash(Type, Type), Array(Type)
         return r.size
       else
-        raise "Expected Array or Hash for #each, not #{@raw.class}"
+        raise TypeCastError.new("Expected Array or Hash for #each, not #{@raw.class}")
       end
     end
 
@@ -130,44 +148,21 @@ module MessagePack
       if (value = self[key]) && value.responds_to?(:dig)
         return value.dig(*subkeys)
       end
-      raise "MessagePack::Any value not diggable for key: #{key.inspect}"
+      raise TypeCastError.new("MessagePack::Any value not diggable for key: #{key.inspect}")
     end
 
     def dig(key : Type)
       self[key]
     end
 
-    delegate to_json, to_msgpack, to_s, inspect, :==, to: @raw
+    delegate to_s, inspect, :==, to: @raw
+    forward_missing_to @raw
   end
 end
 
 class Object
   def ===(other : MessagePack::Any)
     self === other.raw
-  end
-end
-
-struct Value
-  def ==(other : MessagePack::Any)
-    self == other.raw
-  end
-end
-
-class Reference
-  def ==(other : MessagePack::Any)
-    self == other.raw
-  end
-end
-
-class Array
-  def ==(other : MessagePack::Any)
-    self == other.raw
-  end
-end
-
-class Hash
-  def ==(other : MessagePack::Any)
-    self == other.raw
   end
 end
 
