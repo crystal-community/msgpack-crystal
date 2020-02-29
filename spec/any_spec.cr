@@ -180,4 +180,17 @@ describe MessagePack::Any do
     (/o+/ === as_any("foo")).should be_truthy
     $~[0].should eq("oo")
   end
+
+  context "to_msgpack" do
+    it "int" do
+      MessagePack::Any.from_msgpack(1.to_msgpack).to_msgpack.should eq Bytes[1]
+    end
+
+    it "int" do
+      b = [nil, 1, "bla"].to_msgpack
+      a = MessagePack::Any.from_msgpack(b)
+      a.as_a.size.should eq 3
+      a.to_msgpack.should eq b
+    end
+  end
 end

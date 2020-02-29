@@ -222,3 +222,7 @@ end
 def MessagePack::Type.new(pull : MessagePack::Unpacker)
   pull.read
 end
+
+def MessagePack::Any.new(pull : MessagePack::Unpacker)
+  new(pull.read)
+end

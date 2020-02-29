@@ -92,3 +92,9 @@ struct Enum
     value.to_msgpack(packer)
   end
 end
+
+struct MessagePack::Any
+  def to_msgpack(packer : MessagePack::Packer)
+    packer.write(@raw)
+  end
+end

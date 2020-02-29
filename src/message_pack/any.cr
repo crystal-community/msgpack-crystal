@@ -6,14 +6,6 @@ module MessagePack
     def initialize(@raw)
     end
 
-    def self.new(unpacker : Unpacker)
-      new(unpacker.read)
-    end
-
-    def self.from_msgpack(io)
-      new(MessagePack::IOUnpacker.new(io))
-    end
-
     def dup
       Any.new @raw.dup
     end
