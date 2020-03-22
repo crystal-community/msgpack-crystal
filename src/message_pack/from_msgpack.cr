@@ -98,6 +98,8 @@ def Union.new(pull : MessagePack::Unpacker)
     # Here we store types that are not primitive types
     {% non_primitives = [] of Nil %}
 
+    {% includes_int = T.includes?(Int8) || T.includes?(Int16) || T.includes?(Int32) || T.includes?(Int64) ||
+                      T.includes?(UInt8) || T.includes?(UInt16) || T.includes?(UInt32) || T.includes?(UInt64) %}
     {% for type, index in T %}
       {% if type == Nil %}
         return pull.read_nil if token.is_a?(MessagePack::Token::NullT)
@@ -109,7 +111,10 @@ def Union.new(pull : MessagePack::Unpacker)
                  type == UInt8 || type == UInt16 || type == UInt32 || type == UInt64 %}
         return {{type}}.new(pull) if token.is_a?(MessagePack::Token::IntT)
       {% elsif type == Float32 || type == Float64 %}
-        return {{type}}.new(pull) if token.is_a?(MessagePack::Token::FloatT) || token.is_a?(MessagePack::Token::IntT)
+        return {{type}}.new(pull) if token.is_a?(MessagePack::Token::FloatT)
+        {% unless includes_int %}
+          return {{type}}.new(pull) if token.is_a?(MessagePack::Token::IntT)
+        {% end %}
       {% else %}
         {% non_primitives << type %}
       {% end %}
