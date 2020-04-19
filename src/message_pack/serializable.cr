@@ -38,10 +38,10 @@ module MessagePack
   # ### Usage
   #
   # Including `MessagePack::Serializable` will create `#to_msgpack` and `self.from_msgpack` methods on the current object,
-  # and a constructor which accepts a `MessagePack::PullParser`. By default, the object serializes into a msgpack
+  # and a constructor which accepts a `MessagePack::Unpacker`. By default, the object serializes into a msgpack
   # object containing values of every instance variable, with keys equal to the variable name.
   # Most primitives and collections supported as instance variable values (`String`, `Number`, `Array`, `Hash` etc.),
-  # along with objects which define `#to_msgpack` and a constructor accepting a `MessagePack::PullParser`.
+  # along with objects which define `#to_msgpack` and a constructor accepting a `MessagePack::Unpacker`.
   # Union types are also supported, including unions with `nil`. If multiple types in a union parse correctly,
   # it is undefined which one will be chosen.
   #
@@ -62,7 +62,7 @@ module MessagePack
   # * **ignore**: skip this field on seriazation and deserialization if **ignore** is `true`
   # * **key**: value of the key in the msgpack object (the name of the instance variable by default)
   # * **root**: assume that the value is inside a MessagePack object with a given key (see `Object.from_msgpack(string_or_io, root)`)
-  # * **converter**: specify an alternate type for parsing and generation. The converter must define `.from_msgpack(MessagePack::PullParser)` and `.to_msgpack(value, MessagePack::Packer)` as class methods. Example converters are `Time::Format` and `Time::EpochConverter`
+  # * **converter**: specify an alternate type for parsing and generation. The converter must define `.from_msgpack(MessagePack::Unpacker)` and `.to_msgpack(value, MessagePack::Packer)` as class methods. Example converters are `Time::Format` and `Time::EpochConverter`
   # * **emit_null**: emit Null value for this field if it is `nil` and *emit_null* is `true`. Nulls are not emitted by default
   #
   # Deserialization also respects default values of variables:
