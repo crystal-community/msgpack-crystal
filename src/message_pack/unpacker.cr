@@ -163,6 +163,8 @@ abstract class MessagePack::Unpacker
       token.size.times { skip_value }
     when Token::HashT
       token.size.times { skip_value; skip_value }
+    else
+      # nothing more to do
     end
   end
 
@@ -198,6 +200,8 @@ abstract class MessagePack::Unpacker
       token.size.times { _read_node(node) }
     when Token::HashT
       token.size.times { _read_node(node); _read_node(node) }
+    else
+      # nothing more to do
     end
 
     true
