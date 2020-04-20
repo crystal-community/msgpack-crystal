@@ -1,3 +1,8 @@
+## 0.17.1 (2020-04-20)
+* Fixes for Crystal 0.34
+* Add priority for load Int type in Union (thanks willhbr)
+* Some refactor Any class
+
 ## 0.17.0 (2020-02-13)
 * Added Any class (thanks willhbr)
 * Internal split parsing of String and Binary tokens
