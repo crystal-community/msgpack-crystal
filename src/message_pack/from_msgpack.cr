@@ -109,7 +109,10 @@ def Union.new(pull : MessagePack::Unpacker)
                  type == UInt8 || type == UInt16 || type == UInt32 || type == UInt64 %}
         return {{type}}.new(pull) if token.is_a?(MessagePack::Token::IntT)
       {% elsif type == Float32 || type == Float64 %}
-        return {{type}}.new(pull) if token.is_a?(MessagePack::Token::FloatT) || token.is_a?(MessagePack::Token::IntT)
+        return {{type}}.new(pull) if token.is_a?(MessagePack::Token::FloatT)
+        {% unless T.any? { |t| t.name.starts_with?("Int") } %}
+          return {{type}}.new(pull) if token.is_a?(MessagePack::Token::IntT)
+        {% end %}
       {% else %}
         {% non_primitives << type %}
       {% end %}

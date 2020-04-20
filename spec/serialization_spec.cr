@@ -277,12 +277,18 @@ describe "MessagePack serialization" do
 
   describe "unpack unions" do
     context "work" do
-      type = Union(Array(Int32), Hash(String, String), String, Float64)
+      type = Union(Array(Int32), Hash(String, String), String, Float64, Int32)
 
       it "Float64" do
         val = type.from_msgpack(1.0.to_msgpack)
         val.class.should eq Float64
         val.should eq 1.0
+      end
+
+      it "Int32" do
+        val = type.from_msgpack(17.to_msgpack)
+        val.class.should eq Int32
+        val.should eq 17
       end
 
       it "Array" do
