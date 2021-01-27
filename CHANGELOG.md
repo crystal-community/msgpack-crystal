@@ -1,3 +1,6 @@
+## 0.17.2 (2021-01-27)
+* Update for Crystal 0.36
+
 ## 0.17.1 (2020-04-20)
 * Fixes for Crystal 0.34
 * Add priority for load Int type in Union (thanks willhbr)
