@@ -9,3 +9,4 @@ bin_*
 *.swp
 *.bin
 .todo
+/shard.lock

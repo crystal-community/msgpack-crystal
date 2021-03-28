@@ -1,3 +1,6 @@
+## 1.0.0 (2021-03-28)
+* Update for Crystal 1.0.0
+
 ## 0.17.2 (2021-01-27)
 * Update for Crystal 0.36
 
