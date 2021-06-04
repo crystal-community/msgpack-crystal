@@ -1,11 +1,11 @@
 class MessagePack::IOUnpacker < MessagePack::Unpacker
-  def initialize(string_or_io)
-    @lexer = MessagePack::Lexer.new(string_or_io)
+  def initialize(string_or_io, *, zero_copy = false)
+    @lexer = MessagePack::Lexer.new(string_or_io, zero_copy: zero_copy)
   end
 
-  def self.new(array : Array(UInt8))
+  def self.new(array : Array(UInt8), zero_copy = false)
     slice = Bytes.new(array.to_unsafe, array.size)
-    new(slice)
+    new(slice, zero_copy: zero_copy)
   end
 
   @[AlwaysInline]
