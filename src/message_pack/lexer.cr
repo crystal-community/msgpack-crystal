@@ -1,24 +1,11 @@
 class MessagePack::Lexer
-  def self.new(string : String, *, zero_copy = false)
-    new IO::Memory.new(string), zero_copy: zero_copy
-  end
-
-  def self.new(slice : Bytes, *, zero_copy = false)
-    new IO::Memory.new(slice), zero_copy: zero_copy
-  end
-
   @token : Token::T
   @byte_number = 0
   @current_byte_number = 0
   @token_finished = true
+  @token = Token::NullT.new(0)
 
-  def initialize(@io : IO::Memory, @zero_copy = false)
-    @token = Token::NullT.new(0)
-  end
-
-  def initialize(@io : IO, zero_copy = false)
-    @zero_copy = false # Not possible with generic IO
-    @token = Token::NullT.new(0)
+  def initialize(@io : IO)
   end
 
   @[AlwaysInline]
@@ -166,16 +153,7 @@ class MessagePack::Lexer
 
   private def consume_binary(size)
     size = size.to_u32
-    bytes = if @zero_copy
-      io = @io.as IO::Memory
-      b = io.to_slice[io.pos, size]
-      io.pos += size
-      b
-    else
-      b = Bytes.new(size)
-      @io.read_fully(b)
-      b
-    end
+    bytes = io_read_fully(size)
     @byte_number += size
     Token::BytesT.new(@current_byte_number, bytes)
   end
@@ -183,5 +161,11 @@ class MessagePack::Lexer
   private def read(type : T.class) forall T
     @byte_number += sizeof(T)
     @io.read_bytes(T, IO::ByteFormat::BigEndian)
+  end
+
+  protected def io_read_fully(size) : Bytes
+    bytes = Bytes.new(size)
+    @io.read_fully(bytes)
+    bytes
   end
 end
