@@ -18,11 +18,7 @@ def test_unpack(name, count, klass, data, *, zero_copy = false)
   print name
   res = 0
   count.times do |i|
-    obj = if zero_copy
-      klass.from_msgpack_zero_copy(slice)
-    else
-      klass.from_msgpack(slice)
-    end
+    obj = klass.from_msgpack(slice, zero_copy: zero_copy)
     res += obj.is_a?(String) ? obj.bytesize : obj.size
   end
   Global.summary_unpacked += res

@@ -1,11 +1,11 @@
 class MessagePack::Lexer
   @token : Token::T
-  @byte_number = 0
-  @current_byte_number = 0
-  @token_finished = true
-  @token = Token::NullT.new(0)
 
   def initialize(@io : IO)
+    @byte_number = 0
+    @current_byte_number = 0
+    @token = Token::NullT.new(0)
+    @token_finished = true
   end
 
   @[AlwaysInline]

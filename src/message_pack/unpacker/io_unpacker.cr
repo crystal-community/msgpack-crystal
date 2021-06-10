@@ -5,7 +5,7 @@ class MessagePack::IOUnpacker < MessagePack::Unpacker
 
   def self.new(bytes : Bytes | String)
     io = IO::Memory.new(bytes)
-    new(io)
+    self.new(io)
   end
 
   def self.new(array : Array(UInt8))

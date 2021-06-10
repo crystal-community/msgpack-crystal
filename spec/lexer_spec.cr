@@ -4,7 +4,7 @@ private def it_lexes(description, expected_type, bytes, file = __FILE__, line = 
   string = Bytes.new(bytes.to_unsafe, bytes.size)
 
   it "lexes #{description} from IO", file, line do
-    lexer = MessagePack::Lexer.new string
+    lexer = MessagePack::Lexer.new IO::Memory.new(string)
     token = lexer.read_token
     token.class.should eq(expected_type)
   end
@@ -14,7 +14,7 @@ private def it_lexes_int(description, int_value, bytes, file = __FILE__, line = 
   string = Bytes.new(bytes.to_unsafe, bytes.size)
 
   it "lexes #{description} from IO", file, line do
-    lexer = MessagePack::Lexer.new string
+    lexer = MessagePack::Lexer.new IO::Memory.new(string)
     token = lexer.read_token
     case token
     when MessagePack::Token::IntT
@@ -29,7 +29,7 @@ private def it_lexes_float(description, float_value, bytes, file = __FILE__, lin
   string = Bytes.new(bytes.to_unsafe, bytes.size)
 
   it "lexes #{description}", file, line do
-    lexer = MessagePack::Lexer.new string
+    lexer = MessagePack::Lexer.new IO::Memory.new(string)
     token = lexer.read_token
     case token
     when MessagePack::Token::FloatT
@@ -44,7 +44,7 @@ private def it_lexes_string(description, string_value, bytes, file = __FILE__, l
   string = Bytes.new(bytes.to_unsafe, bytes.size)
 
   it "lexes #{description}", file, line do
-    lexer = MessagePack::Lexer.new string
+    lexer = MessagePack::Lexer.new IO::Memory.new(string)
     token = lexer.read_token
     case token
     when MessagePack::Token::StringT
@@ -59,7 +59,7 @@ private def it_lexes_bytes(description, decoded, bytes, file = __FILE__, line = 
   string = Bytes.new(bytes.to_unsafe, bytes.size)
 
   it "lexes #{description}", file, line do
-    lexer = MessagePack::Lexer.new string
+    lexer = MessagePack::Lexer.new IO::Memory.new(string)
     token = lexer.read_token
     case token
     when MessagePack::Token::BytesT
@@ -74,7 +74,7 @@ private def it_lexes_arrays(description, size, bytes, file = __FILE__, line = __
   string = Bytes.new(bytes.to_unsafe, bytes.size)
 
   it "lexes #{description}", file, line do
-    lexer = MessagePack::Lexer.new string
+    lexer = MessagePack::Lexer.new IO::Memory.new(string)
     token = lexer.read_token
     case token
     when MessagePack::Token::ArrayT
@@ -89,7 +89,7 @@ private def it_lexes_hashes(description, size, bytes, file = __FILE__, line = __
   string = Bytes.new(bytes.to_unsafe, bytes.size)
 
   it "lexes #{description}", file, line do
-    lexer = MessagePack::Lexer.new string
+    lexer = MessagePack::Lexer.new IO::Memory.new(string)
     token = lexer.read_token
     case token
     when MessagePack::Token::HashT
@@ -148,7 +148,7 @@ describe MessagePack::Lexer do
     it "only calls next byte before reading not after reading" do
       bytes = UInt8[0xff, 0xff]
       string = String.new(bytes.to_unsafe, bytes.size)
-      lexer = MessagePack::Lexer.new(string)
+      lexer = MessagePack::Lexer.new(IO::Memory.new(string))
       lexer.read_token.should eq MessagePack::Token::IntT.new(0, -1)
       lexer.read_token.should eq MessagePack::Token::IntT.new(1, -1)
       expect_raises(MessagePack::EofError) do

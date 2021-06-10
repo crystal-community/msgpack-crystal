@@ -1,30 +1,28 @@
-def Object.from_msgpack(string_or_io)
-  parser = MessagePack::IOUnpacker.new(string_or_io)
+def Object.from_msgpack(string_or_io, zero_copy = false)
+  parser = if zero_copy
+             MessagePack::IOUnpackerZeroCopy.new(string_or_io)
+           else
+             MessagePack::IOUnpacker.new(string_or_io)
+           end
   new parser
 end
 
-def Hash.from_msgpack(string_or_io, default_value)
-  parser = MessagePack::IOUnpacker.new(string_or_io)
+def Hash.from_msgpack(string_or_io, default_value, zero_copy = false)
+  parser = if zero_copy
+             MessagePack::IOUnpackerZeroCopy.new(string_or_io)
+           else
+             MessagePack::IOUnpacker.new(string_or_io)
+           end
   new(parser, default_value)
 end
 
-def Hash.from_msgpack(string_or_io, &block : (Hash(K, V), K -> V))
-  parser = MessagePack::IOUnpacker.new(string_or_io)
-  new(parser, block)
-end
+def Hash.from_msgpack(string_or_io, zero_copy = false, &block : (Hash(K, V), K -> V))
+  parser = if zero_copy
+             MessagePack::IOUnpackerZeroCopy.new(string_or_io)
+           else
+             MessagePack::IOUnpacker.new(string_or_io)
+           end
 
-def Object.from_msgpack_zero_copy(string_or_io)
-  parser = MessagePack::IOUnpackerZeroCopy.new(string_or_io)
-  new parser
-end
-
-def Hash.from_msgpack_zero_copy(string_or_io, default_value)
-  parser = MessagePack::IOUnpackerZeroCopy.new(string_or_io)
-  new(parser, default_value)
-end
-
-def Hash.from_msgpack_zero_copy(string_or_io, &block : (Hash(K, V), K -> V))
-  parser = MessagePack::IOUnpackerZeroCopy.new(string_or_io)
   new(parser, block)
 end
 
