@@ -1,5 +1,5 @@
 # MessagePack
-[![Build Status](https://travis-ci.org/crystal-community/msgpack-crystal.svg)](https://travis-ci.org/crystal-community/msgpack-crystal)
+[![Build Status](https://github.com/crystal-community/msgpack-crystal/actions/workflows/ci.yml/badge.svg)](https://github.com/crystal-community/msgpack-crystal/actions/workflows/ci.yml?query=branch%3Amaster+event%3Apush)
 
 MessagePack implementation in Crystal.
 

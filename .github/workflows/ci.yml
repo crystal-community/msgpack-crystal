@@ -1,0 +1,21 @@
+name: Specs
+on:
+  push:
+  pull_request:
+    branches: [master]
+  schedule:
+    - cron: '0 2 * * 0'
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}  
+    steps:
+      - name: Download source
+        uses: actions/checkout@v2
+      - name: Install Crystal
+        uses: crystal-lang/install-crystal@v1
+      - name: Run tests
+        run: crystal spec
