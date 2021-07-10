@@ -1,3 +1,6 @@
+## 1.1.0 (2021-07-10)
+* Optional zero copy slices when unpacking (#67, thanks @didactic-drunk)
+
 ## 1.0.0 (2021-03-28)
 * Update for Crystal 1.0.0
 
