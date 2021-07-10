@@ -12,13 +12,13 @@ module Global
   end
 end
 
-def test_unpack(name, count, klass, data)
+def test_unpack(name, count, klass, data, *, zero_copy = false)
   slice = data.to_msgpack
   t = Time.local
   print name
   res = 0
   count.times do |i|
-    obj = klass.from_msgpack(slice)
+    obj = klass.from_msgpack(slice, zero_copy: zero_copy)
     res += obj.is_a?(String) ? obj.bytesize : obj.size
   end
   Global.summary_unpacked += res
@@ -41,11 +41,14 @@ test_unpack("small string", 1000000, String, "a" * 200)
 test_unpack("small binary", 1000000, Binary, bytes(200))
 test_unpack("big string", 10000, String, "a" * 200000)
 test_unpack("big binary", 10000, Binary, bytes(200000))
+test_unpack("big binary(zc)", 10000, Binary, bytes(200000), zero_copy: true)
 test_unpack("hash string string", 10000, Hash(String, String), (0..1000).reduce({} of String => String) { |h, i| h["key#{i}"] = "value#{i}"; h })
 test_unpack("hash string binary", 10000, Hash(String, Binary), (0..1000).reduce({} of String => Binary) { |h, i| h["key#{i}"] = byte(i); h })
+test_unpack("hash string binary(zc)", 10000, Hash(String, Binary), (0..1000).reduce({} of String => Binary) { |h, i| h["key#{i}"] = byte(i); h }, zero_copy: true)
 test_unpack("hash string float64", 10000, Hash(String, Float64), (0..1000).reduce({} of String => Float64) { |h, i| h["key#{i}"] = i / 10.0.to_f64; h })
 test_unpack("array of strings", 10000, Array(String), Array.new(1000) { |i| "data#{i}" })
 test_unpack("array of binaries", 10000, Array(Binary), Array.new(1000) { |i| byte(i) })
+test_unpack("array of binaries(zc)", 10000, Array(Binary), Array.new(1000) { |i| byte(i) }, zero_copy: true)
 test_unpack("array of floats", 20000, Array(Float64), Array.new(3000) { |i| i / 10.0 })
 
 ints = [1, -1, 0x21, -0x21, 128, -128, -0x8000, 0x8000, 0xFFFF, -0xFFFF, -0x80000000, 0x80000000, -9223372036854775808, 9223372036854775807, 4294967295, -4294967295]

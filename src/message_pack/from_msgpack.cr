@@ -1,15 +1,15 @@
-def Object.from_msgpack(string_or_io)
-  parser = MessagePack::IOUnpacker.new(string_or_io)
+def Object.from_msgpack(string_or_io, zero_copy = false)
+  parser = MessagePack::IOUnpacker.new(string_or_io, zero_copy)
   new parser
 end
 
-def Hash.from_msgpack(string_or_io, default_value)
-  parser = MessagePack::IOUnpacker.new(string_or_io)
+def Hash.from_msgpack(string_or_io, default_value, zero_copy = false)
+  parser = MessagePack::IOUnpacker.new(string_or_io, zero_copy)
   new(parser, default_value)
 end
 
-def Hash.from_msgpack(string_or_io, &block : (Hash(K, V), K -> V))
-  parser = MessagePack::IOUnpacker.new(string_or_io)
+def Hash.from_msgpack(string_or_io, zero_copy = false, &block : (Hash(K, V), K -> V))
+  parser = MessagePack::IOUnpacker.new(string_or_io, zero_copy)
   new(parser, block)
 end
 

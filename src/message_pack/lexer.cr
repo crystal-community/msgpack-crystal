@@ -1,12 +1,4 @@
 class MessagePack::Lexer
-  def self.new(string : String)
-    new IO::Memory.new(string)
-  end
-
-  def self.new(slice : Bytes)
-    new IO::Memory.new(slice)
-  end
-
   @token : Token::T
 
   def initialize(@io : IO)
@@ -161,8 +153,7 @@ class MessagePack::Lexer
 
   private def consume_binary(size)
     size = size.to_u32
-    bytes = Bytes.new(size)
-    @io.read_fully(bytes)
+    bytes = io_read_fully(size)
     @byte_number += size
     Token::BytesT.new(@current_byte_number, bytes)
   end
@@ -170,5 +161,20 @@ class MessagePack::Lexer
   private def read(type : T.class) forall T
     @byte_number += sizeof(T)
     @io.read_bytes(T, IO::ByteFormat::BigEndian)
+  end
+
+  protected def io_read_fully(size) : Bytes
+    bytes = Bytes.new(size)
+    @io.read_fully(bytes)
+    bytes
+  end
+
+  class ZeroCopy < MessagePack::Lexer
+    protected def io_read_fully(size) : Bytes
+      io = @io.as IO::Memory
+      bytes = io.to_slice[io.pos, size]
+      io.pos += size
+      bytes
+    end
   end
 end
