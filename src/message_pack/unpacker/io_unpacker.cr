@@ -1,17 +1,23 @@
 class MessagePack::IOUnpacker < MessagePack::Unpacker
-  def initialize(io : IO)
-    @lexer = MessagePack::Lexer.new(io)
+  @lexer : MessagePack::Lexer
+
+  def initialize(io : IO, zero_copy = false)
+    @lexer = if zero_copy
+               MessagePack::Lexer::ZeroCopy.new(io)
+             else
+               MessagePack::Lexer.new(io)
+             end
   end
 
-  def self.new(bytes : Bytes | String)
+  def self.new(bytes : Bytes | String, zero_copy = false)
     io = IO::Memory.new(bytes)
-    self.new(io)
+    self.new(io, zero_copy)
   end
 
-  def self.new(array : Array(UInt8))
+  def self.new(array : Array(UInt8), zero_copy = false)
     bytes = Bytes.new(array.to_unsafe, array.size)
     io = IO::Memory.new(bytes)
-    new(io)
+    new(io, zero_copy)
   end
 
   @[AlwaysInline]
