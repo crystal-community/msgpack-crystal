@@ -328,4 +328,19 @@ describe "MessagePack serialization" do
       end
     end
   end
+
+  context "zero_copy" do
+    it "bytes" do
+      data = UInt8[196, 3, 1, 2, 3]
+      binary = Bytes.from_msgpack(data, zero_copy: true)
+      binary.should eq(Bytes[1, 2, 3])
+      binary.should be_a(Bytes)
+    end
+
+    it "hash" do
+      data = {"bla" => "bla", "test" => "test"}
+      h = Hash(String, Bytes).from_msgpack(data.to_msgpack, zero_copy: true)
+      h.should eq({"bla" => Bytes[98, 108, 97], "test" => Bytes[116, 101, 115, 116]})
+    end
+  end
 end

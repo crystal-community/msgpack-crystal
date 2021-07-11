@@ -610,61 +610,63 @@ describe "MessagePack mapping" do
     end
   end
 
-  describe "(binary support)" do
-    binary_data = Bytes.new(UInt8[0x08, 0xE7].to_unsafe, 2)
-    it "parses binary data" do
-      kvs = MessagePackAttrKVS.from_msgpack({"key" => "a", "val" => binary_data}.to_msgpack)
-      kvs.should be_a(MessagePackAttrKVS)
-      kvs.key.should eq("a")
-      kvs.val.should eq(binary_data)
-    end
-
-    it "parses binary data with unknown attributes" do
-      kvs = MessagePackAttrKVS.from_msgpack({"key" => "a", "val" => binary_data, "foo" => "bar"}.to_msgpack)
-      kvs.should be_a(MessagePackAttrKVS)
-      kvs.key.should eq("a")
-      kvs.val.should eq(binary_data)
-    end
-
-    it "parses binary data without attributes" do
-      kvs = MessagePackAttrKVS.from_msgpack({"key" => "a"}.to_msgpack)
-      kvs.should be_a(MessagePackAttrKVS)
-      kvs.key.should eq("a")
-      kvs.val.should eq(nil)
-    end
-
-    it "parses binary data with nil value" do
-      kvs = MessagePackAttrKVS.from_msgpack({"key" => "a", "val" => nil}.to_msgpack)
-      kvs.should be_a(MessagePackAttrKVS)
-      kvs.key.should eq("a")
-      kvs.val.should eq(nil)
-    end
-
-    it "parses strict binary data" do
-      kvs = StrictMessagePackAttrKVS.from_msgpack({"key" => "a", "val" => binary_data}.to_msgpack)
-      kvs.should be_a(StrictMessagePackAttrKVS)
-      kvs.key.should eq("a")
-      kvs.val.should eq(binary_data)
-    end
-
-    it "parses strict binary data with unknown attributes" do
-      expect_raises MessagePack::TypeCastError, "Unknown msgpack attribute: foo" do
-        StrictMessagePackAttrKVS.from_msgpack({"key" => "a", "val" => binary_data, "foo" => "bar"}.to_msgpack)
+  {false, true}.each do |zero_copy|
+    describe "(binary support)" do
+      binary_data = Bytes.new(UInt8[0x08, 0xE7].to_unsafe, 2)
+      it "parses binary data" do
+        kvs = MessagePackAttrKVS.from_msgpack({"key" => "a", "val" => binary_data}.to_msgpack, zero_copy: zero_copy)
+        kvs.should be_a(MessagePackAttrKVS)
+        kvs.key.should eq("a")
+        kvs.val.should eq(binary_data)
       end
-    end
 
-    it "parses strict binary data without attributes" do
-      kvs = StrictMessagePackAttrKVS.from_msgpack({"key" => "a"}.to_msgpack)
-      kvs.should be_a(StrictMessagePackAttrKVS)
-      kvs.key.should eq("a")
-      kvs.val.should eq(nil)
-    end
+      it "parses binary data with unknown attributes" do
+        kvs = MessagePackAttrKVS.from_msgpack({"key" => "a", "val" => binary_data, "foo" => "bar"}.to_msgpack, zero_copy: zero_copy)
+        kvs.should be_a(MessagePackAttrKVS)
+        kvs.key.should eq("a")
+        kvs.val.should eq(binary_data)
+      end
 
-    it "parses strict binary data with nil value" do
-      kvs = StrictMessagePackAttrKVS.from_msgpack({"key" => "a", "val" => nil}.to_msgpack)
-      kvs.should be_a(StrictMessagePackAttrKVS)
-      kvs.key.should eq("a")
-      kvs.val.should eq(nil)
+      it "parses binary data without attributes" do
+        kvs = MessagePackAttrKVS.from_msgpack({"key" => "a"}.to_msgpack, zero_copy: zero_copy)
+        kvs.should be_a(MessagePackAttrKVS)
+        kvs.key.should eq("a")
+        kvs.val.should eq(nil)
+      end
+
+      it "parses binary data with nil value" do
+        kvs = MessagePackAttrKVS.from_msgpack({"key" => "a", "val" => nil}.to_msgpack, zero_copy: zero_copy)
+        kvs.should be_a(MessagePackAttrKVS)
+        kvs.key.should eq("a")
+        kvs.val.should eq(nil)
+      end
+
+      it "parses strict binary data" do
+        kvs = StrictMessagePackAttrKVS.from_msgpack({"key" => "a", "val" => binary_data}.to_msgpack, zero_copy: zero_copy)
+        kvs.should be_a(StrictMessagePackAttrKVS)
+        kvs.key.should eq("a")
+        kvs.val.should eq(binary_data)
+      end
+
+      it "parses strict binary data with unknown attributes" do
+        expect_raises MessagePack::TypeCastError, "Unknown msgpack attribute: foo" do
+          StrictMessagePackAttrKVS.from_msgpack({"key" => "a", "val" => binary_data, "foo" => "bar"}.to_msgpack, zero_copy: zero_copy)
+        end
+      end
+
+      it "parses strict binary data without attributes" do
+        kvs = StrictMessagePackAttrKVS.from_msgpack({"key" => "a"}.to_msgpack, zero_copy: zero_copy)
+        kvs.should be_a(StrictMessagePackAttrKVS)
+        kvs.key.should eq("a")
+        kvs.val.should eq(nil)
+      end
+
+      it "parses strict binary data with nil value" do
+        kvs = StrictMessagePackAttrKVS.from_msgpack({"key" => "a", "val" => nil}.to_msgpack, zero_copy: zero_copy)
+        kvs.should be_a(StrictMessagePackAttrKVS)
+        kvs.key.should eq("a")
+        kvs.val.should eq(nil)
+      end
     end
   end
 
