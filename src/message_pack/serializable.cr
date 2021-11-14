@@ -221,6 +221,57 @@ module MessagePack
       after_initialize
     end
 
+    macro use_msgpack_discriminator(field, mapping)
+      {% unless mapping.is_a?(HashLiteral) || mapping.is_a?(NamedTupleLiteral) %}
+        {% mapping.raise "mapping argument must be a HashLiteral or a NamedTupleLiteral, not #{mapping.class_name.id}" %}
+      {% end %}
+
+      def self.new(pull : ::MessagePack::Unpacker)
+        node = pull.read_node
+        pull2 = MessagePack::NodeUnpacker.new(node)
+        discriminator_value = nil
+        pull2.consume_table do |key|
+          if key == {{field.id.stringify}}
+            case token = pull2.read_token
+            when MessagePack::Token::IntT, MessagePack::Token::StringT, MessagePack::Token::BoolT
+              discriminator_value = token.value
+              break
+            else
+              # nothing more to do
+              raise ::MessagePack::TypeCastError.new("Msgpack discriminator field '{{field.id}}' has an invalid value type of #{MessagePack::Token.to_s(token)}", token.byte_number)
+            end
+          else
+            pull2.skip_value
+          end
+        end
+
+        unless discriminator_value
+          raise ::MessagePack::UnpackError.new("Missing Msgpack discriminator field '{{field.id}}'", 0)
+        end
+
+        case discriminator_value
+        {% for key, value in mapping %}
+          {% if mapping.is_a?(NamedTupleLiteral) %}
+            when {{key.id.stringify}}
+          {% else %}
+            {% if key.is_a?(StringLiteral) %}
+              when {{key}}
+            {% elsif key.is_a?(NumberLiteral) || key.is_a?(BoolLiteral) %}
+              when {{key.id}}
+            {% elsif key.is_a?(Path) %}
+              when {{key.resolve}}
+            {% else %}
+              {% key.raise "mapping keys must be one of StringLiteral, NumberLiteral, BoolLiteral, or Path, not #{key.class_name.id}" %}
+            {% end %}
+          {% end %}
+          {{value.id}}.new(__pull_for_msgpack_serializable: MessagePack::NodeUnpacker.new(node))
+        {% end %}
+        else
+          raise ::MessagePack::UnpackError.new("Unknown '{{field.id}}' discriminator value: #{discriminator_value.inspect}", 0)
+        end
+      end
+    end
+
     protected def after_initialize
     end
 

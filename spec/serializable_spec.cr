@@ -318,6 +318,27 @@ struct MessagePackAttrPersonWithJSONInitializeHook
   end
 end
 
+module Discriminator
+  abstract struct Message
+    include MessagePack::Serializable
+
+    use_msgpack_discriminator "type", {
+      created: Created,
+      updated: Updated,
+    }
+
+    getter id : Int32
+  end
+
+  struct Created < Message
+    getter created_at : Time
+  end
+
+  struct Updated < Message
+    getter updated_at : Time
+  end
+end
+
 describe "MessagePack mapping" do
   it "works with record" do
     MessagePackAttrPoint.new(1, 2).to_msgpack.should eq Bytes[130, 161, 120, 1, 161, 121, 2]
@@ -895,5 +916,21 @@ describe "MessagePack mapping" do
 
     MessagePackAttrPersonWithJSONInitializeHook.from_json(person.to_json).msg.should eq "Hello Vasya"
     MessagePackAttrPersonWithJSONInitializeHook.from_msgpack(person.to_msgpack).msg.should eq "Hello Vasya"
+  end
+
+  it "allows the use of a discriminator field to determine which type to deserialize as" do
+    time = Time::Format::RFC_3339.parse("2021-11-14T12:28:32Z")
+    created = Discriminator::Message.from_msgpack({type: "created", id: 123, created_at: time}.to_msgpack)
+    updated = Discriminator::Message.from_msgpack({type: "updated", id: 123, updated_at: time}.to_msgpack)
+
+    # Ensure object types are as expected.
+    created.should be_a Discriminator::Created
+    updated.should be_a Discriminator::Updated
+
+    # Ensure type-specific properties were deserialized appropriately. We need to
+    # use the .as(Type) here due to the compile-time type being
+    # `Disciminator::Message` instead of the more specific types.
+    created.as(Discriminator::Created).created_at.should eq time
+    updated.as(Discriminator::Updated).updated_at.should eq time
   end
 end
