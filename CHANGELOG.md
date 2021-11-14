@@ -1,3 +1,6 @@
+## 1.2.0 (2021-10-14)
+* Added `use_msgpack_discriminator` to Serializable module (thanks @jgaskins)
+
 ## 1.1.0 (2021-07-10)
 * Optional zero copy slices when unpacking (#67, thanks @didactic-drunk)
 
