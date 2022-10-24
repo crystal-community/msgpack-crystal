@@ -55,13 +55,13 @@ module MessagePack
         write_bytes(size)
         copy(size + 1)
       when 0xCC, 0xD0
-        copy_static(1)
+        write_bytes(read(UInt8))
       when 0xCD, 0xD1
-        copy_static(2)
+        write_bytes(read(UInt16))
       when 0xCE, 0xD2, 0xCA
-        copy_static(4)
+        write_bytes(read(UInt32))
       when 0xCF, 0xD3, 0xCB
-        copy_static(8)
+        write_bytes(read(UInt64))
       when 0xD4..0xD8
         size = 1 << (current_byte - 0xD4) # 1, 2, 4, 8, 16
         copy(size + 1)
@@ -104,12 +104,6 @@ module MessagePack
 
     protected def read(type : T.class) forall T
       @io_src.read_bytes(T, IO::ByteFormat::BigEndian)
-    end
-
-    macro copy_static(size)
-      %buffer = uninitialized UInt8[{{size}}]
-      @io_src.read(%buffer.to_slice)
-      @io_dst.write(%buffer.to_slice)
     end
   end
 end
