@@ -1,3 +1,6 @@
+## 1.3.0 (2022-10-24)
+* Added MessagePack::Copy api to fast copy objects from IO to IO
+
 ## 1.2.0 (2021-10-14)
 * Added `use_msgpack_discriminator` to Serializable module (thanks @jgaskins)
 
