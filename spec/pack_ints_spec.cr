@@ -157,8 +157,8 @@ describe "MessagePack::Packer" do
       it { UInt64.from_msgpack(UInt64::MAX.to_msgpack).should eq UInt64::MAX }
 
       it { expect_raises(OverflowError) { UInt64.from_msgpack(-1.to_msgpack).should eq UInt64::MAX } }
-      it { expect_raises(OverflowError) { UInt64.from_msgpack(Int16::MIN.to_msgpack).should eq 18446744073709518848 } }
-      it { expect_raises(OverflowError) { UInt64.from_msgpack(Int32::MIN.to_msgpack).should eq 18446744071562067968 } }
+      it { expect_raises(OverflowError) { UInt64.from_msgpack(Int16::MIN.to_msgpack).should eq 18446744073709518848_u64 } }
+      it { expect_raises(OverflowError) { UInt64.from_msgpack(Int32::MIN.to_msgpack).should eq 18446744071562067968_u64 } }
       it { expect_raises(OverflowError) { UInt64.from_msgpack(Int64::MIN.to_msgpack) } }
     end
   end

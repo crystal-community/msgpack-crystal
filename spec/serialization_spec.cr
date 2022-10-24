@@ -227,7 +227,7 @@ describe "MessagePack serialization" do
     end
 
     it "uints" do
-      data = UInt64[17223372036854775809]
+      data = UInt64[17223372036854775809_u64]
       data.class.should eq(Array(UInt64))
       data.to_msgpack.should eq(Bytes[145, 207, 239, 5, 181, 157, 59, 32, 0, 1])
       typeof(data).from_msgpack(data.to_msgpack).should eq data
