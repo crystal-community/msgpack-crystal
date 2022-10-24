@@ -8,6 +8,8 @@ echo == Crystal Pack
 ./bin_pack
 echo == Crystal Unpack
 ./bin_unpack
+echo == Crystal Copy
+./bin_copy
 
 echo == Ruby Generate File
 ruby generate_file.rb
