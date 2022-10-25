@@ -1,5 +1,3 @@
-require "./lexer"
-
 module MessagePack
   # Fast copy msgpack objects from IO to IO, without full parse, without create temp objects
   # this is usefull for streaming apis
@@ -11,15 +9,16 @@ module MessagePack
     def initialize(@io_src : IO, @io_dst : IO)
     end
 
-    def copy_objects(n = 1)
+    def copy_objects(n)
       n.times { copy_object }
     end
 
     def copy_object
-      cb = next_byte
+      cb = @io_src.read_byte
+      raise EofError.new(0) unless cb
       @io_dst.write_byte(cb)
       copy_token(cb)
-      1
+      true
     end
 
     protected def copy_token(current_byte : UInt8)
@@ -55,13 +54,13 @@ module MessagePack
         write_bytes(size)
         copy(size + 1)
       when 0xCC, 0xD0
-        write_bytes(read(UInt8))
+        copy_static_1
       when 0xCD, 0xD1
-        write_bytes(read(UInt16))
+        copy_static_2
       when 0xCE, 0xD2, 0xCA
-        write_bytes(read(UInt32))
+        copy_static_4
       when 0xCF, 0xD3, 0xCB
-        write_bytes(read(UInt64))
+        copy_static_8
       when 0xD4..0xD8
         size = 1 << (current_byte - 0xD4) # 1, 2, 4, 8, 16
         copy(size + 1)
@@ -88,22 +87,24 @@ module MessagePack
       end
     end
 
-    protected def next_byte : UInt8
-      byte = @io_src.read_byte
-      raise EofError.new(0) unless byte
-      byte
-    end
-
-    def write_bytes(v)
+    protected def write_bytes(v)
       @io_dst.write_bytes(v, IO::ByteFormat::BigEndian)
     end
 
-    def copy(size)
+    protected def copy(size)
       IO.copy(@io_src, @io_dst, size)
     end
 
     protected def read(type : T.class) forall T
       @io_src.read_bytes(T, IO::ByteFormat::BigEndian)
     end
+
+    {% for size in [1, 2, 4, 8] %}
+      protected def copy_static_{{size}}
+        buf = uninitialized UInt8[{{size}}]
+        io_src.read_fully(buf.to_slice)
+        io_dst.write(buf.to_slice)
+      end
+    {% end %}
   end
 end
