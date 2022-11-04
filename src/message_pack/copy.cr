@@ -11,6 +11,7 @@ module MessagePack
 
     def copy_objects(n)
       n.times { copy_object }
+      self
     end
 
     def copy_object
@@ -18,7 +19,7 @@ module MessagePack
       raise EofError.new(0) unless cb
       @io_dst.write_byte(cb)
       copy_token(cb)
-      true
+      self
     end
 
     protected def copy_token(current_byte : UInt8)
