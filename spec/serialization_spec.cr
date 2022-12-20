@@ -343,4 +343,17 @@ describe "MessagePack serialization" do
       h.should eq({"bla" => Bytes[98, 108, 97], "test" => Bytes[116, 101, 115, 116]})
     end
   end
+
+  context "Allow Node to deserialize" do
+    it "work" do
+      data = {"a": 1.0, "b": 5, "c": "xxx", "d": [1, 2, 3], "e": {"str" => "val"}}
+      binary = data.to_msgpack
+      data = Hash(String, MessagePack::Node).from_msgpack(binary)
+      Float64.new(data["a"].to_unpacker).should eq 1.0
+      Int32.new(data["b"].to_unpacker).should eq 5
+      String.new(data["c"].to_unpacker).should eq "xxx"
+      Array(Int32).new(data["d"].to_unpacker).should eq [1, 2, 3]
+      Hash(String, String).new(data["e"].to_unpacker).should eq({"str" => "val"})
+    end
+  end
 end
