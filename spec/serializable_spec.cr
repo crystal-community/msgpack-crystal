@@ -277,6 +277,28 @@ class MessagePackAttrModuleTest
   end
 end
 
+module MessagePackNamespace
+  struct FooRequest
+    include MessagePack::Serializable
+
+    getter foo : Foo
+    getter bar = Bar.new
+  end
+
+  struct Foo
+    include MessagePack::Serializable
+    getter id = "id:foo"
+  end
+
+  struct Bar
+    include MessagePack::Serializable
+    getter id = "id:bar"
+
+    def initialize # Allow for default value above
+    end
+  end
+end
+
 class MessagePackAttrModuleTest2 < MessagePackAttrModuleTest
   property bar : Int32
 
@@ -932,5 +954,13 @@ describe "MessagePack mapping" do
     # `Disciminator::Message` instead of the more specific types.
     created.as(Discriminator::Created).created_at.should eq time
     updated.as(Discriminator::Updated).updated_at.should eq time
+  end
+
+  describe "namespaced classes" do
+    it "lets default values use the object's own namespace" do
+      request = MessagePackNamespace::FooRequest.from_msgpack({foo: {} of String => String}.to_msgpack)
+      request.foo.id.should eq "id:foo"
+      request.bar.id.should eq "id:bar"
+    end
   end
 end
