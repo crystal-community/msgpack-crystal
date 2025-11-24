@@ -63,6 +63,27 @@ describe "MessagePack serialization" do
       tuple.should be_a(Tuple(Int32, String))
     end
 
+    it "does for NamedTuple" do
+      data = Bytes[131, 161, 97, 1, 172, 64, 99, 111, 109, 112, 108, 101, 120, 95, 107, 101, 121, 165, 119, 111, 114, 107, 115, 177, 107, 101, 121, 95, 119, 105, 116, 104, 95, 34, 113, 117, 111, 116, 101, 115, 34, 170, 97, 108, 115, 111, 32, 119, 111, 114, 107, 122]
+
+      named_tuple = NamedTuple(
+        a: Int32,
+        "@complex_key": String,
+        %[key_with_"quotes"]: String,
+      ).from_msgpack(data)
+
+      named_tuple.should eq({
+        a:                    1,
+        "@complex_key":       "works",
+        %[key_with_"quotes"]: "also workz",
+      })
+      named_tuple.should be_a NamedTuple(
+        a: Int32,
+        "@complex_key": String,
+        %[key_with_"quotes"]: String,
+      )
+    end
+
     it "does for Bytes" do
       data = UInt8[196, 3, 1, 2, 3]
       binary = Bytes.from_msgpack(data)
