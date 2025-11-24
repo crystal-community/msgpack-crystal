@@ -141,7 +141,10 @@ module MessagePack
 
       macro inherited
         def self.new(pull : ::MessagePack::Unpacker)
-          super
+          instance = allocate
+          instance.initialize(__pull_for_msgpack_serializable: pull)
+          GC.add_finalizer(instance) if instance.responds_to?(:finalize)
+          instance
         end
       end
     end
@@ -268,7 +271,7 @@ module MessagePack
               {% key.raise "mapping keys must be one of StringLiteral, NumberLiteral, BoolLiteral, or Path, not #{key.class_name.id}" %}
             {% end %}
           {% end %}
-          {{value.id}}.new(__pull_for_msgpack_serializable: MessagePack::NodeUnpacker.new(node))
+          {{value.id}}.new(MessagePack::NodeUnpacker.new(node))
         {% end %}
         else
           raise ::MessagePack::UnpackError.new("Unknown '{{field.id}}' discriminator value: #{discriminator_value.inspect}", 0)
