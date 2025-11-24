@@ -359,6 +359,12 @@ module Discriminator
   struct Updated < Message
     getter updated_at : Time
   end
+
+  # NOTE: not in the parent discriminator mapping
+  struct Activity < Message
+    getter type : String
+    getter object : String
+  end
 end
 
 describe "MessagePack mapping" do
@@ -954,6 +960,15 @@ describe "MessagePack mapping" do
     # `Disciminator::Message` instead of the more specific types.
     created.as(Discriminator::Created).created_at.should eq time
     updated.as(Discriminator::Updated).updated_at.should eq time
+  end
+
+  it "allows subclasses not in discriminator mapping to be deserialized directly" do
+    activity = Discriminator::Activity.from_msgpack({type: "Other", id: 456, object: "note:123"}.to_msgpack)
+
+    activity.should be_a Discriminator::Activity
+    activity.type.should eq "Other"
+    activity.id.should eq 456
+    activity.object.should eq "note:123"
   end
 
   describe "namespaced classes" do
