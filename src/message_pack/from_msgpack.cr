@@ -180,13 +180,13 @@ def NamedTuple.new(pull : MessagePack::Unpacker)
 
     {% for key, type in T %}
       if %var{key.id}.nil? && !::Union({{type}}).nilable?
-        raise MessagePack::TypeCastError.new("Missing msgpack attribute: {{key}}", token.byte_number)
+        raise MessagePack::TypeCastError.new("Missing msgpack attribute: #{ {{key.stringify}} }", token.byte_number)
       end
     {% end %}
 
     {
       {% for key, type in T %}
-        "{{key}}": %var{key.id}.as({{type}}),
+        {{key.stringify}}: %var{key.id}.as({{type}}),
       {% end %}
     }
   {% end %}
