@@ -63,6 +63,18 @@ describe "MessagePack serialization" do
       tuple.should be_a(Tuple(Int32, String))
     end
 
+    it "does for NamedTuple" do
+      data = Bytes[130, 161, 97, 1, 172, 64, 99, 111, 109, 112, 108, 101, 120, 95, 107, 101, 121, 165, 119, 111, 114, 107, 115]
+
+      named_tuple = NamedTuple(a: Int32, "@complex_key": String).from_msgpack(data)
+
+      named_tuple.should eq({
+        a:              1,
+        "@complex_key": "works",
+      })
+      named_tuple.should be_a(NamedTuple(a: Int32, "@complex_key": String))
+    end
+
     it "does for Bytes" do
       data = UInt8[196, 3, 1, 2, 3]
       binary = Bytes.from_msgpack(data)
